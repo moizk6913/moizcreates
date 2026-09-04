@@ -12,11 +12,16 @@ import About from '@/components/About';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
 
+import CustomCursor from '@/components/CustomCursor';
+
 export default function Home() {
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
 
   return (
     <main className="relative min-h-screen bg-canvas">
+      {/* Custom Luxury Magnetic Fluid Cursor */}
+      <CustomCursor />
+
       {/* Header */}
       <Header />
 

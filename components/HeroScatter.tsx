@@ -361,6 +361,8 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
               willChange: 'transform',
             }}
             className="absolute cursor-pointer pointer-events-auto group"
+            data-cursor="view"
+            data-cursor-text="INSPECT ↗"
           >
             <div
               style={{ height: `${item.h}px` }}

@@ -205,6 +205,8 @@ export default function DisciplineDeck() {
               return (
                 <article
                   key={card.id}
+                  data-cursor="shuffle"
+                  data-cursor-text="SHUFFLE ⟳"
                   onClick={() => handleShuffleCard(originalIdx)}
                   onMouseEnter={() => setHoveredIdx(originalIdx)}
                   onMouseLeave={() => setHoveredIdx(null)}

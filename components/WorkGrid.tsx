@@ -21,6 +21,8 @@ export default function WorkGrid({ onOpenCase }: WorkGridProps) {
           {/* 01. Windchasers Aviation Academy (Wide Tile) */}
           <article
             onClick={() => onOpenCase('windchasers')}
+            data-cursor="view"
+            data-cursor-text="EXPLORE ↗"
             className="md:col-span-12 group flex flex-col bg-canvas border border-border-hairline hover:border-border-medium transition-all duration-300 cursor-pointer"
           >
             <div className="relative w-full aspect-[21/9] overflow-hidden bg-subtle">
@@ -51,6 +53,8 @@ export default function WorkGrid({ onOpenCase }: WorkGridProps) {
           {/* 02. Easy Hai Bro (Featured Case Study) */}
           <article
             onClick={() => onOpenCase('easyhaibro')}
+            data-cursor="view"
+            data-cursor-text="CASE STUDY ↗"
             className="md:col-span-7 group flex flex-col bg-canvas border border-border-hairline hover:border-border-medium transition-all duration-300 cursor-pointer"
           >
             <div className="relative w-full aspect-[16/11] overflow-hidden bg-subtle">
@@ -89,6 +93,8 @@ export default function WorkGrid({ onOpenCase }: WorkGridProps) {
           {/* 03. Kaladhar Bridal Campaign (Portrait) */}
           <article
             onClick={() => onOpenCase('kaladhar')}
+            data-cursor="view"
+            data-cursor-text="EXPLORE ↗"
             className="md:col-span-5 group flex flex-col bg-canvas border border-border-hairline hover:border-border-medium transition-all duration-300 cursor-pointer"
           >
             <div className="relative w-full aspect-[4/5] overflow-hidden bg-subtle">
@@ -119,6 +125,8 @@ export default function WorkGrid({ onOpenCase }: WorkGridProps) {
           {/* 04. Ruchi Fried Chicken */}
           <article
             onClick={() => onOpenCase('ruchi')}
+            data-cursor="view"
+            data-cursor-text="EXPLORE ↗"
             className="md:col-span-6 group flex flex-col bg-canvas border border-border-hairline hover:border-border-medium transition-all duration-300 cursor-pointer"
           >
             <div className="relative w-full aspect-[16/10] overflow-hidden bg-subtle">
@@ -149,6 +157,8 @@ export default function WorkGrid({ onOpenCase }: WorkGridProps) {
           {/* 05. Oxymorons */}
           <article
             onClick={() => onOpenCase('oxymorons')}
+            data-cursor="view"
+            data-cursor-text="EXPLORE ↗"
             className="md:col-span-6 group flex flex-col bg-canvas border border-border-hairline hover:border-border-medium transition-all duration-300 cursor-pointer"
           >
             <div className="relative w-full aspect-[16/10] overflow-hidden bg-subtle">
