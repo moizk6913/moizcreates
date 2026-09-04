@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CardData {
   id: string;
@@ -105,9 +106,9 @@ const baseConfig = [
 ];
 
 export default function DisciplineDeck() {
+  const router = useRouter();
   const [order, setOrder] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [isShuffling, setIsShuffling] = useState(false);
   const [scaleFactor, setScaleFactor] = useState(1);
 
   useEffect(() => {
@@ -126,57 +127,11 @@ export default function DisciplineDeck() {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
-  function handleShuffleCard(originalIdx: number) {
-    if (isShuffling) return;
-    setIsShuffling(true);
-
-    setTimeout(() => {
-      setOrder((prevOrder) => {
-        const slot = prevOrder.indexOf(originalIdx);
-        const newOrder = [...prevOrder];
-        newOrder.splice(slot, 1);
-        newOrder.unshift(originalIdx); // Place at back of stack
-        return newOrder;
-      });
-
-      setTimeout(() => {
-        setIsShuffling(false);
-      }, 550);
-    }, 250);
-  }
-
-  function handleShuffleButtonClick() {
-    if (isShuffling) return;
-    const frontOriginalIdx = order[order.length - 1];
-    handleShuffleCard(frontOriginalIdx);
-  }
-
   return (
     <section id="disciplines" className="w-full py-16 md:py-24 bg-canvas border-none relative overflow-hidden select-none">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        {/* Section Header */}
-        <div className="flex justify-between items-center mb-10 md:mb-14">
-          <div className="flex flex-col gap-1">
-            <span className="font-mono text-xs md:text-sm tracking-[-0.02em] text-primary uppercase font-medium">
-              // CREATIVE DISCIPLINES &amp; CORE METHODS
-            </span>
-            <span className="font-mono text-[11px] md:text-xs tracking-[-0.02em] text-muted uppercase">
-              (07 SIGNATURE PRACTICES • HOVER TO INSPECT)
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleShuffleButtonClick}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#080808] hover:bg-[#222] text-white rounded-full font-mono text-[11px] tracking-[-0.02em] uppercase font-medium transition-all duration-200 hover:scale-105 active:scale-95 group shadow-none"
-          >
-            <span className="text-sm transition-transform duration-300 group-hover:rotate-180">⟳</span>
-            <span>SHUFFLE DECK</span>
-          </button>
-        </div>
-
         {/* Fanned Card Deck Stage */}
-        <div className="w-full min-h-[440px] md:min-h-[480px] flex items-center justify-center relative py-10">
+        <div className="w-full min-h-[440px] md:min-h-[480px] flex items-center justify-center relative py-6">
           <div className="relative w-[220px] h-[330px] flex items-center justify-center">
             {cardsData.map((card, originalIdx) => {
               const slot = order.indexOf(originalIdx);
@@ -205,9 +160,9 @@ export default function DisciplineDeck() {
               return (
                 <article
                   key={card.id}
-                  data-cursor="shuffle"
-                  data-cursor-text="SHUFFLE ⟳"
-                  onClick={() => handleShuffleCard(originalIdx)}
+                  data-cursor="view"
+                  data-cursor-text="OPEN ARCHIVE ↗"
+                  onClick={() => router.push(`/canvas?discipline=${card.id}`)}
                   onMouseEnter={() => setHoveredIdx(originalIdx)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   style={{
