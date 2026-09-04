@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'BN Cringe Sans';
+  src: url('/fonts/BNCringeSans-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Sans';
+  src: url('/fonts/BNCringeSans-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Sans';
+  src: url('/fonts/BNCringeSans-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Sans';
+  src: url('/fonts/BNCringeSans-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Sans';
+  src: url('/fonts/BNCringeSans-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Serif';
+  src: url('/fonts/BNCringeSerifLight.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Serif';
+  src: url('/fonts/BNCringeSerifMedium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Serif';
+  src: url('/fonts/BNCringeSerifBold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BN Cringe Serif';
+  src: url('/fonts/BNCringeSerifBlack.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg-canvas: #ffffff;
+  --bg-subtle: #f8f7f5;
+  --text-primary: #0d0d0e;
+  --text-secondary: #585a62;
+  --text-muted: #8c8f98;
+  --accent-red: #ff2a2a;
+  --border-hairline: #e8e6e1;
+  --border-medium: #d3d0c8;
+}
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: #d8d5ce;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
+
+@keyframes springPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-spring-pop {
+  animation: springPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.35) forwards;
+}
+
+@keyframes marqueeLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-left {
+  animation: marqueeLeft 28s linear infinite;
+  will-change: transform;
+}
