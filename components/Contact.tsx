@@ -27,18 +27,19 @@ export default function Contact() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
           
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-red" />
-              <span className="font-mono text-xs text-accent-red tracking-widest font-semibold uppercase">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]" />
+              <span className="font-mono text-xs text-[#e60000] tracking-widest font-semibold uppercase">
                 03 // INITIATE
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-4 leading-tight">
-              Direct Contact<span className="text-accent-red">.</span>
-            </h2>
-            <p className="text-base sm:text-lg text-secondary leading-relaxed max-w-md">
-              Available for Director / Content Lead roles in Dubai and select brand commissions worldwide.
-            </p>
+            <div className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-primary leading-tight space-y-1">
+              <p>I promise I&apos;ll read it.</p>
+              <p>I might even reply quickly.</p>
+              <p className="text-secondary font-medium text-lg sm:text-xl md:text-2xl pt-2">
+                Look at us, already making progress.
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-8">
@@ -46,7 +47,7 @@ export default function Contact() {
             <div className="flex items-center gap-4 flex-wrap">
               <a
                 href="mailto:moiz@moizcreates.com"
-                className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-primary hover:text-accent-red transition-colors duration-300"
+                className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-primary hover:text-[#e60000] transition-colors duration-300"
               >
                 moiz@moizcreates.com
               </a>
@@ -54,7 +55,7 @@ export default function Contact() {
                 onClick={handleCopy}
                 className={`font-mono text-xs font-semibold px-4 py-2 rounded-full transition-all duration-300 select-none ${
                   copied
-                    ? 'bg-accent-red text-white shadow-[0_4px_16px_rgba(255,42,42,0.35)] scale-105'
+                    ? 'bg-[#e60000] text-white shadow-[0_4px_16px_rgba(230,0,0,0.35)] scale-105'
                     : 'bg-black/[0.05] hover:bg-primary hover:text-white text-primary'
                 }`}
               >
@@ -68,7 +69,7 @@ export default function Contact() {
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs text-secondary hover:text-accent-red transition-colors duration-200"
+                className="font-mono text-xs text-secondary hover:text-[#e60000] transition-colors duration-200"
               >
                 LinkedIn ↗
               </a>
@@ -76,13 +77,13 @@ export default function Contact() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs text-secondary hover:text-accent-red transition-colors duration-200"
+                className="font-mono text-xs text-secondary hover:text-[#e60000] transition-colors duration-200"
               >
                 Instagram ↗
               </a>
               <a
                 href="#top"
-                className="font-mono text-xs text-secondary hover:text-accent-red transition-colors duration-200 ml-auto"
+                className="font-mono text-xs text-secondary hover:text-[#e60000] transition-colors duration-200 ml-auto"
               >
                 Back to Top ↑
               </a>

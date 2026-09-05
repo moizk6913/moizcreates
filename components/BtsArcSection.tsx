@@ -301,7 +301,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
   };
 
   return (
-    <section id="work-showcase" className="w-full py-10 md:py-16 bg-canvas overflow-hidden">
+    <section id="work-showcase" className="w-full py-8 md:py-12 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks (Zero External Text) */}
       <div className="w-full flex flex-col gap-6 md:gap-8 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with mixed bento widths */}

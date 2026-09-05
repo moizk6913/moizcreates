@@ -96,13 +96,13 @@ const cardsData: CardData[] = [
 ];
 
 const baseConfig = [
-  { rot: -15, x: -270, y: 22, z: 10 },
-  { rot: -10, x: -180, y: 10, z: 12 },
-  { rot: -5,  x: -90,  y: 3,  z: 14 },
-  { rot: 0,   x: 0,    y: 0,  z: 16 },
-  { rot: 5,   x: 90,   y: 3,  z: 18 },
-  { rot: 10,  x: 180,  y: 10, z: 20 },
-  { rot: 15,  x: 270,  y: 22, z: 22 },
+  { rot: -16, x: -360, y: 26, z: 10 },
+  { rot: -11, x: -240, y: 12, z: 12 },
+  { rot: -5.5, x: -120, y: 4,  z: 14 },
+  { rot: 0,    x: 0,    y: 0,  z: 16 },
+  { rot: 5.5,  x: 120,  y: 4,  z: 18 },
+  { rot: 11,   x: 240,  y: 12, z: 20 },
+  { rot: 16,   x: 360,  y: 26, z: 22 },
 ];
 
 function renderPattern(patternType: string) {
@@ -249,41 +249,41 @@ export default function DisciplineDeck() {
   }, []);
 
   return (
-    <section id="disciplines" className="w-full py-16 md:py-24 bg-canvas border-none relative overflow-hidden select-none">
+    <section id="disciplines" className="w-full py-10 md:py-16 bg-canvas border-none relative overflow-hidden select-none">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
 
-        {/* MOBILE VIEW (< 768px): Tactile Horizontal Swipe Deck (0 Clipping, 100% Readable, 0 Shadow, 0 Stroke) */}
+        {/* MOBILE VIEW (< 768px): Tactile Horizontal Swipe Deck (Substantial size, crisp readability) */}
         <div className="md:hidden w-full">
-          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory py-4 px-2 no-scrollbar touch-pan-x">
+          <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-4 px-2 no-scrollbar touch-pan-x">
             {cardsData.map((card) => (
               <Link
                 href={`/canvas?discipline=${card.id}`}
                 key={card.id}
-                className="w-[240px] h-[350px] flex-shrink-0 snap-center rounded-[20px] select-none block active:scale-95 transition-transform duration-200 border-0 shadow-none"
+                className="w-[275px] sm:w-[310px] h-[410px] sm:h-[450px] flex-shrink-0 snap-center rounded-[22px] select-none block active:scale-95 transition-transform duration-200 border-0 shadow-none"
               >
-                <div className={`w-full h-full rounded-[20px] p-5 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
+                <div className={`w-full h-full rounded-[22px] p-6 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
                   {/* Top Graphic Pattern */}
-                  <div className="w-full h-[120px] flex items-center justify-center overflow-hidden">
+                  <div className="w-full h-[150px] flex items-center justify-center overflow-hidden">
                     {renderPattern(card.patternType)}
                   </div>
 
                   {/* Bottom Text Content */}
-                  <div className="flex flex-col gap-1 z-10">
+                  <div className="flex flex-col gap-1.5 z-10">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-mono text-[10px] tracking-[-0.02em] opacity-80 uppercase font-medium">
+                      <span className="font-mono text-xs tracking-[-0.02em] opacity-80 uppercase font-medium">
                         {card.idxStr}
                       </span>
-                      <span className="font-mono text-[9px] tracking-[-0.02em] px-2 py-0.5 rounded-full bg-black/10 uppercase font-semibold">
+                      <span className="font-mono text-[10px] tracking-wider px-2.5 py-0.5 rounded-full bg-black/10 uppercase font-semibold">
                         {card.badge}
                       </span>
                     </div>
-                    <h3 className="font-display font-black text-xl tracking-[-0.02em] uppercase leading-tight">
+                    <h3 className="font-display font-black text-2xl tracking-tight uppercase leading-tight">
                       {card.title}
                     </h3>
-                    <p className="font-mono text-[10px] tracking-[-0.02em] leading-snug opacity-80 mt-0.5 line-clamp-2">
+                    <p className="font-mono text-xs tracking-[-0.01em] leading-relaxed opacity-85 mt-0.5 line-clamp-3">
                       {card.desc}
                     </p>
-                    <div className="mt-3 pt-2 border-t border-black/10 flex justify-between items-center text-[9px] font-mono font-bold uppercase tracking-wider">
+                    <div className="mt-3 pt-2.5 border-t border-black/10 flex justify-between items-center text-[10px] font-mono font-bold uppercase tracking-wider">
                       <span>OPEN ARCHIVE</span>
                       <span>↗</span>
                     </div>
@@ -300,9 +300,9 @@ export default function DisciplineDeck() {
           </div>
         </div>
 
-        {/* DESKTOP VIEW (>= 768px): Fanned Card Deck Stage with Hover Lift (ZERO Shadows, ZERO Strokes) */}
-        <div className="hidden md:flex w-full min-h-[440px] md:min-h-[480px] items-center justify-center relative py-6">
-          <div className="relative w-[220px] h-[330px] flex items-center justify-center">
+        {/* DESKTOP VIEW (>= 768px): Large Fanned Card Deck Stage with Room-Filling Presence */}
+        <div className="hidden md:flex w-full min-h-[520px] md:min-h-[580px] lg:min-h-[620px] items-center justify-center relative py-6">
+          <div className="relative w-[280px] h-[440px] flex items-center justify-center">
             {cardsData.map((card, originalIdx) => {
               const slot = order.indexOf(originalIdx);
               const conf = baseConfig[slot] || { rot: 0, x: 0, y: 0, z: slot };
@@ -317,14 +317,14 @@ export default function DisciplineDeck() {
               let z = conf.z;
 
               if (isHovered) {
-                posY = -44;
+                posY = -50;
                 rot = 0;
                 z = 70;
               } else if (isAnyHovered && !isHovered) {
-                const offsetDirection = slot < hoveredSlot ? -20 : 20;
+                const offsetDirection = slot < hoveredSlot ? -28 : 28;
                 posX = Math.round((conf.x + offsetDirection) * scaleFactor);
-                posY = Math.round((conf.y + 8) * scaleFactor);
-                rot = conf.rot + (slot < hoveredSlot ? -3 : 3);
+                posY = Math.round((conf.y + 10) * scaleFactor);
+                rot = conf.rot + (slot < hoveredSlot ? -3.5 : 3.5);
               }
 
               return (
@@ -340,28 +340,28 @@ export default function DisciplineDeck() {
                     zIndex: z,
                     transformOrigin: 'center 95%',
                   }}
-                  className="absolute w-[210px] sm:w-[225px] md:w-[240px] h-[310px] sm:h-[330px] md:h-[350px] rounded-[16px] cursor-pointer will-change-transform transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none border-0 select-none block"
+                  className="absolute w-[260px] sm:w-[290px] md:w-[325px] lg:w-[350px] h-[390px] sm:h-[430px] md:h-[480px] lg:h-[515px] rounded-[22px] cursor-pointer will-change-transform transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none border-0 select-none block"
                 >
-                  <div className={`w-full h-full rounded-[16px] p-5 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
+                  <div className={`w-full h-full rounded-[22px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
                     {/* Top Graphic Pattern */}
-                    <div className="w-full h-[120px] flex items-center justify-center overflow-hidden">
+                    <div className="w-full h-[160px] sm:h-[180px] md:h-[200px] flex items-center justify-center overflow-hidden">
                       {renderPattern(card.patternType)}
                     </div>
 
                     {/* Bottom Card Content */}
-                    <div className="flex flex-col gap-1 z-10">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <span className="font-mono text-[10px] tracking-[-0.02em] opacity-80 uppercase font-medium">
+                    <div className="flex flex-col gap-1.5 z-10">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-mono text-xs tracking-[-0.02em] opacity-80 uppercase font-medium">
                           {card.idxStr}
                         </span>
-                        <span className="font-mono text-[9px] tracking-[-0.02em] px-2 py-0.5 rounded-full bg-black/10 uppercase font-semibold">
+                        <span className="font-mono text-[10px] md:text-xs tracking-wider px-3 py-0.5 rounded-full bg-black/10 uppercase font-semibold">
                           {card.badge}
                         </span>
                       </div>
-                      <h3 className="font-display font-black text-lg sm:text-xl tracking-[-0.02em] uppercase leading-tight">
+                      <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[30px] tracking-tight uppercase leading-tight">
                         {card.title}
                       </h3>
-                      <p className="font-mono text-[10px] tracking-[-0.02em] leading-snug opacity-80">
+                      <p className="font-mono text-xs md:text-[13px] tracking-[-0.01em] leading-relaxed opacity-85 mt-0.5 line-clamp-3">
                         {card.desc}
                       </p>
                     </div>

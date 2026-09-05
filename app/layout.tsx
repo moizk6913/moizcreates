@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Space_Mono, DM_Mono } from 'next/font/google';
 import './globals.css';
 import SmoothScroll from '@/components/SmoothScroll';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,11 +35,11 @@ export const metadata: Metadata = {
   description: 'Art Director & Brand Visual Designer. Commercial campaigns, shoot direction, visual systems. Dubai / Worldwide.',
   icons: {
     icon: [
-      { url: '/assets/logo.png' },
-      { url: '/favicon.ico' },
+      { url: '/icon-square.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
-    shortcut: '/assets/logo.png',
-    apple: '/assets/logo.png',
+    shortcut: '/icon-square.png',
+    apple: '/icon-square.png',
   },
 };
 
@@ -51,6 +52,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${dmMono.variable} ${spaceMono.variable}`}>
       <body className="font-sans bg-canvas text-primary selection:bg-accent-red selection:text-white">
         <SmoothScroll>{children}</SmoothScroll>
+        <Analytics />
       </body>
     </html>
   );
