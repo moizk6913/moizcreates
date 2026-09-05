@@ -7,6 +7,7 @@ import HeroScatter from '@/components/HeroScatter';
 import EditorialManifesto from '@/components/EditorialManifesto';
 import ClientsStrip from '@/components/ClientsStrip';
 import SelectedWorks3D from '@/components/SelectedWorks3D';
+import DisciplineDeck from '@/components/DisciplineDeck';
 import About from '@/components/About';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
@@ -54,6 +55,9 @@ export default function Home() {
 
       {/* Section 02: 3D Cylindrical Arc Selected Works Showcase */}
       <SelectedWorks3D onOpenCase={setSelectedCase} />
+
+      {/* Section 02.5: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
+      <DisciplineDeck />
 
       {/* Section 03: About Director Profile */}
       <About />
