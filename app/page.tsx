@@ -54,7 +54,7 @@ export default function Home() {
       <ClientsStrip />
 
       {/* Section 01.85: 3D Curved Arc BTS & Direction Reels (Upper from deck) */}
-      <BtsArcSection />
+      <BtsArcSection onOpenCase={setSelectedCase} />
 
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
