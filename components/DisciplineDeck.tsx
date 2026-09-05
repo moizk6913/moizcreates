@@ -249,7 +249,7 @@ export default function DisciplineDeck() {
   }, []);
 
   return (
-    <section id="disciplines" className="w-full py-10 md:py-16 bg-canvas border-none relative overflow-hidden select-none">
+    <section id="disciplines" className="w-full pt-0 pb-6 md:pt-1 md:pb-10 bg-canvas border-none relative overflow-hidden select-none">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
 
         {/* MOBILE VIEW (< 768px): Tactile Horizontal Swipe Deck (Substantial size, crisp readability) */}
@@ -301,7 +301,7 @@ export default function DisciplineDeck() {
         </div>
 
         {/* DESKTOP VIEW (>= 768px): Large Fanned Card Deck Stage with Room-Filling Presence */}
-        <div className="hidden md:flex w-full min-h-[520px] md:min-h-[580px] lg:min-h-[620px] items-center justify-center relative py-6">
+        <div className="hidden md:flex w-full min-h-[460px] md:min-h-[500px] lg:min-h-[540px] items-center justify-center relative pt-2 pb-4">
           <div className="relative w-[280px] h-[440px] flex items-center justify-center">
             {cardsData.map((card, originalIdx) => {
               const slot = order.indexOf(originalIdx);

@@ -332,7 +332,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
     <section
       ref={containerRef}
       id="top"
-      className="relative w-full h-screen min-h-screen bg-canvas overflow-hidden flex flex-col justify-between border-none select-none"
+      className="relative w-full min-h-screen min-h-[750px] md:min-h-[900px] lg:min-h-[1000px] bg-canvas overflow-hidden flex flex-col justify-between border-none select-none"
     >
       {/* Delicate Dotted Background Grid (Smoothly fades in ONLY after initial shutter completes) */}
       <div
@@ -346,7 +346,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
           shutterActive ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
         }`}
       >
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black tracking-[-0.02em] text-primary uppercase leading-[0.7]">
+        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.02em] text-primary uppercase leading-[0.7]">
           MOIZ KHAN
         </h1>
         <p className="font-mono text-[11px] sm:text-xs md:text-sm tracking-[-0.02em] text-secondary uppercase font-medium">
@@ -388,7 +388,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
             style={{
               left: `calc(50% + ${item.x}vw)`,
               top: `calc(50% + ${item.y}vh)`,
-              width: `${item.w}px`,
+              width: `clamp(${item.w}px, ${(item.w * 0.08).toFixed(2)}vw, ${item.w * 2.2}px)`,
               height: 'auto',
               zIndex: item.z,
               transform: `translate(-50%, -50%) rotate(${item.rot}deg) scale(0)`,
@@ -400,7 +400,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
             data-cursor-text="INSPECT ↗"
           >
             <div
-              style={{ height: `${item.h}px` }}
+              style={{ height: `clamp(${item.h}px, ${(item.h * 0.08).toFixed(2)}vw, ${item.h * 2.2}px)` }}
               className="relative w-full bg-[#111] overflow-hidden shadow-none transition-transform duration-300 group-hover:scale-125 group-hover:z-[100]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -425,7 +425,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
             style={{
               left: `calc(50% + ${pop.x.toFixed(1)}vw)`,
               top: `calc(50% + ${pop.y.toFixed(1)}vh)`,
-              width: `${pop.w}px`,
+              width: `clamp(${pop.w}px, ${(pop.w * 0.08).toFixed(2)}vw, ${pop.w * 2.2}px)`,
               height: 'auto',
               zIndex: pop.z,
               transform: `translate(-50%, -50%) rotate(${pop.rot.toFixed(1)}deg)`,
@@ -433,7 +433,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
             className="absolute cursor-pointer pointer-events-auto group animate-spring-pop"
           >
             <div
-              style={{ height: `${pop.h}px` }}
+              style={{ height: `clamp(${pop.h}px, ${(pop.h * 0.08).toFixed(2)}vw, ${pop.h * 2.2}px)` }}
               className="relative w-full bg-[#111] overflow-hidden shadow-none transition-transform duration-300 group-hover:scale-120 group-hover:z-[250]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
