@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function AboutPage() {
   const [copied, setCopied] = useState(false);
 
-  // Parallax refs for surrounding typography (Desktop)
+  // Desktop floating typography refs
   const topLeftRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLDivElement>(null);
   const midLeftRef = useRef<HTMLDivElement>(null);
@@ -15,8 +15,8 @@ export default function AboutPage() {
   const heHimRef = useRef<HTMLDivElement>(null);
   const watermarkTopRef = useRef<HTMLDivElement>(null);
 
-  // Parallax refs for Mobile
-  const mobileTopTextRef = useRef<HTMLDivElement>(null);
+  // Mobile typography refs
+  const mobileTopRef = useRef<HTMLDivElement>(null);
   const mobileMidLeftRef = useRef<HTMLDivElement>(null);
   const mobileMidRightRef = useRef<HTMLDivElement>(null);
   const mobileBottomRef = useRef<HTMLDivElement>(null);
@@ -37,9 +37,8 @@ export default function AboutPage() {
 
     const handleMouseMove = (e: MouseEvent) => {
       const { innerWidth, innerHeight } = window;
-      // Normalized coordinates: -1 (left) to +1 (right)
-      targetX = (e.clientX / innerWidth - 0.5) * 2;
-      targetY = (e.clientY / innerHeight - 0.5) * 2;
+      targetX = (e.clientX / innerWidth - 0.5) * 2; // -1 to +1
+      targetY = (e.clientY / innerHeight - 0.5) * 2; // -1 to +1
     };
 
     const handleMouseLeave = () => {
@@ -86,11 +85,11 @@ export default function AboutPage() {
       }
       if (midLeftRef.current) {
         // Floats forward closer to camera
-        midLeftRef.current.style.transform = `translate3d(${totalX * -22}px, calc(-50% + ${totalY * -10}px), 0)`;
+        midLeftRef.current.style.transform = `translate3d(${totalX * -22}px, ${totalY * -9}px, 0)`;
       }
       if (midRightRef.current) {
         // Floats forward closer to camera
-        midRightRef.current.style.transform = `translate3d(${totalX * -20}px, calc(-50% + ${totalY * -9}px), 0)`;
+        midRightRef.current.style.transform = `translate3d(${totalX * -20}px, ${totalY * -9}px, 0)`;
       }
       if (bottomRef.current) {
         bottomRef.current.style.transform = `translate3d(calc(-50% + ${totalX * -14}px), ${totalY * -6}px, 0)`;
@@ -99,15 +98,15 @@ export default function AboutPage() {
         heHimRef.current.style.transform = `translate3d(calc(-50% + ${totalX * -8}px), ${totalY * -4}px, 0)`;
       }
       if (watermarkTopRef.current) {
-        // Background watermark shifts in opposite direction (recessed depth)
-        watermarkTopRef.current.style.transform = `translate3d(${totalX * 8}px, ${totalY * 4}px, 0)`;
+        // Background watermark shifts in reverse direction (recessed depth)
+        watermarkTopRef.current.style.transform = `translate3d(${totalX * 10}px, ${totalY * 5}px, 0)`;
       }
 
       // ================================================================
       // MOBILE TYPOGRAPHY PARALLAX
       // ================================================================
-      if (mobileTopTextRef.current) {
-        mobileTopTextRef.current.style.transform = `translate3d(${totalX * -10}px, 0, 0)`;
+      if (mobileTopRef.current) {
+        mobileTopRef.current.style.transform = `translate3d(${totalX * -10}px, 0, 0)`;
       }
       if (mobileMidLeftRef.current) {
         mobileMidLeftRef.current.style.transform = `translate3d(${totalX * -14}px, 0, 0)`;
@@ -142,7 +141,7 @@ export default function AboutPage() {
     <main className="w-full min-h-screen bg-[#e4e1da] text-[#111111] selection:bg-[#e60000] selection:text-white flex flex-col justify-between relative overflow-x-hidden select-none">
       
       {/* ============================================================ */}
-      {/* MINIMAL FLOATING NAVIGATION: Back Button & Status Tag        */}
+      {/* MINIMAL FLOATING TOP HEADER: Back Button & Directorial Tag   */}
       {/* ============================================================ */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 py-5 sm:py-6 flex items-center justify-between pointer-events-none">
         <Link
@@ -155,7 +154,7 @@ export default function AboutPage() {
 
         <div className="font-mono text-[11px] tracking-widest text-secondary/80 uppercase flex items-center gap-2.5 pointer-events-auto">
           <span className="w-2 h-2 rounded-full bg-[#e60000] animate-pulse" />
-          <span className="hidden sm:inline">01 — DIRECTORIAL PROFILE // EDITORIAL SCENE</span>
+          <span className="hidden sm:inline">01 — DIRECTORIAL PROFILE // EDITORIAL CANVAS</span>
           <span className="sm:hidden">01 // PROFILE</span>
         </div>
       </header>
@@ -165,7 +164,7 @@ export default function AboutPage() {
       {/* NO fixed card, NO inner artboard, NO borders, NO margins     */}
       {/* Entire viewport IS the canvas; background expands naturally  */}
       {/* ============================================================ */}
-      <section className="hidden md:flex w-full h-screen min-h-[660px] relative items-center justify-center overflow-hidden bg-[#e4e1da]">
+      <section className="hidden md:block w-full h-screen min-h-[660px] relative overflow-hidden bg-[#e4e1da]">
         
         {/* ========================================================== */}
         {/* 1. FIXED VISUAL ANCHOR (Character & Red Lettering)         */}
@@ -175,7 +174,7 @@ export default function AboutPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[84vw] max-w-[1240px] xl:max-w-[1360px] 2xl:max-w-[1450px] flex items-center justify-center pointer-events-none z-20">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/about_center_anchor_1080.png"
+            src="/about_anchor_tight.png"
             alt="Art Director Scene"
             className="w-full h-auto object-contain block select-none pointer-events-none filter-none"
             loading="eager"
@@ -188,7 +187,7 @@ export default function AboutPage() {
         {/* ========================================================== */}
         <div
           ref={watermarkTopRef}
-          className="hidden lg:block absolute right-8 xl:right-16 2xl:right-24 top-20 xl:top-24 z-10 font-mono text-[10px] xl:text-[11.5px] text-black/[0.055] uppercase tracking-tight leading-[1.32] pointer-events-none select-none max-w-sm text-right will-change-transform"
+          className="hidden xl:block absolute right-[6vw] top-[8vh] z-10 font-mono text-[10.5px] 2xl:text-[11.5px] text-black/[0.05] uppercase tracking-tight leading-[1.32] pointer-events-none select-none max-w-[340px] text-right will-change-transform"
         >
           <p>A LAPTOP AND A STUBBORN STREAK. BELIEVE ME IT&apos;S ME —</p>
           <p>THE FACE IS UNTOUCHED, THE MUSCLES ARE A GIFT</p>
@@ -207,7 +206,7 @@ export default function AboutPage() {
         {/* TOP-LEFT POEM */}
         <div
           ref={topLeftRef}
-          className="absolute left-8 lg:left-14 xl:left-24 2xl:left-32 top-20 lg:top-24 xl:top-28 z-30 font-mono text-xs lg:text-[12.5px] xl:text-[13.5px] uppercase tracking-tight leading-[1.32] text-primary will-change-transform pointer-events-none max-w-[380px] lg:max-w-[430px] xl:max-w-[480px]"
+          className="absolute left-[6vw] top-[10.5vh] z-30 font-mono text-[clamp(11px,1.1vw,14.5px)] uppercase tracking-tight leading-[1.32] text-primary will-change-transform pointer-events-none max-w-[380px] lg:max-w-[430px] xl:max-w-[480px]"
         >
           <p>I DIDN&apos;T HAVE SHOOT MONEY. I HAD</p>
           <p>A LAPTOP AND A STUBBORN STREAK. BELIEVE ME IT&apos;S ME —</p>
@@ -223,7 +222,7 @@ export default function AboutPage() {
         {/* RIGHT EMAIL LINK */}
         <div
           ref={emailRef}
-          className="absolute right-8 lg:right-16 xl:right-24 2xl:right-32 top-32 lg:top-36 xl:top-44 z-30 font-mono text-xs lg:text-[12.5px] xl:text-[13.5px] uppercase tracking-wider text-primary will-change-transform"
+          className="absolute left-[57.5vw] top-[27.5vh] z-30 font-mono text-[clamp(11px,1.1vw,14.5px)] uppercase tracking-wider text-primary will-change-transform"
         >
           <a
             href="mailto:hiremoiz.works@gmail.com"
@@ -239,7 +238,7 @@ export default function AboutPage() {
         {/* MID-LEFT EDITORIAL QUOTE */}
         <div
           ref={midLeftRef}
-          className="absolute left-6 lg:left-14 xl:left-24 2xl:left-36 top-[46%] -translate-y-1/2 z-30 font-mono text-[11px] lg:text-xs xl:text-[13px] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[170px] lg:max-w-[195px] xl:max-w-[220px]"
+          className="absolute left-[24vw] top-[34vh] z-30 font-mono text-[clamp(9.5px,0.95vw,13px)] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[170px] lg:max-w-[195px] xl:max-w-[220px]"
         >
           <p>i don&apos;t get it in the room.</p>
           <p>i get it on the floor. give me</p>
@@ -248,10 +247,10 @@ export default function AboutPage() {
           <p>you&apos;ll see it.</p>
         </div>
 
-        {/* MID-RIGHT STATEMENT */}
+        {/* MID-RIGHT STATEMENT (positioned outside left arm) */}
         <div
           ref={midRightRef}
-          className="absolute right-6 lg:right-14 xl:right-24 2xl:right-36 top-[50%] -translate-y-1/2 z-30 font-mono text-[11px] lg:text-xs xl:text-[13px] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[140px] lg:max-w-[160px] xl:max-w-[185px] text-left"
+          className="absolute left-[61.5vw] top-[41vh] z-30 font-mono text-[clamp(9.5px,0.95vw,13px)] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[140px] lg:max-w-[160px] xl:max-w-[185px] text-left"
         >
           <p>i fix things</p>
           <p>that were already</p>
@@ -261,7 +260,7 @@ export default function AboutPage() {
         {/* BOTTOM BIO MANIFESTO */}
         <div
           ref={bottomRef}
-          className="absolute bottom-12 lg:bottom-14 xl:bottom-16 left-1/2 -translate-x-1/2 z-30 font-mono text-[11px] lg:text-[11.5px] xl:text-[12.5px] uppercase tracking-tight text-center leading-[1.35] text-primary will-change-transform pointer-events-none w-[90%] max-w-2xl xl:max-w-3xl"
+          className="absolute top-[77vh] left-1/2 -translate-x-1/2 z-30 font-mono text-[clamp(10px,0.9vw,12.5px)] uppercase tracking-tight text-center leading-[1.35] text-primary will-change-transform pointer-events-none w-[90vw] max-w-2xl xl:max-w-3xl"
         >
           <p>YOU&apos;RE READING THIS BECAUSE I APPLIED FOR SOMETHING.</p>
           <p>ART DIRECTOR. BRAND DESIGNER. SENIOR GRAPHIC DESIGNER. I&apos;VE DONE ALL</p>
@@ -275,7 +274,7 @@ export default function AboutPage() {
         {/* PRONOUN IDENTITY TAG */}
         <div
           ref={heHimRef}
-          className="absolute bottom-4 lg:bottom-5 xl:bottom-6 left-1/2 -translate-x-1/2 z-30 font-mono text-[10px] lg:text-[11px] text-secondary/80 tracking-widest lowercase will-change-transform pointer-events-none text-center"
+          className="absolute top-[92.5vh] left-1/2 -translate-x-1/2 z-30 font-mono text-[clamp(8px,0.75vw,11px)] text-secondary/80 tracking-widest lowercase will-change-transform pointer-events-none text-center"
         >
           he/him
         </div>
@@ -290,7 +289,7 @@ export default function AboutPage() {
         
         {/* Top Supporting Poem */}
         <div
-          ref={mobileTopTextRef}
+          ref={mobileTopRef}
           className="w-full font-mono text-[11px] sm:text-xs uppercase tracking-tight text-primary leading-snug will-change-transform"
         >
           <p>I DIDN&apos;T HAVE SHOOT MONEY. I HAD</p>
@@ -332,7 +331,7 @@ export default function AboutPage() {
         <div className="relative w-full my-auto flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/about_center_anchor_1080.png"
+            src="/about_anchor_tight.png"
             alt="Moiz Khan Art Director"
             className="w-full max-w-[480px] h-auto object-contain block select-none pointer-events-none filter-none"
             loading="eager"
