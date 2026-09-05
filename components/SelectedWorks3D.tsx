@@ -129,37 +129,44 @@ interface SelectedWorks3DProps {
 }
 
 export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
-  const [rotationIndex, setRotationIndex] = useState(0);
+  const [scrollPos, setScrollPos] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(1200);
 
   const dragStartX = useRef(0);
-  const dragCurrentX = useRef(0);
-  const dragRotationStart = useRef(0);
+  const dragStartScroll = useRef(0);
+  const totalMovedDistance = useRef(0);
   const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const totalWorks = WORKS_DATA.length;
+  const total = WORKS_DATA.length;
 
-  // Responsive radius & angular spacing
+  // Responsive dimensions
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
+      setViewportWidth(window.innerWidth);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-rotation when idle
+  const isMobile = viewportWidth < 640;
+  const isTablet = viewportWidth >= 640 && viewportWidth < 1024;
+
+  const cardWidth = isMobile ? 260 : isTablet ? 290 : 330;
+  const cardHeight = isMobile ? 400 : isTablet ? 450 : 510;
+  const cardGap = isMobile ? 20 : isTablet ? 28 : 36;
+  const step = cardWidth + cardGap;
+
+  // Auto-pan when idle
   useEffect(() => {
     if (!isAutoPlaying || isDragging) {
       if (autoPlayTimer.current) clearInterval(autoPlayTimer.current);
       return;
     }
     autoPlayTimer.current = setInterval(() => {
-      setRotationIndex((prev) => prev + 1);
+      setScrollPos((prev) => prev + 1);
     }, 4500);
 
     return () => {
@@ -167,84 +174,77 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
     };
   }, [isAutoPlaying, isDragging]);
 
-  // Normalized active index (0 to totalWorks - 1)
-  const activeNormalizedIdx = ((Math.round(rotationIndex) % totalWorks) + totalWorks) % totalWorks;
+  // Normalized active index
+  const activeNormalizedIdx = ((Math.round(scrollPos) % total) + total) % total;
   const currentActiveItem = WORKS_DATA[activeNormalizedIdx];
 
-  // Navigation handlers
   const handlePrev = useCallback(() => {
-    setRotationIndex((prev) => prev - 1);
+    setScrollPos((prev) => Math.round(prev) - 1);
   }, []);
 
   const handleNext = useCallback(() => {
-    setRotationIndex((prev) => prev + 1);
+    setScrollPos((prev) => Math.round(prev) + 1);
   }, []);
 
-  // Direct card click
-  const handleCardClick = (idx: number, work: WorkItem) => {
-    // If it's already the active center card, open the case study directly!
-    if (idx === activeNormalizedIdx) {
-      onOpenCase(work.caseId);
-    } else {
-      // Otherwise, rotate the cylinder smoothly to bring this card to center
-      const diff = ((idx - activeNormalizedIdx + totalWorks + totalWorks / 2) % totalWorks) - totalWorks / 2;
-      setRotationIndex((prev) => prev + diff);
-    }
-  };
-
-  // Mouse & Touch drag handlers
+  // Pointer drag events
   const onPointerDown = (clientX: number) => {
     setIsDragging(true);
     setIsAutoPlaying(false);
     dragStartX.current = clientX;
-    dragCurrentX.current = clientX;
-    dragRotationStart.current = rotationIndex;
+    dragStartScroll.current = scrollPos;
+    totalMovedDistance.current = 0;
   };
 
   const onPointerMove = (clientX: number) => {
     if (!isDragging) return;
-    dragCurrentX.current = clientX;
     const deltaX = clientX - dragStartX.current;
-    // 1 card per ~160px drag distance
-    const rotationDelta = -deltaX / (isMobile ? 120 : 180);
-    setRotationIndex(dragRotationStart.current + rotationDelta);
+    totalMovedDistance.current = Math.abs(deltaX);
+    // Convert dragged pixels to fractional card units
+    const deltaUnit = -deltaX / step;
+    setScrollPos(dragStartScroll.current + deltaUnit);
   };
 
   const onPointerUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    // Snap to nearest integer index
-    setRotationIndex((prev) => Math.round(prev));
+    // Smoothly snap to nearest integer index
+    setScrollPos((prev) => Math.round(prev));
   };
 
-  // Wheel navigation
-  const handleWheel = (e: React.WheelEvent) => {
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      if (Math.abs(e.deltaX) > 20) {
-        if (e.deltaX > 0) handleNext();
-        else handlePrev();
-      }
+  const handleCardClick = (work: WorkItem, diff: number) => {
+    // If user dragged more than 6px, treat as drag gesture not click
+    if (totalMovedDistance.current > 6) return;
+
+    if (Math.abs(diff) < 0.3) {
+      // Direct center card click opens the project
+      onOpenCase(work.caseId);
+    } else {
+      // Clicking a side card brings it to center
+      setScrollPos((prev) => Math.round(prev) + Math.round(diff));
     }
   };
 
-  // 3D Geometry parameters
-  const cylinderRadius = isMobile ? 320 : 600;
-  const angleStepDeg = isMobile ? 28 : 22;
+  // Wheel horizontal/vertical rotation
+  const handleWheel = (e: React.WheelEvent) => {
+    if (Math.abs(e.deltaX) > 25) {
+      if (e.deltaX > 0) handleNext();
+      else handlePrev();
+    }
+  };
 
   return (
     <section
       id="works"
-      ref={containerRef}
       onWheel={handleWheel}
-      className="w-full py-16 sm:py-24 bg-[#faf9f6] text-[#0d0d0e] relative overflow-hidden select-none"
+      className="w-full py-16 sm:py-24 bg-[#f8f7f4] text-[#0d0d0e] relative overflow-hidden select-none border-t border-b border-black/5"
     >
       {/* Editorial Header */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 mb-8 sm:mb-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-black/10 pb-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-black/10">
           <div>
-            <div className="flex items-center gap-2.5 mb-2.5">
-              <span className="w-2 h-2 rounded-full bg-[#ff2a2a]" />
-              <span className="font-mono text-[10px] sm:text-xs text-black/60 uppercase tracking-widest font-bold">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-[#ff2a2a] animate-pulse" />
+              <span className="font-mono text-[11px] sm:text-xs text-black/60 uppercase tracking-widest font-bold">
                 02 / SELECTED WORKS
               </span>
             </div>
@@ -255,11 +255,11 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
 
           <div className="flex items-center gap-4">
             <p className="font-mono text-[11px] sm:text-xs text-black/50 max-w-xs text-left md:text-right hidden sm:block leading-relaxed">
-              Tactile 3D cylindrical reel. Drag to rotate cylinder or click any frame to inspect full on-set technicals.
+              3D Panoramic Arc. Drag horizontally or click any project frame to inspect full on-set technicals.
             </p>
             <Link
               href="/canvas"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white hover:bg-[#ff2a2a] rounded-full font-mono text-[11px] font-bold uppercase tracking-wider transition-colors shrink-0 shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black text-white hover:bg-[#ff2a2a] rounded-full font-mono text-[11px] font-bold uppercase tracking-wider transition-colors shrink-0 shadow-sm"
             >
               <span>CANVAS ARCHIVE</span>
               <span>↗</span>
@@ -268,13 +268,13 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
         </div>
       </div>
 
-      {/* 3D Cylindrical Arc Stage Viewport */}
+      {/* 3D Panoramic Cylinder Arc Stage */}
       <div
-        className={`relative w-full h-[460px] sm:h-[530px] md:h-[580px] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden ${
+        className={`relative w-full h-[470px] sm:h-[530px] md:h-[600px] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden ${
           isDragging ? 'cursor-grabbing' : ''
         }`}
         style={{
-          perspective: isMobile ? '950px' : '1500px',
+          perspective: isMobile ? '1000px' : '1600px',
           perspectiveOrigin: '50% 50%',
         }}
         onMouseDown={(e) => onPointerDown(e.clientX)}
@@ -285,12 +285,12 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
         onTouchMove={(e) => onPointerMove(e.touches[0].clientX)}
         onTouchEnd={onPointerUp}
       >
-        {/* Ambient Spatial Depth Glow */}
+        {/* Soft Ambient Horizon Glow */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-          <div className="w-[500px] h-[300px] bg-black/5 rounded-full blur-3xl opacity-60" />
+          <div className="w-[800px] h-[350px] bg-black/5 rounded-full blur-3xl opacity-70" />
         </div>
 
-        {/* 3D Arc Cards Center Origin */}
+        {/* 3D Arc Card Cluster */}
         <div
           className="relative w-0 h-0 flex items-center justify-center pointer-events-none will-change-transform"
           style={{
@@ -298,47 +298,47 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
           }}
         >
           {WORKS_DATA.map((work, idx) => {
-            // Distance from active center index in circular space
-            const rawDiff = ((idx - (rotationIndex % totalWorks) + totalWorks + totalWorks / 2) % totalWorks) - totalWorks / 2;
+            // Circular distance from scroll position
+            const rawDiff = ((idx - (scrollPos % total) + total + total / 2) % total) - total / 2;
             const dist = rawDiff;
-            const isCenter = Math.abs(dist) < 0.35;
 
-            // Parametric 3D Cylinder formula (Image 2 style arc)
-            const angleRad = (dist * angleStepDeg * Math.PI) / 180;
-            const transX = Math.sin(angleRad) * cylinderRadius;
-            const transZ = Math.cos(angleRad) * cylinderRadius - cylinderRadius;
-            const rotY = dist * angleStepDeg;
-            const scale = Math.max(0.75, 1 - Math.abs(dist) * 0.06);
-            const opacity = Math.max(0.15, 1 - Math.abs(dist) * 0.22);
+            // Hide cards far off to the sides
+            if (Math.abs(dist) > 3.4) return null;
+
+            // Compute wide panoramic curved arc position
+            const pixelX = dist * step;
+            const normX = pixelX / (viewportWidth * 0.55); // -1.2 to +1.2 across screen
+
+            // 3D Arc Curvature parameters (Image 2 style)
+            const rotY = -normX * (isMobile ? 22 : 26); // Curving towards viewer
+            const transZ = -Math.abs(normX) * (isMobile ? 70 : 120); // Receding into depth
+            const scale = Math.max(0.82, 1 - Math.abs(normX) * 0.08);
+            const opacity = Math.max(0.2, 1 - Math.abs(normX) * 0.35);
             const zIndex = Math.round(100 - Math.abs(dist) * 10);
 
-            // Hide cards that are far behind the cylinder horizon
-            if (Math.abs(dist) > 3.8) return null;
+            const isCenter = Math.abs(dist) < 0.45;
 
             return (
               <div
                 key={work.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCardClick(idx, work);
-                }}
+                onClick={() => handleCardClick(work, dist)}
                 className="absolute pointer-events-auto cursor-pointer select-none transition-shadow duration-300 group"
                 style={{
-                  width: isMobile ? '230px' : '310px',
-                  height: isMobile ? '350px' : '470px',
-                  transform: `translate(-50%, -50%) translate3d(${transX}px, 0px, ${transZ}px) rotateY(${rotY}deg) scale(${scale})`,
+                  width: `${cardWidth}px`,
+                  height: `${cardHeight}px`,
+                  transform: `translate(-50%, -50%) translate3d(${pixelX}px, 0px, ${transZ}px) rotateY(${rotY}deg) scale(${scale})`,
                   opacity,
                   zIndex,
                   transformStyle: 'preserve-3d',
-                  transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease',
+                  transition: isDragging ? 'none' : 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease',
                 }}
               >
-                {/* Visual Card Sleeve (Images 3 & 4 inspiration) */}
+                {/* Visual Card Sleeve (Images 3 & 4 layout) */}
                 <div
-                  className={`relative w-full h-full rounded-[22px] overflow-hidden bg-black shadow-2xl transition-all duration-300 border ${
+                  className={`relative w-full h-full rounded-[24px] overflow-hidden bg-[#121214] shadow-2xl transition-all duration-300 border ${
                     isCenter
-                      ? 'border-black/20 ring-2 ring-black/10'
-                      : 'border-black/10 group-hover:border-black/30'
+                      ? 'border-black/30 ring-2 ring-black/15 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)]'
+                      : 'border-white/10 hover:border-white/30'
                   }`}
                 >
                   {/* High-Resolution Project Visual Background */}
@@ -352,11 +352,11 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
                   />
 
                   {/* Top & Bottom Cinematic Vignette Gradients */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-transparent to-black/95 pointer-events-none" />
 
-                  {/* Top Card Capsule Bar */}
-                  <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between z-10">
-                    <div className="px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/20 font-mono text-[9px] text-white/90 uppercase tracking-wider flex items-center gap-1.5">
+                  {/* Top Header Capsule Bar */}
+                  <div className="absolute top-4 inset-x-4 flex items-center justify-between z-10">
+                    <div className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 font-mono text-[9px] sm:text-[10px] text-white font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                       <span className={`w-1.5 h-1.5 rounded-full ${work.colorTag}`} />
                       <span>{work.idxStr}</span>
                     </div>
@@ -367,7 +367,7 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
                         e.stopPropagation();
                         onOpenCase(work.caseId);
                       }}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 hover:bg-white text-black flex items-center justify-center font-bold text-xs shadow-lg transition-transform hover:scale-110 active:scale-95"
+                      className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-black flex items-center justify-center font-bold text-xs shadow-lg transition-transform hover:scale-110 active:scale-95"
                       title="Inspect Case Study"
                     >
                       ↗
@@ -375,16 +375,16 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
                   </div>
 
                   {/* Bottom Editorial Content */}
-                  <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 z-10 flex flex-col">
-                    <span className="font-mono text-[9px] sm:text-[10px] text-[#ff2a2a] uppercase font-bold tracking-wider mb-1 block">
+                  <div className="absolute bottom-0 inset-x-0 p-5 sm:p-6 z-10 flex flex-col">
+                    <span className="font-mono text-[10px] sm:text-[11px] text-[#ff2a2a] uppercase font-bold tracking-wider mb-1 block">
                       {work.category}
                     </span>
 
-                    <h3 className="font-display font-black text-lg sm:text-xl md:text-2xl text-white uppercase tracking-tight leading-tight line-clamp-2 drop-shadow-md">
+                    <h3 className="font-display font-black text-xl sm:text-2xl text-white uppercase tracking-tight leading-tight line-clamp-2 drop-shadow-md">
                       {work.title}
                     </h3>
 
-                    <p className="font-mono text-[10px] sm:text-[11px] text-white/70 line-clamp-1 mt-1 leading-snug">
+                    <p className="font-mono text-[10px] sm:text-[11px] text-white/75 line-clamp-1 mt-1 leading-snug">
                       {work.scope}
                     </p>
 
@@ -395,7 +395,7 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
                         e.stopPropagation();
                         onOpenCase(work.caseId);
                       }}
-                      className="mt-3.5 w-full py-2 sm:py-2.5 bg-white/15 hover:bg-white text-white hover:text-black backdrop-blur-md border border-white/25 rounded-full font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md active:scale-98"
+                      className="mt-4 w-full py-2.5 bg-white/15 hover:bg-white text-white hover:text-black backdrop-blur-md border border-white/25 rounded-full font-mono text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md active:scale-98"
                     >
                       <span>EXPLORE WORK</span>
                       <span className="font-bold">↗</span>
@@ -408,12 +408,12 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
         </div>
       </div>
 
-      {/* Modernist Arc Controls Bar */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-black/60">
+      {/* Modernist Navigation Controls Bar */}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-black/60">
         {/* Active Frame Callout */}
         <div className="flex items-center gap-3">
-          <span className="px-2 py-0.5 bg-black/10 rounded font-bold text-black text-[11px]">
-            {activeNormalizedIdx + 1 < 10 ? `0${activeNormalizedIdx + 1}` : activeNormalizedIdx + 1} / 0{totalWorks}
+          <span className="px-2.5 py-1 bg-black/10 rounded-full font-bold text-black text-[11px]">
+            {activeNormalizedIdx + 1 < 10 ? `0${activeNormalizedIdx + 1}` : activeNormalizedIdx + 1} / 0{total}
           </span>
           <span className="font-bold text-black uppercase tracking-wider text-xs">
             {currentActiveItem.title}
@@ -422,29 +422,29 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
         </div>
 
         {/* Interactive Arc Nav Controls */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handlePrev}
-            className="px-3.5 py-1.5 bg-black/5 hover:bg-black hover:text-white rounded-full font-mono text-xs font-bold uppercase transition-all active:scale-95 flex items-center gap-1"
+            className="px-4 py-2 bg-black/5 hover:bg-black hover:text-white rounded-full font-mono text-xs font-bold uppercase transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
             title="Previous project"
           >
             <span>←</span>
-            <span className="hidden sm:inline">PREV</span>
+            <span>PREV</span>
           </button>
 
           {/* Indicator Pills */}
-          <div className="flex items-center gap-1 px-2">
+          <div className="flex items-center gap-1.5 px-2">
             {WORKS_DATA.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => {
-                  const diff = ((i - activeNormalizedIdx + totalWorks + totalWorks / 2) % totalWorks) - totalWorks / 2;
-                  setRotationIndex((prev) => prev + diff);
+                  const diff = ((i - activeNormalizedIdx + total + total / 2) % total) - total / 2;
+                  setScrollPos((prev) => Math.round(prev) + diff);
                 }}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === activeNormalizedIdx ? 'w-6 bg-black' : 'w-1.5 bg-black/20 hover:bg-black/40'
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === activeNormalizedIdx ? 'w-7 bg-black' : 'w-2 bg-black/20 hover:bg-black/40'
                 }`}
                 title={`Jump to project ${i + 1}`}
               />
@@ -454,10 +454,10 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
           <button
             type="button"
             onClick={handleNext}
-            className="px-3.5 py-1.5 bg-black/5 hover:bg-black hover:text-white rounded-full font-mono text-xs font-bold uppercase transition-all active:scale-95 flex items-center gap-1"
+            className="px-4 py-2 bg-black/5 hover:bg-black hover:text-white rounded-full font-mono text-xs font-bold uppercase transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
             title="Next project"
           >
-            <span className="hidden sm:inline">NEXT</span>
+            <span>NEXT</span>
             <span>→</span>
           </button>
 
@@ -465,7 +465,7 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
           <button
             type="button"
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className="ml-2 w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 text-black flex items-center justify-center text-[10px] transition-colors"
+            className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-black flex items-center justify-center text-xs transition-colors shadow-sm"
             title={isAutoPlaying ? 'Pause Orbit' : 'Resume Auto-Orbit'}
           >
             {isAutoPlaying ? '⏸' : '▶'}
@@ -475,4 +475,5 @@ export default function SelectedWorks3D({ onOpenCase }: SelectedWorks3DProps) {
     </section>
   );
 }
+
 
