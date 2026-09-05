@@ -15,6 +15,9 @@ export interface DynamicCanvasFile {
   img: string;
   aspect: string;
   colorTag: string;
+  photos?: string[];
+  photoCount?: number;
+  stickers?: any;
   desc: string;
   deliverables: string[];
 }
