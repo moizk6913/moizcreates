@@ -33,7 +33,12 @@ export const metadata: Metadata = {
   title: 'Art Director & Brand Visual Designer',
   description: 'Art Director & Brand Visual Designer. Commercial campaigns, shoot direction, visual systems. Dubai / Worldwide.',
   icons: {
-    icon: '/assets/logo.png',
+    icon: [
+      { url: '/assets/logo.png' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: '/assets/logo.png',
+    apple: '/assets/logo.png',
   },
 };
 

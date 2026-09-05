@@ -6,11 +6,8 @@ import { Volume2, VolumeX, Maximize2, X, ChevronLeft, ChevronRight } from 'lucid
 interface BtsItem {
   id: string;
   title: string;
-  format: 'portrait' | 'landscape';
   videoUrl: string;
   posterUrl: string;
-  width: number;
-  height: number;
   hudCamera: string;
   hudLens: string;
   hudIso: string;
@@ -18,15 +15,12 @@ interface BtsItem {
   hudScene: string;
 }
 
-const RAW_BTS_ITEMS: BtsItem[] = [
+const BTS_ITEMS: BtsItem[] = [
   {
     id: 'bts-01',
-    title: 'PRECISION TRACKING & TELEMETRY',
-    format: 'landscape',
+    title: 'PORSCHE TELEMETRY & RIG',
     videoUrl: '/assets/bts/bts-01.mp4',
     posterUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop',
-    width: 390,
-    height: 240,
     hudCamera: 'ARRI ALEXA MINI LF',
     hudLens: '35MM T1.3',
     hudIso: '800 ISO',
@@ -35,40 +29,31 @@ const RAW_BTS_ITEMS: BtsItem[] = [
   },
   {
     id: 'bts-02',
-    title: 'DYNAMIC GIMBAL PACING',
-    format: 'portrait',
+    title: 'RUNWAY MODEL PACING',
     videoUrl: '/assets/bts/bts-02.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop',
-    width: 250,
-    height: 420,
+    posterUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'RED V-RAPTOR 8K',
     hudLens: '21MM ULTRA-WIDE',
     hudIso: '1280 ISO',
     hudFps: '48 FPS',
-    hudScene: 'REEL // SPEED-02',
+    hudScene: 'RUNWAY // SPEED-02',
   },
   {
     id: 'bts-03',
-    title: 'ANAMORPHIC OUTDOOR UNIT',
-    format: 'landscape',
+    title: 'LOOKBOOK STUDIO LIGHTING',
     videoUrl: '/assets/bts/bts-03.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-    width: 400,
-    height: 245,
+    posterUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'SONY VENICE 2',
     hudLens: '50MM ANAMORPHIC',
     hudIso: '500 ISO',
     hudFps: '24 FPS',
-    hudScene: 'EXTERIOR // WINTER',
+    hudScene: 'STUDIO // KEY-03',
   },
   {
     id: 'bts-04',
-    title: '120 FPS VELOCITY MOTION CUE',
-    format: 'portrait',
+    title: 'KINETIC CHOREOGRAPHY',
     videoUrl: '/assets/bts/bts-04.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
-    width: 250,
-    height: 420,
+    posterUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'PHANTOM FLEX 4K',
     hudLens: '85MM MASTER PRIME',
     hudIso: '1600 ISO',
@@ -77,83 +62,76 @@ const RAW_BTS_ITEMS: BtsItem[] = [
   },
   {
     id: 'bts-05',
-    title: 'MACRO OPTICS & HOUSING TEST',
-    format: 'landscape',
+    title: 'CINEMA OPTICS & CALIBRATION',
     videoUrl: '/assets/bts/bts-05.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
-    width: 390,
-    height: 240,
+    posterUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'DIRECTOR MONITOR',
     hudLens: '100MM MACRO',
     hudIso: '400 ISO',
     hudFps: '60 FPS',
-    hudScene: 'UNDERWATER // HOUSING',
+    hudScene: 'OPTICS // MASTER-05',
   },
   {
     id: 'bts-06',
-    title: 'STEADICAM RAPID CHOREOGRAPHY',
-    format: 'portrait',
+    title: 'STEADICAM CAMERA TRACKING',
     videoUrl: '/assets/bts/bts-06.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop',
-    width: 250,
-    height: 420,
+    posterUrl: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'STEADICAM M-2',
     hudLens: '28MM T2.0',
     hudIso: '800 ISO',
     hudFps: '24 FPS',
-    hudScene: 'ACTION // CUE-06',
+    hudScene: 'ON-SET // UNIT-06',
   },
   {
     id: 'bts-07',
-    title: 'TELEPHOTO APERTURE & FOCUS PULL',
-    format: 'landscape',
+    title: 'ASTERA LIGHTING GRID',
     videoUrl: '/assets/bts/bts-07.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-    width: 400,
-    height: 245,
+    posterUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'CANON C500 MK II',
-    hudLens: '200MM T2.8',
+    hudLens: '50MM COOKE',
     hudIso: '640 ISO',
     hudFps: '24 FPS',
-    hudScene: 'LONG RANGE // FOCUS',
+    hudScene: 'GRID // TUNGSTEN-07',
   },
   {
     id: 'bts-08',
-    title: 'TALENT STAGING & CLOSEUP CUES',
-    format: 'portrait',
+    title: 'DIOR EDITORIAL CLOSEUP',
     videoUrl: '/assets/bts/bts-08.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop',
-    width: 250,
-    height: 420,
+    posterUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
     hudCamera: 'DIRECTOR VIEWFINDER',
-    hudLens: '50MM COOKE',
+    hudLens: '85MM PORTRAIT',
     hudIso: '400 ISO',
     hudFps: '24 FPS',
-    hudScene: 'STUDIO // CLOSEUP',
+    hudScene: 'BEAUTY // CLOSEUP-08',
   },
 ];
 
 export default function BtsArcSection() {
-  const [items, setItems] = useState<BtsItem[]>(RAW_BTS_ITEMS);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [items, setItems] = useState<BtsItem[]>(BTS_ITEMS);
+  const [rotationAngle, setRotationAngle] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [activeModalItem, setActiveModalItem] = useState<BtsItem | null>(null);
   const [unmutedId, setUnmutedId] = useState<string | null>(null);
   const [timecode, setTimecode] = useState('00:14:28:12');
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const dragStartXRef = useRef(0);
-  const dragCurrentXRef = useRef(0);
-  const dragOffsetRef = useRef(0);
-  const isInteractingRef = useRef(false);
+  const dragStartAngleRef = useRef(0);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
   const velocityRef = useRef(0);
+  const isInteractingRef = useRef(false);
+  const animFrameRef = useRef<number | null>(null);
+  const currentAngleRef = useRef(0);
 
-  // Client-side random shuffle on every load
+  // Sync ref with state
   useEffect(() => {
-    const shuffled = [...RAW_BTS_ITEMS].sort(() => Math.random() - 0.5);
-    setItems(shuffled);
+    currentAngleRef.current = rotationAngle;
+  }, [rotationAngle]);
+
+  // Client-side random shuffle on mount so order is fresh
+  useEffect(() => {
+    setItems([...BTS_ITEMS].sort(() => Math.random() - 0.5));
   }, []);
 
   // Running cinema timecode simulation
@@ -168,13 +146,44 @@ export default function BtsArcSection() {
     return () => clearInterval(interval);
   }, []);
 
+  // Smooth continuous auto-rotation & inertia momentum loop
+  useEffect(() => {
+    let lastTs = performance.now();
+
+    const loop = (ts: number) => {
+      const dt = Math.min((ts - lastTs) / 1000, 0.1);
+      lastTs = ts;
+
+      if (!isInteractingRef.current) {
+        if (Math.abs(velocityRef.current) > 0.01) {
+          // Apply friction
+          velocityRef.current *= Math.pow(0.92, dt * 60);
+          currentAngleRef.current += velocityRef.current;
+          setRotationAngle(currentAngleRef.current);
+        } else if (!isHovered) {
+          // Subtle continuous auto-rotation (like a luxury rotating showcase)
+          velocityRef.current = 0;
+          currentAngleRef.current += 0.038 * (dt * 60);
+          setRotationAngle(currentAngleRef.current);
+        }
+      }
+
+      animFrameRef.current = requestAnimationFrame(loop);
+    };
+
+    animFrameRef.current = requestAnimationFrame(loop);
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isHovered]);
+
   // Drag handlers
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
     isInteractingRef.current = true;
     setIsDragging(true);
     dragStartXRef.current = e.clientX;
-    dragCurrentXRef.current = e.clientX;
+    dragStartAngleRef.current = currentAngleRef.current;
     lastXRef.current = e.clientX;
     lastTimeRef.current = performance.now();
     velocityRef.current = 0;
@@ -182,14 +191,17 @@ export default function BtsArcSection() {
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isInteractingRef.current) return;
-    dragCurrentXRef.current = e.clientX;
     const deltaX = e.clientX - dragStartXRef.current;
-    dragOffsetRef.current = deltaX;
+    // 0.14 degrees per px
+    const newAngle = dragStartAngleRef.current - deltaX * 0.14;
+    currentAngleRef.current = newAngle;
+    setRotationAngle(newAngle);
 
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     if (dt > 8) {
-      velocityRef.current = (e.clientX - lastXRef.current) / dt;
+      const dx = e.clientX - lastXRef.current;
+      velocityRef.current = -dx * 0.14;
       lastXRef.current = e.clientX;
       lastTimeRef.current = now;
     }
@@ -199,25 +211,15 @@ export default function BtsArcSection() {
     if (!isInteractingRef.current) return;
     isInteractingRef.current = false;
     setIsDragging(false);
+  }, []);
 
-    const deltaX = dragOffsetRef.current;
-    const v = velocityRef.current;
-    dragOffsetRef.current = 0;
-
-    // Threshold to shift card
-    if (deltaX < -60 || v < -0.4) {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
-    } else if (deltaX > 60 || v > 0.4) {
-      setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
-    }
-  }, [items.length]);
-
-  const slidePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
+  // 1-card manual spin steps (45 degrees per step)
+  const rotatePrev = () => {
+    velocityRef.current = -1.2;
   };
 
-  const slideNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % items.length);
+  const rotateNext = () => {
+    velocityRef.current = 1.2;
   };
 
   const toggleMute = (id: string, e: React.MouseEvent) => {
@@ -225,113 +227,104 @@ export default function BtsArcSection() {
     setUnmutedId((prev) => (prev === id ? null : id));
   };
 
+  // Cylinder radius (tuned for desktop & mobile)
+  const cylinderRadius = 820;
+
   return (
     <section
       id="bts-direction"
-      className="w-full relative py-12 md:py-20 bg-canvas overflow-hidden select-none"
+      className="w-full relative py-14 md:py-24 bg-canvas overflow-hidden select-none"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        handlePointerUp();
+      }}
       style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
-      {/* 3D Curved Arc Stage - Height tuned for tallest card */}
+      {/* 3D Cylindrical Stage */}
       <div
-        ref={containerRef}
-        className="w-full relative flex items-center justify-center min-h-[480px] md:min-h-[540px] px-4"
+        className="w-full relative flex items-center justify-center min-h-[500px] md:min-h-[560px]"
         style={{
-          perspective: '1300px',
-          perspectiveOrigin: '50% 50%',
+          perspective: '1350px',
+          perspectiveOrigin: '50% 48%',
         }}
       >
-        {/* Navigation Arrows (Subtle floating pills on desktop) */}
+        {/* Navigation Arrows */}
         <button
           type="button"
-          onClick={slidePrev}
-          aria-label="Previous reel"
-          className="hidden md:flex absolute left-6 z-40 w-11 h-11 rounded-full bg-white/80 hover:bg-white text-primary shadow-lg border border-black/10 backdrop-blur-md items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+          onClick={rotatePrev}
+          aria-label="Rotate left"
+          className="hidden md:flex absolute left-8 z-40 w-11 h-11 rounded-full bg-white/85 hover:bg-white text-primary shadow-lg border border-black/10 backdrop-blur-md items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
         <button
           type="button"
-          onClick={slideNext}
-          aria-label="Next reel"
-          className="hidden md:flex absolute right-6 z-40 w-11 h-11 rounded-full bg-white/80 hover:bg-white text-primary shadow-lg border border-black/10 backdrop-blur-md items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+          onClick={rotateNext}
+          aria-label="Rotate right"
+          className="hidden md:flex absolute right-8 z-40 w-11 h-11 rounded-full bg-white/85 hover:bg-white text-primary shadow-lg border border-black/10 backdrop-blur-md items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* 3D Arc Elements Array */}
+        {/* 3D Rotating Cylinder Wheel Anchor */}
         <div
-          className="relative w-full max-w-7xl h-[460px] flex items-center justify-center"
-          style={{ transformStyle: 'preserve-3d' }}
+          className="relative w-0 h-0 flex items-center justify-center"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: 'translateZ(0px) rotateX(2.5deg)',
+          }}
         >
           {items.map((item, index) => {
             const count = items.length;
-            // Calculate signed distance d from currentIndex (-count/2 to +count/2)
-            let d = (index - currentIndex) % count;
-            if (d > count / 2) d -= count;
-            if (d < -count / 2) d += count;
+            const cardAngle = index * (360 / count) - rotationAngle;
+            // Normalize angle to [-180, 180]
+            const normalizedAngle = ((((cardAngle + 180) % 360) + 360) % 360) - 180;
+            const angleFromFront = Math.abs(normalizedAngle);
 
-            // Only render cards within visual arc field (|d| <= 3)
-            const isVisible = Math.abs(d) <= 3;
+            // Only render front hemisphere cards for optimal performance and pure clean circle view
+            const isVisible = angleFromFront < 105;
             if (!isVisible) return null;
 
-            // 3D Rainbow Arch Math (from reference media_1788612612711.png)
-            // Center is peak (Y=0, Z=0). Sides curve downwards and backwards in depth.
-            const isCenter = d === 0;
-            const xSpacing = 290; // px spacing horizontally
-            const posX = d * xSpacing;
-            
-            // Rainbow convex arch: center is highest, flanks drop down smoothly
-            const posY = Math.pow(Math.abs(d), 1.9) * 22; // 0, 22px, 80px, 175px
-            
-            // Z depth pushes into background on edges
-            const posZ = -Math.pow(Math.abs(d), 1.4) * 85; // 0, -85px, -220px...
+            // Depth calculation: 1 at front (0 deg), 0 at 90 deg
+            const depthFactor = Math.cos((angleFromFront * Math.PI) / 180);
+            const scale = Math.max(0.78, 0.78 + 0.26 * depthFactor);
+            const opacity = Math.max(0.45, Math.pow(depthFactor, 0.7));
+            const zIndex = Math.round(depthFactor * 100);
+            const isFrontCard = angleFromFront < 15;
 
-            // Rotate Y: turn inward toward center cylinder
-            const rotY = -d * 14; // -14deg, 0deg, +14deg
-
-            // Rotate Z: slight roll along the rainbow dome curve
-            const rotZ = d * 2.8;
-
-            // Scale & Opacity
-            const scale = Math.max(0.72, 1.04 - Math.abs(d) * 0.09);
-            const opacity = Math.max(0.55, 1 - Math.abs(d) * 0.14);
-            const zIndex = 50 - Math.round(Math.abs(d) * 10);
+            // Subtle arched elevation (rainbow dome curvature)
+            const yOffset = (1 - depthFactor) * 38;
 
             return (
               <div
                 key={item.id}
-                className="absolute top-1/2 left-1/2 transition-all duration-500 ease-out"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-shadow duration-300"
                 style={{
-                  width: `${item.width}px`,
-                  height: `${item.height}px`,
-                  transform: `translate(-50%, -50%) translate3d(${posX}px, ${posY}px, ${posZ}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
+                  width: '280px',
+                  height: '385px',
+                  transformStyle: 'preserve-3d',
+                  transform: `rotateY(${normalizedAngle}deg) translateZ(${cylinderRadius}px) translateY(${yOffset}px) scale(${scale})`,
                   zIndex: zIndex,
                   opacity: opacity,
-                  transformStyle: 'preserve-3d',
                   willChange: 'transform, opacity',
                 }}
               >
                 {/* Cinema Video Frame */}
                 <div
-                  className={`group relative w-full h-full rounded-2xl overflow-hidden bg-black shadow-2xl transition-all duration-300 ${
-                    isCenter
+                  className={`group relative w-full h-full rounded-[24px] overflow-hidden bg-black shadow-2xl transition-all duration-300 ${
+                    isFrontCard
                       ? 'ring-2 ring-black/40 shadow-[0_25px_60px_rgba(0,0,0,0.35)]'
-                      : 'ring-1 ring-black/10 hover:ring-black/30'
+                      : 'ring-1 ring-black/15 hover:ring-black/35'
                   }`}
-                  onClick={() => {
-                    if (isCenter) {
-                      setActiveModalItem(item);
-                    } else {
-                      setCurrentIndex(index);
-                    }
-                  }}
+                  onClick={() => setActiveModalItem(item)}
                 >
-                  {/* HTML5 Video with Local MP4 Stream */}
+                  {/* HTML5 Seamless Looping Local Video */}
                   <video
                     src={item.videoUrl}
                     poster={item.posterUrl}
@@ -343,7 +336,7 @@ export default function BtsArcSection() {
                     className="w-full h-full object-cover pointer-events-none transition-transform duration-500 group-hover:scale-105"
                   />
 
-                  {/* High-End Dark Cinematic Vignette */}
+                  {/* Dark Cinematic Vignette */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/60 pointer-events-none" />
 
                   {/* Top HUD Viewfinder Bar */}
@@ -360,8 +353,8 @@ export default function BtsArcSection() {
                     </div>
                   </div>
 
-                  {/* Center Director Crosshair */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25 group-hover:opacity-75 transition-opacity duration-300">
+                  {/* Center Crosshair */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 group-hover:opacity-70 transition-opacity duration-300">
                     <div className="w-8 h-8 border border-white/40 rounded-full flex items-center justify-center">
                       <div className="w-1.5 h-1.5 bg-white/70 rounded-full" />
                     </div>
@@ -430,7 +423,7 @@ export default function BtsArcSection() {
           onClick={() => setActiveModalItem(null)}
         >
           <div
-            className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center rounded-2xl overflow-hidden bg-zinc-950 border border-white/10"
+            className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center rounded-2xl overflow-hidden bg-zinc-950 border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -455,14 +448,14 @@ export default function BtsArcSection() {
             </div>
 
             {/* Main Video View */}
-            <div className="w-full flex items-center justify-center p-4 bg-black/60">
+            <div className="w-full flex items-center justify-center p-6 bg-black">
               <video
                 src={activeModalItem.videoUrl}
                 poster={activeModalItem.posterUrl}
                 autoPlay
                 controls
                 playsInline
-                className="max-h-[70vh] w-auto max-w-full rounded-lg shadow-2xl"
+                className="max-h-[68vh] w-auto max-w-full rounded-lg shadow-2xl"
               />
             </div>
 
