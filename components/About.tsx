@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -91,11 +92,22 @@ export default function About() {
 
           <span className="overflow-hidden block py-0.5">
             <span className="statement-line block will-change-transform">
-              GOOD. <span className="text-[#e60000]">LET&apos;S TALK.</span>
+              GOOD. <Link href="/about" className="text-[#e60000] hover:underline cursor-pointer transition-colors">LET&apos;S TALK.</Link>
             </span>
           </span>
 
         </h2>
+
+        {/* Action Link to the Dedicated Directorial Artboard */}
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/about"
+            className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-[10px] bg-primary text-canvas hover:bg-accent-red transition-all duration-300 font-mono text-xs uppercase tracking-widest hover:scale-105 shadow-sm"
+          >
+            <span>EXPLORE DIRECTORIAL PROFILE</span>
+            <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </Link>
+        </div>
       </div>
     </section>
   );
