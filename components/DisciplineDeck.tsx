@@ -88,7 +88,7 @@ const cardsData: CardData[] = [
     badge: 'STILLS',
     title: 'PHOTOGRAPHY',
     desc: 'Fashion Editorial • Model Staging • Analog Grain & Lighting Precision',
-    bgClass: 'bg-white',
+    bgClass: 'bg-[#eeeae1]',
     textClass: 'text-[#0a0a0a]',
     borderClass: 'border-0',
     patternType: 'viewfinder',

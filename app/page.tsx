@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Header from '@/components/Header';
 import HeroScatter from '@/components/HeroScatter';
@@ -16,6 +16,21 @@ import CustomCursor from '@/components/CustomCursor';
 export default function Home() {
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [isIntroDone, setIsIntroDone] = useState(false);
+
+  useEffect(() => {
+    if (!isIntroDone) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      window.scrollTo(0, 0);
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isIntroDone]);
 
   return (
     <main className="relative min-h-screen bg-canvas">

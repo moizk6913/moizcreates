@@ -297,6 +297,19 @@ export default function InfiniteCanvasPage() {
 
   // Mobile viewport detection and initial scale adjustment
   useEffect(() => {
+    // Lock document scroll so dragging canvas does not trigger page bounce/scroll
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedFile(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
@@ -309,7 +322,13 @@ export default function InfiniteCanvasPage() {
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   // --- UNIFIED POINTER & TOUCH GESTURE HANDLING ---

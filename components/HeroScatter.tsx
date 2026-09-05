@@ -133,8 +133,22 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
   const topZRef = useRef(35);
   const poolIdxRef = useRef(0);
 
-  // 1. Shutter rapid cycling during the first 1s
+  // 1. Shutter rapid cycling during the first 1s with airtight scroll lock
   useEffect(() => {
+    // Lock scroll on both html and body so no scrollbar appears and user cannot scroll down
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    window.scrollTo(0, 0);
+
+    const blockScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener('wheel', blockScroll, { passive: false });
+    window.addEventListener('touchmove', blockScroll, { passive: false });
+
     const cycleInterval = setInterval(() => {
       setShutterIndex((prev) => (prev + 1) % cards.length);
     }, 70);
@@ -143,13 +157,21 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
       clearInterval(cycleInterval);
       setShutterActive(false);
       onShutterFinish?.();
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      window.removeEventListener('wheel', blockScroll);
+      window.removeEventListener('touchmove', blockScroll);
     }, 1000);
 
     return () => {
       clearInterval(cycleInterval);
       clearTimeout(timer);
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      window.removeEventListener('wheel', blockScroll);
+      window.removeEventListener('touchmove', blockScroll);
     };
-  }, [cards.length]);
+  }, [cards.length, onShutterFinish]);
 
   // 2. Shatter Explosion Entrance (bursts from center scale 0 into full constellation)
   useGSAP(
@@ -335,17 +357,22 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
         </span>
       </div>
 
-      {/* 88x88 Center Loading Shutter (Active First 1s, ZERO drop shadow) */}
+      {/* Pure Fullscreen Cinema Shutter (Active First 1s, ZERO drop shadow, completely covers viewport) */}
       <div
         ref={shutterRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[88px] h-[88px] z-50 bg-black overflow-hidden shadow-none pointer-events-none border-0"
+        className={`fixed inset-0 z-[9990] bg-canvas flex items-center justify-center pointer-events-none select-none transition-opacity duration-300 ${
+          shutterActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={cards[shutterIndex]?.img}
-          alt="Shutter Preview"
-          className="w-full h-full object-cover block border-0"
-        />
+        <div className="w-[90px] h-[90px] sm:w-[104px] sm:h-[104px] bg-black overflow-hidden shadow-none border-0 select-none">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={cards[shutterIndex]?.img}
+            alt="Shutter Preview"
+            className="w-full h-full object-cover block border-0 select-none"
+            draggable={false}
+          />
+        </div>
       </div>
 
       {/* Constellation Cards & Cluster Pop Layer Stage (ZERO Drop Shadows) */}

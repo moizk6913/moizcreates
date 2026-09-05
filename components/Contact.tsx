@@ -6,7 +6,7 @@ export default function Contact() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('moiz@moizkhan.com').then(() => {
+    navigator.clipboard.writeText('moiz@moizcreates.com').then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
@@ -30,10 +30,10 @@ export default function Contact() {
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-4 flex-wrap">
               <a
-                href="mailto:moiz@moizkhan.com"
+                href="mailto:moiz@moizcreates.com"
                 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-primary hover:text-accent-red transition-colors"
               >
-                moiz@moizkhan.com
+                moiz@moizcreates.com
               </a>
               <button
                 onClick={handleCopy}
