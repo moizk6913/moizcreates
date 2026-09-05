@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import CustomCursor from '@/components/CustomCursor';
+import { getStoredCanvasFiles } from '@/lib/contentStore';
 
 interface ArchiveFile {
   id: string;
@@ -282,10 +283,18 @@ const ARCHIVE_FILES: ArchiveFile[] = [
 
 export default function InfiniteCanvasPage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [allFiles, setAllFiles] = useState<ArchiveFile[]>(ARCHIVE_FILES);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [selectedFile, setSelectedFile] = useState<ArchiveFile | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const custom = getStoredCanvasFiles();
+    if (custom && custom.length > 0) {
+      setAllFiles([...custom, ...ARCHIVE_FILES]);
+    }
+  }, []);
 
   // Gesture tracking references
   const isDraggingRef = useRef(false);
@@ -473,8 +482,8 @@ export default function InfiniteCanvasPage() {
           transformOrigin: '0 0',
         }}
       >
-        {/* 16 Archival File Folder Icons with Images Peeking Up (ZERO SHADOWS, ZERO STROKES) */}
-        {ARCHIVE_FILES.map((file) => (
+        {/* Archival File Folder Icons with Images Peeking Up (ZERO SHADOWS, ZERO STROKES) */}
+        {allFiles.map((file) => (
           <div
             key={file.id}
             data-cursor="view"
