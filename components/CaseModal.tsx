@@ -148,6 +148,72 @@ const projectsData: Record<
       },
     ],
   },
+  porsche: {
+    tag: 'VISCERAL AUTOMOTIVE BROADCAST',
+    title: 'Porsche Carrera Telemetry',
+    role: 'Commercial Film Director & Editor',
+    team: 'Pursuit Vehicle Crew & Sound Designer',
+    scope: 'Broadcast Master, High-Speed Tracking, Engine Sound Design',
+    market: 'Automotive & Luxury Performance',
+    narrative:
+      'A visceral automotive director cut sync-edited to raw exhaust acoustics and precision German asphalt telemetry. Captured with heavy pursuit tracking arms across coastal switchbacks and nighttime industrial docks.',
+    media: [
+      {
+        format: '16-9',
+        caption: '1920 × 1080 Pursuit Arm Dynamic Tracking Frame',
+        image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=1600&auto=format&fit=crop',
+      },
+      {
+        format: '4-5',
+        caption: '1080 × 1350 Cockpit Gauge Telemetry Stills',
+        image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop',
+      },
+    ],
+  },
+  prada: {
+    tag: 'KINETIC 3D WORLD',
+    title: 'Prada Structural Deconstruct',
+    role: 'Motion Director & 3D Artist',
+    team: 'CGI Lighting & Motion Designers',
+    scope: '3D Wireframes, Kinetic Typography, Architectural Deconstruction',
+    market: 'Haute Couture & Digital Art',
+    narrative:
+      'A kinetic 3D wireframe exploration decomposing luxury leather goods into floating geometric architectural lines. Built around precise Swiss typographic rhythms and delicate physical gravity.',
+    media: [
+      {
+        format: '16-9',
+        caption: '1920 × 1080 Deconstructed Leather Geometry',
+        image: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=1600&auto=format&fit=crop',
+      },
+      {
+        format: '9-16',
+        caption: '1080 × 1920 Vertical Kinetic Loop',
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=900&auto=format&fit=crop',
+      },
+    ],
+  },
+  dior: {
+    tag: 'ANAMORPHIC LUXURY CINEMA',
+    title: 'Dior Midnight Nocturne',
+    role: 'Director of Photography',
+    team: 'Lighting Package & Colorist',
+    scope: 'Anamorphic Capture, Atmospheric Practical Haze, Master Film Grade',
+    market: 'Luxury Fragrance & Film',
+    narrative:
+      'Nocturnal perfume commercial directed under high-power tungsten fixtures with anamorphic oval bokeh and dense atmospheric haze. Emphasizes tactile skin warmth, shadow contrast, and deep nocturnal blues.',
+    media: [
+      {
+        format: '16-9',
+        caption: '1920 × 1080 Anamorphic Master Cinema Frame',
+        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1600&auto=format&fit=crop',
+      },
+      {
+        format: '4-5',
+        caption: '1080 × 1350 Atmospheric Bottle Key Visual',
+        image: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?q=80&w=1200&auto=format&fit=crop',
+      },
+    ],
+  },
 };
 
 export default function CaseModal({ projectId, onClose }: CaseModalProps) {
