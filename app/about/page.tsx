@@ -13,6 +13,7 @@ export default function AboutPage() {
   const midRightRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const heHimRef = useRef<HTMLDivElement>(null);
+  const watermarkTopRef = useRef<HTMLDivElement>(null);
 
   // Parallax refs for Mobile
   const mobileTopTextRef = useRef<HTMLDivElement>(null);
@@ -36,7 +37,7 @@ export default function AboutPage() {
 
     const handleMouseMove = (e: MouseEvent) => {
       const { innerWidth, innerHeight } = window;
-      // Normalized coordinates from -1 (left) to 1 (right), and -1 (top) to 1 (bottom)
+      // Normalized coordinates: -1 (left) to +1 (right)
       targetX = (e.clientX / innerWidth - 0.5) * 2;
       targetY = (e.clientY / innerHeight - 0.5) * 2;
     };
@@ -73,9 +74,9 @@ export default function AboutPage() {
       const totalY = currentY + ambientY;
 
       // ================================================================
-      // DESKTOP TYPOGRAPHY PARALLAX
-      // Subtly shifts in opposite direction creating natural 3D depth
-      // Center character & red "art director" lettering remain 100% FIXED
+      // DESKTOP SURROUNDING TYPOGRAPHY PARALLAX
+      // Opposite shift creates authentic 3D spatial depth
+      // Central anchor (character + red script) remains 100% FIXED
       // ================================================================
       if (topLeftRef.current) {
         topLeftRef.current.style.transform = `translate3d(${totalX * -15}px, ${totalY * -7}px, 0)`;
@@ -84,12 +85,12 @@ export default function AboutPage() {
         emailRef.current.style.transform = `translate3d(${totalX * -12}px, ${totalY * -5}px, 0)`;
       }
       if (midLeftRef.current) {
-        // Floats slightly closer to viewer
-        midLeftRef.current.style.transform = `translate3d(${totalX * -22}px, ${totalY * -10}px, 0)`;
+        // Floats forward closer to camera
+        midLeftRef.current.style.transform = `translate3d(${totalX * -22}px, calc(-50% + ${totalY * -10}px), 0)`;
       }
       if (midRightRef.current) {
-        // Floats slightly closer to viewer
-        midRightRef.current.style.transform = `translate3d(${totalX * -20}px, ${totalY * -9}px, 0)`;
+        // Floats forward closer to camera
+        midRightRef.current.style.transform = `translate3d(${totalX * -20}px, calc(-50% + ${totalY * -9}px), 0)`;
       }
       if (bottomRef.current) {
         bottomRef.current.style.transform = `translate3d(calc(-50% + ${totalX * -14}px), ${totalY * -6}px, 0)`;
@@ -97,10 +98,13 @@ export default function AboutPage() {
       if (heHimRef.current) {
         heHimRef.current.style.transform = `translate3d(calc(-50% + ${totalX * -8}px), ${totalY * -4}px, 0)`;
       }
+      if (watermarkTopRef.current) {
+        // Background watermark shifts in opposite direction (recessed depth)
+        watermarkTopRef.current.style.transform = `translate3d(${totalX * 8}px, ${totalY * 4}px, 0)`;
+      }
 
       // ================================================================
       // MOBILE TYPOGRAPHY PARALLAX
-      // Gentle touch / gyroscope response on mobile supporting text
       // ================================================================
       if (mobileTopTextRef.current) {
         mobileTopTextRef.current.style.transform = `translate3d(${totalX * -10}px, 0, 0)`;
@@ -135,10 +139,10 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <main className="min-h-screen w-full bg-[#e4e1da] text-[#111111] selection:bg-[#e60000] selection:text-white flex flex-col justify-between overflow-x-hidden relative select-none">
+    <main className="w-full min-h-screen bg-[#e4e1da] text-[#111111] selection:bg-[#e60000] selection:text-white flex flex-col justify-between relative overflow-x-hidden select-none">
       
       {/* ============================================================ */}
-      {/* MINIMAL FLOATING TOP HEADER: Back Button & Status Indicator  */}
+      {/* MINIMAL FLOATING NAVIGATION: Back Button & Status Tag        */}
       {/* ============================================================ */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 py-5 sm:py-6 flex items-center justify-between pointer-events-none">
         <Link
@@ -151,130 +155,136 @@ export default function AboutPage() {
 
         <div className="font-mono text-[11px] tracking-widest text-secondary/80 uppercase flex items-center gap-2.5 pointer-events-auto">
           <span className="w-2 h-2 rounded-full bg-[#e60000] animate-pulse" />
-          <span className="hidden sm:inline">01 — ARTBOARD 1 // DIRECTORIAL PROFILE</span>
+          <span className="hidden sm:inline">01 — DIRECTORIAL PROFILE // EDITORIAL SCENE</span>
           <span className="sm:hidden">01 // PROFILE</span>
         </div>
       </header>
 
       {/* ============================================================ */}
-      {/* HERO SECTION (DESKTOP): 1920×1080 FULL-SCREEN VIEWPORT CANVAS*/}
-      {/* Occupies entire viewport; expands background naturally        */}
-      {/* Anchor (Character + Red Lettering) is completely FIXED       */}
-      {/* Surrounding typography has subtle smooth 3D mouse parallax   */}
+      {/* FULL-VIEWPORT EDITORIAL SCENE (DESKTOP)                      */}
+      {/* NO fixed card, NO inner artboard, NO borders, NO margins     */}
+      {/* Entire viewport IS the canvas; background expands naturally  */}
       {/* ============================================================ */}
-      <section className="hidden md:flex w-screen h-screen min-h-[640px] items-center justify-center relative overflow-hidden bg-[#e4e1da]">
+      <section className="hidden md:flex w-full h-screen min-h-[660px] relative items-center justify-center overflow-hidden bg-[#e4e1da]">
         
-        <div
-          className="relative flex items-center justify-center select-none"
-          style={{
-            width: 'min(100vw, calc(100vh * 1.77778))',
-            height: 'min(100vh, calc(100vw * 0.5625))',
-            maxHeight: '1080px',
-            maxWidth: '1920px',
-          }}
-        >
-          
-          {/* ======================================================== */}
-          {/* FIXED ANCHOR: Character in Center & Red "art director"   */}
-          {/* Sits 100% fixed at all times - zero mouse movement       */}
-          {/* ======================================================== */}
+        {/* ========================================================== */}
+        {/* 1. FIXED VISUAL ANCHOR (Character & Red Lettering)         */}
+        {/* Transparent cutout sitting directly on the canvas          */}
+        {/* Sits 100% FIXED in the center of the viewport              */}
+        {/* ========================================================== */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[84vw] max-w-[1240px] xl:max-w-[1360px] 2xl:max-w-[1450px] flex items-center justify-center pointer-events-none z-20">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/about_stage_clean_2x.png"
+            src="/about_center_anchor_1080.png"
             alt="Art Director Scene"
-            className="w-full h-full object-contain pointer-events-none select-none filter-none"
+            className="w-full h-auto object-contain block select-none pointer-events-none filter-none"
             loading="eager"
             draggable={false}
           />
+        </div>
 
-          {/* ======================================================== */}
-          {/* SURROUNDING TYPOGRAPHY: 3D Mouse Parallax Floating Layers */}
-          {/* ======================================================== */}
-
-          {/* 1. TOP-LEFT POEM (Indent on second stanza matching reference) */}
-          <div
-            ref={topLeftRef}
-            className="absolute top-[11.8%] left-[6.8%] z-30 font-mono text-[clamp(8px,1.06vw,14px)] uppercase tracking-tight leading-[1.32] text-primary will-change-transform pointer-events-none max-w-[42%]"
-          >
-            <p>I DIDN&apos;T HAVE SHOOT MONEY. I HAD</p>
-            <p>A LAPTOP AND A STUBBORN STREAK. BELIEVE ME IT&apos;S ME —</p>
-            <p>THE FACE IS UNTOUCHED, THE MUSCLES ARE A GIFT</p>
-            <p>I&apos;VE DECIDED TO KEEP.</p>
-            <div className="pl-[23%] pt-[0.42em] text-primary/95">
-              <p>THINK WHAT YOU WANT.</p>
-              <p>I&apos;M CREATIVE, THIS IS WHAT THAT LOOKS LIKE</p>
-              <p>ON A BUDGET OF ZERO.</p>
-            </div>
+        {/* ========================================================== */}
+        {/* 2. BACKGROUND GHOST WATERMARK (Top-Right Recessed Depth)   */}
+        {/* ========================================================== */}
+        <div
+          ref={watermarkTopRef}
+          className="hidden lg:block absolute right-8 xl:right-16 2xl:right-24 top-20 xl:top-24 z-10 font-mono text-[10px] xl:text-[11.5px] text-black/[0.055] uppercase tracking-tight leading-[1.32] pointer-events-none select-none max-w-sm text-right will-change-transform"
+        >
+          <p>A LAPTOP AND A STUBBORN STREAK. BELIEVE ME IT&apos;S ME —</p>
+          <p>THE FACE IS UNTOUCHED, THE MUSCLES ARE A GIFT</p>
+          <p>I&apos;VE DECIDED TO KEEP.</p>
+          <div className="pt-2">
+            <p>THINK WHAT YOU WANT.</p>
+            <p>I&apos;M CREATIVE, THIS IS WHAT THAT LOOKS LIKE</p>
+            <p>ON A BUDGET OF ZERO.</p>
           </div>
+        </div>
 
-          {/* 2. RIGHT EMAIL LINK */}
-          <div
-            ref={emailRef}
-            className="absolute top-[28.3%] left-[56.25%] z-30 font-mono text-[clamp(8px,1.06vw,14px)] uppercase tracking-wider text-primary will-change-transform"
-          >
-            <a
-              href="mailto:hiremoiz.works@gmail.com"
-              onClick={handleCopyEmail}
-              className="group inline-flex items-center gap-1.5 hover:text-[#e60000] transition-colors cursor-pointer"
-              title="Click to copy email or open mailto"
-            >
-              <span>{copied ? 'COPIED TO CLIPBOARD ✓' : 'HIREMOIZ.WORKS@GMAIL.COM'}</span>
-              <span className="text-[0.8em] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
-            </a>
+        {/* ========================================================== */}
+        {/* 3. SURROUNDING TYPOGRAPHY (Interactive 3D Mouse Parallax)  */}
+        {/* ========================================================== */}
+
+        {/* TOP-LEFT POEM */}
+        <div
+          ref={topLeftRef}
+          className="absolute left-8 lg:left-14 xl:left-24 2xl:left-32 top-20 lg:top-24 xl:top-28 z-30 font-mono text-xs lg:text-[12.5px] xl:text-[13.5px] uppercase tracking-tight leading-[1.32] text-primary will-change-transform pointer-events-none max-w-[380px] lg:max-w-[430px] xl:max-w-[480px]"
+        >
+          <p>I DIDN&apos;T HAVE SHOOT MONEY. I HAD</p>
+          <p>A LAPTOP AND A STUBBORN STREAK. BELIEVE ME IT&apos;S ME —</p>
+          <p>THE FACE IS UNTOUCHED, THE MUSCLES ARE A GIFT</p>
+          <p>I&apos;VE DECIDED TO KEEP.</p>
+          <div className="pl-[22%] pt-[0.4em] text-primary/95">
+            <p>THINK WHAT YOU WANT.</p>
+            <p>I&apos;M CREATIVE, THIS IS WHAT THAT LOOKS LIKE</p>
+            <p>ON A BUDGET OF ZERO.</p>
           </div>
+        </div>
 
-          {/* 3. MID-LEFT EDITORIAL QUOTE */}
-          <div
-            ref={midLeftRef}
-            className="absolute top-[34.4%] left-[25.2%] z-30 font-mono text-[clamp(7px,0.92vw,12.5px)] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[17%]"
+        {/* RIGHT EMAIL LINK */}
+        <div
+          ref={emailRef}
+          className="absolute right-8 lg:right-16 xl:right-24 2xl:right-32 top-32 lg:top-36 xl:top-44 z-30 font-mono text-xs lg:text-[12.5px] xl:text-[13.5px] uppercase tracking-wider text-primary will-change-transform"
+        >
+          <a
+            href="mailto:hiremoiz.works@gmail.com"
+            onClick={handleCopyEmail}
+            className="group inline-flex items-center gap-2 hover:text-[#e60000] transition-colors cursor-pointer"
+            title="Click to copy email or open mailto"
           >
-            <p>i don&apos;t get it in the room.</p>
-            <p>i get it on the floor. give me</p>
-            <p>the brief and i&apos;ll stare at it —</p>
-            <p>give me a week and</p>
-            <p>you&apos;ll see it.</p>
-          </div>
+            <span>{copied ? 'COPIED TO CLIPBOARD ✓' : 'HIREMOIZ.WORKS@GMAIL.COM'}</span>
+            <span className="text-[0.8em] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+          </a>
+        </div>
 
-          {/* 4. MID-RIGHT STATEMENT */}
-          <div
-            ref={midRightRef}
-            className="absolute top-[39.0%] left-[56.6%] z-30 font-mono text-[clamp(7px,0.92vw,12.5px)] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[14%]"
-          >
-            <p>i fix things</p>
-            <p>that were already</p>
-            <p>approved.</p>
-          </div>
+        {/* MID-LEFT EDITORIAL QUOTE */}
+        <div
+          ref={midLeftRef}
+          className="absolute left-6 lg:left-14 xl:left-24 2xl:left-36 top-[46%] -translate-y-1/2 z-30 font-mono text-[11px] lg:text-xs xl:text-[13px] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[170px] lg:max-w-[195px] xl:max-w-[220px]"
+        >
+          <p>i don&apos;t get it in the room.</p>
+          <p>i get it on the floor. give me</p>
+          <p>the brief and i&apos;ll stare at it —</p>
+          <p>give me a week and</p>
+          <p>you&apos;ll see it.</p>
+        </div>
 
-          {/* 5. BOTTOM BIO MANIFESTO */}
-          <div
-            ref={bottomRef}
-            className="absolute top-[76.4%] left-1/2 -translate-x-1/2 z-30 font-mono text-[clamp(7px,0.88vw,12px)] uppercase tracking-tight text-center leading-[1.35] text-primary will-change-transform pointer-events-none w-[90%] max-w-[820px]"
-          >
-            <p>YOU&apos;RE READING THIS BECAUSE I APPLIED FOR SOMETHING.</p>
-            <p>ART DIRECTOR. BRAND DESIGNER. SENIOR GRAPHIC DESIGNER. I&apos;VE DONE ALL</p>
-            <p>THREE AND ENJOYED TWO. THE REST I&apos;LL FIGURE OUT BY MONDAY.</p>
-            <div className="pt-[0.32em] font-semibold">
-              <p>THAT WERE ALREADY</p>
-              <p>APPROVED.</p>
-            </div>
-          </div>
+        {/* MID-RIGHT STATEMENT */}
+        <div
+          ref={midRightRef}
+          className="absolute right-6 lg:right-14 xl:right-24 2xl:right-36 top-[50%] -translate-y-1/2 z-30 font-mono text-[11px] lg:text-xs xl:text-[13px] leading-[1.3] text-primary lowercase will-change-transform pointer-events-none max-w-[140px] lg:max-w-[160px] xl:max-w-[185px] text-left"
+        >
+          <p>i fix things</p>
+          <p>that were already</p>
+          <p>approved.</p>
+        </div>
 
-          {/* 6. PRONOUN IDENTITY TAG */}
-          <div
-            ref={heHimRef}
-            className="absolute top-[92.9%] left-1/2 -translate-x-1/2 z-30 font-mono text-[clamp(6px,0.72vw,10.5px)] text-secondary/80 tracking-widest lowercase will-change-transform pointer-events-none text-center"
-          >
-            he/him
+        {/* BOTTOM BIO MANIFESTO */}
+        <div
+          ref={bottomRef}
+          className="absolute bottom-12 lg:bottom-14 xl:bottom-16 left-1/2 -translate-x-1/2 z-30 font-mono text-[11px] lg:text-[11.5px] xl:text-[12.5px] uppercase tracking-tight text-center leading-[1.35] text-primary will-change-transform pointer-events-none w-[90%] max-w-2xl xl:max-w-3xl"
+        >
+          <p>YOU&apos;RE READING THIS BECAUSE I APPLIED FOR SOMETHING.</p>
+          <p>ART DIRECTOR. BRAND DESIGNER. SENIOR GRAPHIC DESIGNER. I&apos;VE DONE ALL</p>
+          <p>THREE AND ENJOYED TWO. THE REST I&apos;LL FIGURE OUT BY MONDAY.</p>
+          <div className="pt-[0.3em] font-semibold">
+            <p>THAT WERE ALREADY</p>
+            <p>APPROVED.</p>
           </div>
+        </div>
 
+        {/* PRONOUN IDENTITY TAG */}
+        <div
+          ref={heHimRef}
+          className="absolute bottom-4 lg:bottom-5 xl:bottom-6 left-1/2 -translate-x-1/2 z-30 font-mono text-[10px] lg:text-[11px] text-secondary/80 tracking-widest lowercase will-change-transform pointer-events-none text-center"
+        >
+          he/him
         </div>
 
       </section>
 
       {/* ============================================================ */}
-      {/* HERO SECTION (MOBILE): TAILORED RESPONSIVE SCENE             */}
-      {/* Character & "art director" remain the focal center           */}
-      {/* Supporting typography is clean, readable, and responsive     */}
+      {/* MOBILE SCENE: TAILORED VERTICAL EDITORIAL COMPOSITION        */}
+      {/* Background expands continuously; character is central focus  */}
       {/* ============================================================ */}
       <section className="flex md:hidden flex-col items-center justify-between w-full min-h-screen px-5 pt-20 pb-6 gap-6 bg-[#e4e1da]">
         
@@ -322,9 +332,9 @@ export default function AboutPage() {
         <div className="relative w-full my-auto flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/about_stage_clean_mobile.png"
+            src="/about_center_anchor_1080.png"
             alt="Moiz Khan Art Director"
-            className="w-full max-w-[460px] h-auto object-contain block select-none pointer-events-none filter-none"
+            className="w-full max-w-[480px] h-auto object-contain block select-none pointer-events-none filter-none"
             loading="eager"
             draggable={false}
           />
@@ -366,7 +376,7 @@ export default function AboutPage() {
       {/* MINIMAL FOOTER: Subtle copyright note                         */}
       {/* ============================================================ */}
       <footer className="fixed bottom-0 left-0 right-0 z-40 px-6 sm:px-10 pb-3 text-center pointer-events-none">
-        <span className="font-mono text-[9px] text-secondary/45 tracking-widest uppercase">
+        <span className="font-mono text-[9px] text-secondary/40 tracking-widest uppercase">
           © {new Date().getFullYear()} MOIZ KHAN // ALL RIGHTS RESERVED
         </span>
       </footer>
