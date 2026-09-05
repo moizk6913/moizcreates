@@ -6,7 +6,6 @@ import Header from '@/components/Header';
 import HeroScatter from '@/components/HeroScatter';
 import EditorialManifesto from '@/components/EditorialManifesto';
 import ClientsStrip from '@/components/ClientsStrip';
-import SelectedWorks3D from '@/components/SelectedWorks3D';
 import DisciplineDeck from '@/components/DisciplineDeck';
 import About from '@/components/About';
 import Contact from '@/components/Contact';
@@ -53,10 +52,7 @@ export default function Home() {
       {/* Section 01.8: Collaborated Companies & Clients B&W Logo Marquee */}
       <ClientsStrip />
 
-      {/* Section 02: 3D Cylindrical Arc Selected Works Showcase */}
-      <SelectedWorks3D onOpenCase={setSelectedCase} />
-
-      {/* Section 02.5: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
+      {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
 
       {/* Section 03: About Director Profile */}
