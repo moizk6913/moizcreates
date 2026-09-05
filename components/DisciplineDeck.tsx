@@ -259,9 +259,9 @@ export default function DisciplineDeck() {
               <Link
                 href={`/canvas?discipline=${card.id}`}
                 key={card.id}
-                className="w-[275px] sm:w-[310px] h-[410px] sm:h-[450px] flex-shrink-0 snap-center rounded-[22px] select-none block active:scale-95 transition-transform duration-200 border-0 shadow-none"
+                className="w-[275px] sm:w-[310px] h-[410px] sm:h-[450px] flex-shrink-0 snap-center rounded-[10px] select-none block active:scale-95 transition-transform duration-200 border-0 shadow-none"
               >
-                <div className={`w-full h-full rounded-[22px] p-6 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
+                <div className={`w-full h-full rounded-[10px] p-6 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
                   {/* Top Graphic Pattern */}
                   <div className="w-full h-[150px] flex items-center justify-center overflow-hidden">
                     {renderPattern(card.patternType)}
@@ -273,7 +273,7 @@ export default function DisciplineDeck() {
                       <span className="font-mono text-xs tracking-[-0.02em] opacity-80 uppercase font-medium">
                         {card.idxStr}
                       </span>
-                      <span className="font-mono text-[10px] tracking-wider px-2.5 py-0.5 rounded-full bg-black/10 uppercase font-semibold">
+                      <span className="font-mono text-[10px] tracking-wider px-2.5 py-0.5 rounded-[10px] bg-black/10 uppercase font-semibold">
                         {card.badge}
                       </span>
                     </div>
@@ -340,9 +340,9 @@ export default function DisciplineDeck() {
                     zIndex: z,
                     transformOrigin: 'center 95%',
                   }}
-                  className="absolute w-[260px] sm:w-[290px] md:w-[325px] lg:w-[350px] h-[390px] sm:h-[430px] md:h-[480px] lg:h-[515px] rounded-[22px] cursor-pointer will-change-transform transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none border-0 select-none block"
+                  className="absolute w-[260px] sm:w-[290px] md:w-[325px] lg:w-[350px] h-[390px] sm:h-[430px] md:h-[480px] lg:h-[515px] rounded-[10px] cursor-pointer will-change-transform transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none border-0 select-none block"
                 >
-                  <div className={`w-full h-full rounded-[22px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
+                  <div className={`w-full h-full rounded-[10px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
                     {/* Top Graphic Pattern */}
                     <div className="w-full h-[160px] sm:h-[180px] md:h-[200px] flex items-center justify-center overflow-hidden">
                       {renderPattern(card.patternType)}
@@ -354,7 +354,7 @@ export default function DisciplineDeck() {
                         <span className="font-mono text-xs tracking-[-0.02em] opacity-80 uppercase font-medium">
                           {card.idxStr}
                         </span>
-                        <span className="font-mono text-[10px] md:text-xs tracking-wider px-3 py-0.5 rounded-full bg-black/10 uppercase font-semibold">
+                        <span className="font-mono text-[10px] md:text-xs tracking-wider px-3 py-0.5 rounded-[10px] bg-black/10 uppercase font-semibold">
                           {card.badge}
                         </span>
                       </div>

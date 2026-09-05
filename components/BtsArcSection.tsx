@@ -149,7 +149,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
   const rowOneWidthRef = useRef(0);
   const rowTwoWidthRef = useRef(0);
 
-  const REPETITIONS = 10;
+  const REPETITIONS = 3;
 
   // Measure track single-set unit widths once and update on resize
   useEffect(() => {
@@ -232,9 +232,9 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
         onClick={() => handleCardClick(item.projectId)}
         className={`h-full flex-shrink-0 cursor-pointer group select-none relative ${item.aspectClass}`}
       >
-        {/* Visual Bento Container */}
+        {/* Visual Bento Container - 10px Apple corner radius */}
         <div
-          className={`relative w-full h-full rounded-[22px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/10 transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
+          className={`relative w-full h-full rounded-[10px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/10 transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
         >
           {/* Media: Looping Video or Photography */}
           {item.mediaType === 'video' ? (
@@ -245,7 +245,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
               loop
               muted={unmutedId !== item.id}
               playsInline
-              preload="auto"
+              preload="metadata"
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
           ) : (
@@ -267,9 +267,9 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
               {item.brand}
             </span>
 
-            {/* Controls / Tag */}
+            {/* Controls / Tag - 10px Apple radius */}
             <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest border border-white/10">
+              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2 py-0.5 rounded-[10px] bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest border border-white/10">
                 {item.tag}
               </span>
 
@@ -278,7 +278,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
                   type="button"
                   onClick={(e) => toggleMute(item.id, e)}
                   title={unmutedId === item.id ? 'Mute' : 'Unmute'}
-                  className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-[10px] bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
                 >
                   {unmutedId === item.id ? (
                     <Volume2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
@@ -290,9 +290,9 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
             </div>
           </div>
 
-          {/* Center Magnetic "Expand +" Circular Badge */}
+          {/* Center Magnetic "Expand +" Badge - 10px Apple radius */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-black/85 backdrop-blur-md text-white border border-white/20 shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] bg-black/85 backdrop-blur-md text-white border border-white/20 shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
               <span className="font-sans text-[11px] md:text-xs font-semibold tracking-wide">Expand</span>
               <span className="text-sm md:text-base font-light leading-none mt-0.5 text-accent-red">+</span>
             </div>
@@ -313,8 +313,8 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
           onMouseLeave={() => setIsRowOneHovered(false)}
         >
           <div ref={rowOneRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
-            {/* Duplicated 10x for seamless infinite marquee across 4K, 8K & zoomed-out screens */}
-            {Array.from({ length: 10 }).flatMap(() => ROW_ONE_BENTO).map((item, idx) =>
+            {/* Duplicated for seamless infinite marquee */}
+            {Array.from({ length: REPETITIONS }).flatMap(() => ROW_ONE_BENTO).map((item, idx) =>
               renderBentoCard(item, `lane1-${item.id}-${idx}`)
             )}
           </div>
@@ -327,8 +327,8 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
           onMouseLeave={() => setIsRowTwoHovered(false)}
         >
           <div ref={rowTwoRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
-            {/* Duplicated 10x for seamless infinite marquee across 4K, 8K & zoomed-out screens */}
-            {Array.from({ length: 10 }).flatMap(() => ROW_TWO_BENTO).map((item, idx) =>
+            {/* Duplicated for seamless infinite marquee */}
+            {Array.from({ length: REPETITIONS }).flatMap(() => ROW_TWO_BENTO).map((item, idx) =>
               renderBentoCard(item, `lane2-${item.id}-${idx}`)
             )}
           </div>

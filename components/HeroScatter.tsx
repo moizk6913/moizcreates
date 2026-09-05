@@ -36,12 +36,12 @@ const initialCloudData: CloudItem[] = [
   // Tier 2: Mid Constellation Ring (Medium cards, depth 0.9 - 1.2)
   { id: 'ruchi', w: 56, h: 76, x: -22, y: -6, rot: -4, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
   { id: 'oxymorons', w: 74, h: 46, x: 23, y: -7, rot: 5, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 54, h: 70, x: -20, y: 12, rot: 3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 72, h: 44, x: 22, y: 13, rot: -3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
+  { id: 'easyhaibro', w: 54, h: 70, x: -20, y: 11, rot: 3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
+  { id: 'windchasers', w: 72, h: 44, x: 22, y: 12, rot: -3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
   { id: 'kaladhar', w: 52, h: 68, x: -9, y: -23, rot: 5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
   { id: 'ruchi', w: 70, h: 42, x: 9, y: -24, rot: -4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 50, h: 66, x: -10, y: 22, rot: -5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 68, h: 40, x: 10, y: 23, rot: 4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' },
+  { id: 'oxymorons', w: 50, h: 66, x: -10, y: 19, rot: -5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'easyhaibro', w: 68, h: 40, x: 10, y: 20, rot: 4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' },
   { id: 'windchasers', w: 48, h: 48, x: 28, y: 3, rot: -6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop' },
   { id: 'kaladhar', w: 50, h: 65, x: -28, y: 2, rot: 6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=600&auto=format&fit=crop' },
 
@@ -52,8 +52,8 @@ const initialCloudData: CloudItem[] = [
   { id: 'windchasers', w: 64, h: 36, x: 32, y: 19, rot: -4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=600&auto=format&fit=crop' },
   { id: 'kaladhar', w: 44, h: 56, x: -18, y: -31, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop' },
   { id: 'ruchi', w: 62, h: 36, x: 19, y: -30, rot: -5, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 45, h: 58, x: -18, y: 29, rot: -3, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 60, h: 38, x: 19, y: 30, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop' },
+  { id: 'oxymorons', w: 45, h: 58, x: -18, y: 23, rot: -3, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'easyhaibro', w: 60, h: 38, x: 19, y: 24, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop' },
   { id: 'windchasers', w: 42, h: 42, x: 38, y: -6, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=600&auto=format&fit=crop' },
   { id: 'kaladhar', w: 42, h: 54, x: -38, y: -7, rot: 5, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop' },
   { id: 'ruchi', w: 44, h: 44, x: 37, y: 11, rot: 3, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600&auto=format&fit=crop' },
@@ -62,16 +62,16 @@ const initialCloudData: CloudItem[] = [
   // Tier 4: Micro Satellite Stars (Tiny thumbnails, deep space, depth 0.5 - 0.65)
   { id: 'easyhaibro', w: 32, h: 40, x: -44, y: -22, rot: 6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=600&auto=format&fit=crop' },
   { id: 'windchasers', w: 40, h: 26, x: 44, y: -21, rot: -6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 30, h: 38, x: -43, y: 24, rot: -5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 38, h: 24, x: 43, y: 25, rot: 5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'kaladhar', w: 30, h: 38, x: -43, y: 22, rot: -5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=600&auto=format&fit=crop' },
+  { id: 'ruchi', w: 38, h: 24, x: 43, y: 22, rot: 5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
   { id: 'oxymorons', w: 28, h: 36, x: -28, y: -36, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
   { id: 'easyhaibro', w: 36, h: 24, x: 28, y: -35, rot: 4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 28, h: 36, x: -27, y: 35, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 36, h: 24, x: 27, y: 36, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
+  { id: 'windchasers', w: 28, h: 36, x: -27, y: 25, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
+  { id: 'kaladhar', w: 36, h: 24, x: 27, y: 26, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
   { id: 'ruchi', w: 26, h: 34, x: -5, y: -36, rot: 3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
   { id: 'oxymorons', w: 34, h: 22, x: 5, y: -37, rot: -3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 26, h: 34, x: -4, y: 37, rot: -4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 34, h: 22, x: 4, y: 38, rot: 4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
+  { id: 'easyhaibro', w: 26, h: 34, x: -4, y: 27, rot: -4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
+  { id: 'windchasers', w: 34, h: 22, x: 4, y: 28, rot: 4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
   { id: 'kaladhar', w: 30, h: 30, x: -47, y: 2, rot: 7, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
   { id: 'ruchi', w: 30, h: 30, x: 47, y: 3, rot: -7, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
   { id: 'oxymorons', w: 28, h: 36, x: -46, y: -10, rot: -5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
@@ -222,23 +222,32 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
   useEffect(() => {
     if (!isInteractive) return;
 
+    // Avoid running re-render loops on mobile touch devices to preserve buttery 60/120fps
+    const isTouch =
+      typeof window !== 'undefined' &&
+      ('ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia('(pointer: coarse)').matches);
+
+    if (isTouch) return;
+
     const popInterval = setInterval(() => {
       topZRef.current += 1;
       poolIdxRef.current = (poolIdxRef.current + 1) % popAssetPool.length;
       const preset = popPresets[Math.floor(Math.random() * popPresets.length)];
       const asset = popAssetPool[poolIdxRef.current];
 
-      // Spread across the full constellation field (-42vw to +42vw, -32vh to +32vh)
+      // Spread across the full constellation field (-42vw to +42vw, -30vh to +26vh)
       // NEVER bunch in the middle over "MOIZ KHAN"
       let x = Math.random() * 84 - 42;
-      let y = Math.random() * 64 - 32;
+      let y = Math.random() * 56 - 28;
 
       // Keep the center title area clean (safe zone around MOIZ KHAN)
       if (Math.abs(x) < 18 && Math.abs(y) < 14) {
         if (Math.random() > 0.5) {
           x = (x < 0 ? -1 : 1) * (19 + Math.random() * 22);
         } else {
-          y = (y < 0 ? -1 : 1) * (15 + Math.random() * 18);
+          y = (y < 0 ? -1 : 1) * (15 + Math.random() * 12);
         }
       }
 
@@ -270,6 +279,15 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
 
   // 4. Multi-Plane 3D Parallax on Mouse Move (ACTIVITY STRICTLY ON MOUSE MOVE — ZERO IDLE JIGGLE)
   useEffect(() => {
+    // Touch devices use physical touch momentum and have no mouse coordinates
+    const isTouch =
+      typeof window !== 'undefined' &&
+      ('ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia('(pointer: coarse)').matches);
+
+    if (isTouch) return;
+
     let animId: number | null = null;
     let targetNormX = 0;
     let targetNormY = 0;
@@ -444,7 +462,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
                 loading="lazy"
               />
               {pop.isVideo && (
-                <span className="absolute bottom-1 right-1 w-[18px] h-[18px] rounded-full bg-[#ff2a2a] text-white flex items-center justify-center text-[8px] pl-[1px] pointer-events-none">
+                <span className="absolute bottom-1 right-1 w-[18px] h-[18px] rounded-[6px] bg-[#ff2a2a] text-white flex items-center justify-center text-[8px] pl-[1px] pointer-events-none">
                   ▶
                 </span>
               )}

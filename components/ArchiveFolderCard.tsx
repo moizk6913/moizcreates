@@ -327,61 +327,61 @@ export default function ArchiveFolderCard({
       onClick={onClick}
       className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation"
     >
-      {/* 3D FOLDER STAGE (Width ~210-260px, Height ~160-195px) */}
-      <div className="relative w-[210px] sm:w-[240px] md:w-[260px] h-[160px] sm:h-[180px] md:h-[195px] flex items-end justify-center">
+      {/* 3D FOLDER STAGE: Headroom for upward peeking polaroid photo cards */}
+      <div className="relative w-[215px] sm:w-[245px] md:w-[265px] h-[200px] sm:h-[225px] md:h-[240px] flex items-end justify-center">
         
-        {/* LAYER 1: Back Folder Plate (Solid ivory folder back with top-left folder tab) */}
-        <div className="absolute inset-x-0 bottom-0 top-3 bg-gradient-to-b from-[#ece8df] to-[#ded9ce] rounded-[24px] shadow-[0_12px_28px_rgba(0,0,0,0.06)] border border-black/[0.04]">
-          {/* Top Folder Tab (Traditional macOS / Physical folder tab) */}
-          <div className="absolute -top-3 left-4 w-20 sm:w-24 h-4 bg-[#ded8cc] rounded-t-[10px] border-t border-l border-r border-black/[0.04]" />
+        {/* LAYER 1: Back Folder Plate (Solid ivory folder back with top-left folder tab, 10px roundness) */}
+        <div className="absolute inset-x-0 bottom-0 h-[135px] sm:h-[150px] md:h-[160px] bg-gradient-to-b from-[#ece8df] to-[#ded9ce] rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-black/[0.04]">
+          {/* Top Folder Tab (Apple macOS style 10px roundness) */}
+          <div className="absolute -top-2.5 left-3 w-20 sm:w-24 h-3.5 bg-[#ded8cc] rounded-t-[8px] border-t border-l border-r border-black/[0.04]" />
         </div>
 
-        {/* LAYER 2: FANNED POLAROID PHOTO STACK (Spring Hover Bloom Interaction - Image 3 vs Image 5) */}
-        <div className="absolute inset-x-0 bottom-[35px] flex items-center justify-center pointer-events-none">
+        {/* LAYER 2: FANNED POLAROID PHOTO STACK (Tucked inside folder, peeking UP above the flap, blooming higher on hover) */}
+        <div className="absolute inset-x-0 bottom-6 flex items-end justify-center pointer-events-none">
           
-          {/* Card 1: Far Left (-16deg resting -> -24deg hover bloom) */}
-          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[13px] sm:rounded-[15px] shadow-[0_8px_20px_rgba(0,0,0,0.12)] ring-1 ring-black/5 transform -rotate-[16deg] -translate-x-[42px] -translate-y-[8px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[56px] group-hover:-translate-y-[45px] group-hover:scale-105 z-10">
+          {/* Card 1: Far Left (-16deg resting, peeking up -> -24deg hover bloom, peeking up even higher) */}
+          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_6px_18px_rgba(0,0,0,0.13)] ring-1 ring-black/5 transform -rotate-[16deg] -translate-x-[42px] -translate-y-[42px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[58px] group-hover:-translate-y-[76px] group-hover:scale-105 z-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[0]}
               alt="Archive photo 1"
-              className="w-full h-full object-cover rounded-[8px] sm:rounded-[10px] block pointer-events-none"
+              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
             />
           </div>
 
-          {/* Card 2: Center Left (-5deg resting -> -8deg hover bloom) */}
-          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[13px] sm:rounded-[15px] shadow-[0_10px_22px_rgba(0,0,0,0.14)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[14px] -translate-y-[20px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[18px] group-hover:-translate-y-[64px] group-hover:scale-110 z-20">
+          {/* Card 2: Center Left (-5deg resting, peeking up -> -8deg hover bloom, peeking up even higher) */}
+          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.15)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[15px] -translate-y-[54px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[20px] group-hover:-translate-y-[92px] group-hover:scale-110 z-20">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[1]}
               alt="Archive photo 2"
-              className="w-full h-full object-cover rounded-[8px] sm:rounded-[10px] block pointer-events-none"
+              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
             />
           </div>
 
-          {/* Card 3: Center Right (+6deg resting -> +8deg hover bloom) */}
-          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[13px] sm:rounded-[15px] shadow-[0_10px_22px_rgba(0,0,0,0.14)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[14px] -translate-y-[18px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[18px] group-hover:-translate-y-[60px] group-hover:scale-110 z-20">
+          {/* Card 3: Center Right (+6deg resting, peeking up -> +8deg hover bloom, peeking up even higher) */}
+          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.15)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[15px] -translate-y-[50px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[20px] group-hover:-translate-y-[88px] group-hover:scale-110 z-20">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[2]}
               alt="Archive photo 3"
-              className="w-full h-full object-cover rounded-[8px] sm:rounded-[10px] block pointer-events-none"
+              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
             />
           </div>
 
-          {/* Card 4: Far Right (+18deg resting -> +24deg hover bloom) */}
-          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[13px] sm:rounded-[15px] shadow-[0_8px_20px_rgba(0,0,0,0.12)] ring-1 ring-black/5 transform rotate-[18deg] translate-x-[42px] -translate-y-[6px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[56px] group-hover:-translate-y-[42px] group-hover:scale-105 z-10">
+          {/* Card 4: Far Right (+18deg resting, peeking up -> +24deg hover bloom, peeking up even higher) */}
+          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_6px_18px_rgba(0,0,0,0.13)] ring-1 ring-black/5 transform rotate-[18deg] translate-x-[42px] -translate-y-[40px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[58px] group-hover:-translate-y-[74px] group-hover:scale-105 z-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[3]}
               alt="Archive photo 4"
-              className="w-full h-full object-cover rounded-[8px] sm:rounded-[10px] block pointer-events-none"
+              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
             />
@@ -389,15 +389,14 @@ export default function ArchiveFolderCard({
 
         </div>
 
-        {/* LAYER 3: FRONT FROSTED-GLASS POCKET (Images 1, 2, 3, 4, 5 Reference) */}
-        {/* Translucent glassmorphism flap with debossed bottom grip grooves */}
-        <div className="relative w-full h-[142px] sm:h-[158px] md:h-[170px] rounded-[22px] sm:rounded-[24px] bg-white/70 backdrop-blur-md border border-white/80 shadow-[0_16px_36px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between p-4 sm:p-5 z-30 transition-shadow duration-300 group-hover:shadow-[0_24px_48px_rgba(0,0,0,0.14)]">
+        {/* LAYER 3: FRONT FROSTED-GLASS FLAP (10px Apple Roundness, covers bottom 100%) */}
+        <div className="relative w-full h-[135px] sm:h-[150px] md:h-[160px] rounded-[10px] bg-white/75 backdrop-blur-md border border-white/80 shadow-[0_12px_28px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 z-30 transition-shadow duration-300 group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.12)]">
           
           {/* Subtle Glassmorphic Highlight Gradient across the top lip */}
           <div className="absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-white/80 via-white/35 to-transparent pointer-events-none" />
 
           {/* STICKERS & POSTAGE STAMPS ROW (Images 1, 3, 4 reference) */}
-          <div className="relative z-10 flex justify-between items-start pt-1">
+          <div className="relative z-10 flex justify-between items-start pt-0.5">
             
             {/* Stamp 1: Perforated Postage Stamp (Left) */}
             <div className="transform -rotate-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-105">
@@ -409,7 +408,7 @@ export default function ArchiveFolderCard({
             </div>
 
             {/* Sticker 2: Die-Cut Glossy Sticker with White Vinyl Border (Right) */}
-            <div className="transform rotate-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 pt-1 sm:pt-2 pr-1">
+            <div className="transform rotate-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 pt-1 pr-1">
               <DieCutSticker type={stickers?.sticker?.type || 'lemon'} />
             </div>
 
@@ -425,14 +424,14 @@ export default function ArchiveFolderCard({
 
       </div>
 
-      {/* TYPOGRAPHY UNDERNEATH FOLDER (Exact styling from Image 1, 3, 4: Title + Count Pill) */}
-      <div className="mt-3.5 sm:mt-4 flex flex-col items-center justify-center text-center gap-1 max-w-[240px]">
-        <h3 className="font-display font-black text-sm sm:text-base md:text-[17px] text-primary tracking-tight leading-snug group-hover:text-accent-red transition-colors line-clamp-1">
+      {/* TYPOGRAPHY UNDERNEATH FOLDER (10px Apple radius count pill) */}
+      <div className="mt-3 flex flex-col items-center justify-center text-center gap-1 max-w-[240px]">
+        <h3 className="font-display font-black text-sm sm:text-base text-primary tracking-tight leading-snug group-hover:text-accent-red transition-colors line-clamp-1">
           {name}
         </h3>
         
-        {/* Soft Count Pill Badge ("68 photos", "83 photos", etc.) */}
-        <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wide text-secondary/80 bg-black/[0.05] group-hover:bg-black/[0.08] px-3 py-0.5 rounded-full transition-colors">
+        {/* Soft Count Pill Badge ("68 photos", "83 photos", etc. - 10px radius) */}
+        <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wide text-secondary/80 bg-black/[0.05] group-hover:bg-black/[0.08] px-3 py-0.5 rounded-[10px] transition-colors">
           {photoCount} photos
         </span>
       </div>

@@ -107,7 +107,7 @@ export default function EditorialManifesto() {
     <section
       ref={sectionRef}
       id="manifesto"
-      className="w-full py-20 md:py-28 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
+      className="w-full pt-36 sm:pt-48 md:pt-60 pb-28 sm:pb-36 md:pb-44 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
         <h2 className="font-display font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] tracking-[-0.02em] text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">
@@ -127,7 +127,7 @@ export default function EditorialManifesto() {
             </span>
             <span className="manifesto-token inline-flex items-center will-change-transform">
               <span
-                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-full bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-[10px] bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
                 title="Director Shutter Asset"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -135,7 +135,7 @@ export default function EditorialManifesto() {
                   ref={img1Ref}
                   src={shutterPool1[0]}
                   alt="Campaign Shutter Clip"
-                  className="w-full h-full object-cover rounded-full pointer-events-none"
+                  className="w-full h-full object-cover rounded-[10px] pointer-events-none"
                 />
               </span>
             </span>
@@ -151,7 +151,7 @@ export default function EditorialManifesto() {
             </span>
             <span className="manifesto-token inline-flex items-center will-change-transform">
               <span
-                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-full bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-[10px] bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
                 title="Production Shutter Asset"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -159,7 +159,7 @@ export default function EditorialManifesto() {
                   ref={img2Ref}
                   src={shutterPool2[0]}
                   alt="Production Shutter Clip"
-                  className="w-full h-full object-cover rounded-full pointer-events-none"
+                  className="w-full h-full object-cover rounded-[10px] pointer-events-none"
                 />
               </span>
             </span>

@@ -647,7 +647,7 @@ export default function InfiniteCanvasPage() {
       <header className="fixed top-0 left-0 z-50 p-4 sm:p-6 md:p-8 pointer-events-none">
         <Link
           href="/"
-          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-full font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-none border-0"
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-none border-0"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold">BACK TO PORTFOLIO</span>
@@ -700,16 +700,16 @@ export default function InfiniteCanvasPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-4xl bg-[#faf9f6] rounded-[28px] overflow-hidden shadow-2xl border border-black/10 flex flex-col max-h-[92vh]"
+            className="relative w-full max-w-4xl bg-[#faf9f6] rounded-[10px] overflow-hidden shadow-2xl border border-black/10 flex flex-col max-h-[92vh]"
           >
             {/* Folder Header with Back Arrow Button (Image 5 exact style) */}
             <div className="px-5 py-4 sm:px-7 sm:py-5 bg-white/80 backdrop-blur-md border-b border-black/[0.06] flex justify-between items-center z-20 flex-shrink-0">
               <div className="flex items-center gap-3 sm:gap-4">
-                {/* Image 5 Top-Left Circular Back Button */}
+                {/* Image 5 Top-Left Back Button */}
                 <button
                   type="button"
                   onClick={() => setSelectedFile(null)}
-                  className="w-10 h-10 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 hover:bg-black hover:text-white active:scale-90 text-primary flex items-center justify-center text-lg font-bold transition-all"
+                  className="w-10 h-10 rounded-[10px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 hover:bg-black hover:text-white active:scale-90 text-primary flex items-center justify-center text-lg font-bold transition-all"
                   title="Back to Archive"
                 >
                   ←
@@ -719,7 +719,7 @@ export default function InfiniteCanvasPage() {
                     <h2 className="text-lg sm:text-2xl font-display font-black tracking-tight text-primary leading-tight">
                       {selectedFile.name}
                     </h2>
-                    <span className="hidden sm:inline-block font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-black/5 text-secondary font-semibold">
+                    <span className="hidden sm:inline-block font-mono text-[10px] px-2.5 py-0.5 rounded-[10px] bg-black/5 text-secondary font-semibold">
                       {selectedFile.photoCount || 68} photos
                     </span>
                   </div>
@@ -732,7 +732,7 @@ export default function InfiniteCanvasPage() {
               <button
                 type="button"
                 onClick={() => setSelectedFile(null)}
-                className="w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 active:scale-90 text-secondary flex items-center justify-center font-mono text-xs transition-all"
+                className="w-9 h-9 rounded-[10px] bg-black/5 hover:bg-black/10 active:scale-90 text-secondary flex items-center justify-center font-mono text-xs transition-all"
                 title="Close"
               >
                 ✕
@@ -747,9 +747,9 @@ export default function InfiniteCanvasPage() {
                 {(selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img]).map((photoUrl, idx) => (
                   <div
                     key={idx}
-                    className="group relative rounded-[18px] bg-white p-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.04] transition-transform duration-300 hover:scale-[1.02]"
+                    className="group relative rounded-[10px] bg-white p-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.04] transition-transform duration-300 hover:scale-[1.02]"
                   >
-                    <div className="relative w-full aspect-[4/3] rounded-[12px] overflow-hidden bg-black/5">
+                    <div className="relative w-full aspect-[4/3] rounded-[10px] overflow-hidden bg-black/5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photoUrl}
@@ -767,7 +767,7 @@ export default function InfiniteCanvasPage() {
               </div>
 
               {/* Directorial Narrative & Deliverables */}
-              <div className="bg-white rounded-[20px] p-5 sm:p-6 border border-black/[0.06] shadow-sm space-y-4">
+              <div className="bg-white rounded-[10px] p-5 sm:p-6 border border-black/[0.06] shadow-sm space-y-4">
                 <div>
                   <span className="font-mono text-[10px] sm:text-xs text-accent-red font-bold uppercase tracking-wider block mb-1">
                     Director Narrative &amp; Approach
@@ -785,7 +785,7 @@ export default function InfiniteCanvasPage() {
                     {selectedFile.deliverables.map((item, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-1 bg-[#f5f4f0] border border-black/5 rounded-full font-mono text-[10px] sm:text-xs text-secondary"
+                        className="px-2.5 py-1 bg-[#f5f4f0] border border-black/5 rounded-[10px] font-mono text-[10px] sm:text-xs text-secondary"
                       >
                         {item}
                       </span>
