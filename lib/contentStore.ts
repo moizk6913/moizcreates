@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { BlogPost, INITIAL_BLOG_POSTS } from './blogData';
 
@@ -70,6 +70,30 @@ export function saveCanvasFile(file: DynamicCanvasFile): void {
   }
 }
 
+export function deleteCanvasFile(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getStoredCanvasFiles();
+    const updated = existing.filter((f) => f.id !== id);
+    localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(updated));
+  } catch (err) {
+    console.error('Failed to delete canvas file', err);
+  }
+}
+
+export function deleteBlogPost(slug: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.BLOG_POSTS);
+    if (!raw) return;
+    const existing: BlogPost[] = JSON.parse(raw);
+    const updated = existing.filter((p) => p.slug !== slug);
+    localStorage.setItem(STORAGE_KEYS.BLOG_POSTS, JSON.stringify(updated));
+  } catch (err) {
+    console.error('Failed to delete blog post', err);
+  }
+}
+
 export function getStoredApiKey(): string {
   if (typeof window === 'undefined') return '';
   return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || '';
@@ -79,3 +103,4 @@ export function saveApiKey(key: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, key.trim());
 }
+

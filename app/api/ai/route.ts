@@ -3,18 +3,23 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, brief, fileName, topic, notes, category, messages, geminiKey } = body;
+    const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey } = body;
 
     const apiKey = geminiKey || process.env.GEMINI_API_KEY || '';
 
     // Action 1: Smart Asset Upload Analyzer & Tagger
     if (action === 'analyze_upload') {
+      const preferredAspect = detectedAspect || 'aspect-[16/10]';
+      const sourceName = brief || folderName || fileName || 'Commercial Shoot';
+
       if (apiKey) {
         try {
           const prompt = `You are the lead Art Director & Brand Visual Designer assistant for Moiz Khan (Dubai/Worldwide).
-Analyze this upload brief:
+Analyze this upload project context:
+Folder/Collection: ${folderName || 'Single Asset'}
 File Name: ${fileName || 'Asset'}
-Brief: ${brief || 'Commercial fashion / aviation / luxury shoot'}
+Brief/Concept: ${sourceName}
+Detected Physical Aspect Ratio: ${preferredAspect}
 
 Output ONLY a raw valid JSON object (no markdown code fences, no extra text) with these exact keys:
 {
@@ -23,7 +28,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
   "discipline": "Art Direction • Lookbook",
   "year": "2026",
   "role": "Lead Art Director",
-  "aspect": "aspect-[16/10]",
+  "aspect": "${preferredAspect}",
   "colorTag": "bg-[#ff3300]",
   "desc": "2-sentence high-impact directorial description highlighting technical lighting, composition, and visual tone.",
   "deliverables": ["Deliverable 1", "Deliverable 2", "Deliverable 3", "Deliverable 4"]
@@ -46,6 +51,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
               const parsed = JSON.parse(text);
+              if (preferredAspect) parsed.aspect = preferredAspect;
               return NextResponse.json({ success: true, data: parsed, engine: 'gemini-1.5-flash' });
             }
           }
@@ -55,40 +61,49 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
       }
 
       // Intelligent Built-in Fallback Director Engine
-      const cleanBrief = (brief || fileName || 'Commercial Shoot').trim();
+      const cleanBrief = sourceName.trim();
       const codeNum = Math.floor(Math.random() * 80 + 17);
-      const isFashion = /fashion|model|bridal|luxury|wear|cloth/i.test(cleanBrief);
-      const isTech = /aviation|flight|plane|speed|tech/i.test(cleanBrief);
-      const isIdentity = /brand|identity|logo|type|swiss/i.test(cleanBrief);
+      const isFashion = /fashion|model|bridal|luxury|wear|cloth|vogue|runway/i.test(cleanBrief);
+      const isTech = /aviation|flight|plane|speed|tech|auto|car|kinetic/i.test(cleanBrief);
+      const isIdentity = /brand|identity|logo|type|swiss|poster|system/i.test(cleanBrief);
 
       let discipline = 'Art Direction • Commercial Shoot';
       let codeSuffix = 'DIR';
       let colorTag = 'bg-[#ff3300]';
-      let aspect = 'aspect-[16/10]';
+      let aspect = preferredAspect || 'aspect-[16/10]';
       let role = 'Lead Art Director';
 
       if (isFashion) {
         discipline = 'Lighting Direction • Editorial Styling';
         codeSuffix = 'LUX';
         colorTag = 'bg-[#f59e0b]';
-        aspect = 'aspect-[4/5]';
         role = 'Director of Visuals';
       } else if (isTech) {
         discipline = 'Art Direction • Lookbook';
         codeSuffix = 'DIR';
         colorTag = 'bg-[#0055ff]';
-        aspect = 'aspect-[16/10]';
       } else if (isIdentity) {
         discipline = 'Brand Identity • Kinetic Strategy';
         codeSuffix = 'ID';
         colorTag = 'bg-[#00e575]';
-        aspect = 'aspect-[1/1]';
         role = 'Creative Director';
       }
 
+      // If user/image gave an explicit aspect ratio, preserve it unconditionally
+      if (preferredAspect) {
+        aspect = preferredAspect;
+      }
+
+      // Formulate a polished title from folder or brief
+      let cleanedTitle = cleanBrief
+        .replace(/[_-]+/g, ' ')
+        .replace(/\.[a-zA-Z0-9]+$/, '')
+        .trim();
+      cleanedTitle = cleanedTitle.charAt(0).toUpperCase() + cleanedTitle.slice(1);
+
       const generated = {
         code: `FILE_${codeNum}.${codeSuffix}`,
-        name: cleanBrief.charAt(0).toUpperCase() + cleanBrief.slice(1),
+        name: cleanedTitle,
         discipline,
         year: '2026',
         role,

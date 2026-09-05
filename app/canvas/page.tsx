@@ -550,24 +550,33 @@ export default function InfiniteCanvasPage() {
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-2xl bg-white rounded-2xl overflow-hidden shadow-2xl border border-black/10 flex flex-col max-h-[90vh]"
           >
-            {/* Modal Image Header */}
-            <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] bg-black overflow-hidden flex-shrink-0">
+            {/* Modal Image Header (Adapts to any aspect ratio with ambient backdrop) */}
+            <div className="relative w-full h-64 sm:h-80 md:h-96 bg-black overflow-hidden flex items-center justify-center flex-shrink-0">
+              {/* Ambient blurred backdrop for letterboxed aspect ratios */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedFile.img}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
+              />
+              {/* Main true-ratio image */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedFile.img}
                 alt={selectedFile.name}
-                className="w-full h-full object-cover"
+                className="relative z-10 w-full h-full object-contain"
               />
               <button
                 type="button"
                 onClick={() => setSelectedFile(null)}
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/70 hover:bg-black active:scale-90 text-white flex items-center justify-center font-mono text-sm transition-all shadow-lg z-10"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/70 hover:bg-black active:scale-90 text-white flex items-center justify-center font-mono text-sm transition-all shadow-lg z-20"
                 title="Close"
               >
                 ✕
               </button>
-              <div className="absolute bottom-3 left-3 sm:left-4 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded font-mono text-[9px] sm:text-[10px] text-white">
-                {selectedFile.code} • {selectedFile.year}
+              <div className="absolute bottom-3 left-3 sm:left-4 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded font-mono text-[9px] sm:text-[10px] text-white z-20">
+                {selectedFile.code} • {selectedFile.year} • {selectedFile.aspect?.replace('aspect-[', '').replace(']', '') || '16:10'}
               </div>
             </div>
 
