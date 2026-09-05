@@ -7,7 +7,6 @@ import HeroScatter from '@/components/HeroScatter';
 import EditorialManifesto from '@/components/EditorialManifesto';
 import ClientsStrip from '@/components/ClientsStrip';
 import DisciplineDeck from '@/components/DisciplineDeck';
-import WorkGrid from '@/components/WorkGrid';
 import About from '@/components/About';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
@@ -40,9 +39,6 @@ export default function Home() {
 
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
-
-      {/* Section 02: Selected Work 5 Projects Grid */}
-      <WorkGrid onOpenCase={setSelectedCase} />
 
       {/* Section 03: About Director Profile */}
       <About />

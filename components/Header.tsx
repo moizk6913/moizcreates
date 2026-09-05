@@ -90,11 +90,14 @@ export default function Header({ visible = true }: HeaderProps) {
         </div>
 
         <nav className="flex items-center gap-6" aria-label="Main Navigation">
-          <Link href="#work" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
-            WORK
+          <Link href="/canvas" className="font-mono text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
+            ARCHIVE ↗
           </Link>
           <Link href="#about" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
             ABOUT
+          </Link>
+          <Link href="#contact" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
+            CONTACT
           </Link>
         </nav>
       </div>
