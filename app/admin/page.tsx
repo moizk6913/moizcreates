@@ -21,6 +21,11 @@ export default function AdminDashboardPage() {
   const [apiKey, setApiKey] = useState('');
   const [savedKeySuccess, setSavedKeySuccess] = useState(false);
 
+  // Private Director Terminal Access Gate
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [passcode, setPasscode] = useState('');
+  const [passcodeError, setPasscodeError] = useState(false);
+
   // Upload state
   const [uploadImageUrl, setUploadImageUrl] = useState('');
   const [uploadBrief, setUploadBrief] = useState('');
@@ -50,10 +55,29 @@ export default function AdminDashboardPage() {
   const [isChatting, setIsChatting] = useState(false);
 
   useEffect(() => {
+    const isAuth = localStorage.getItem('moiz_studio_auth') === 'true';
+    setIsAuthenticated(isAuth);
     setApiKey(getStoredApiKey());
     setCanvasFiles(getStoredCanvasFiles());
     setBlogPosts(getStoredBlogPosts());
   }, []);
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcode.trim() === '2026' || passcode.trim().toLowerCase() === 'moiz') {
+      localStorage.setItem('moiz_studio_auth', 'true');
+      setIsAuthenticated(true);
+      setPasscodeError(false);
+    } else {
+      setPasscodeError(true);
+    }
+  };
+
+  const handleLock = () => {
+    localStorage.removeItem('moiz_studio_auth');
+    setIsAuthenticated(false);
+    setPasscode('');
+  };
 
   // Save API Key
   const handleSaveApiKey = () => {
@@ -215,6 +239,88 @@ export default function AdminDashboardPage() {
     }
   };
 
+  if (isAuthenticated === null) {
+    return (
+      <main className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <span className="font-mono text-xs text-white/40 tracking-widest uppercase animate-pulse">
+          INITIALIZING SECURE STUDIO...
+        </span>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between p-6 sm:p-12 select-none">
+        <CustomCursor />
+        <div className="flex justify-between items-center font-mono text-xs text-white/50">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#ff2a2a] animate-pulse" />
+            <span>DIRECTOR TERMINAL</span>
+          </div>
+          <Link href="/" className="hover:text-white transition-colors">
+            ← RETURN TO SITE
+          </Link>
+        </div>
+
+        <div className="max-w-md w-full mx-auto my-auto py-12">
+          <div className="border border-white/10 bg-[#121215] rounded-2xl p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ff2a2a]" />
+              <span className="font-mono text-[10px] text-[#ff2a2a] tracking-widest uppercase font-bold">
+                RESTRICTED STUDIO ACCESS
+              </span>
+            </div>
+
+            <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white mb-2">
+              MOIZ KHAN STUDIO
+            </h1>
+            <p className="font-mono text-xs text-white/60 mb-6 leading-relaxed">
+              Private backend for creative direction. Enter your director PIN to access the AI Upload Manager, Article Studio, and private Co-Pilot.
+            </p>
+
+            <form onSubmit={handleUnlock} className="flex flex-col gap-4">
+              <div>
+                <label className="font-mono text-[10px] text-white/50 uppercase block mb-1.5">
+                  DIRECTOR PASSCODE / PIN
+                </label>
+                <input
+                  type="password"
+                  autoFocus
+                  placeholder="Enter PIN (Default: 2026)"
+                  value={passcode}
+                  onChange={(e) => {
+                    setPasscode(e.target.value);
+                    if (passcodeError) setPasscodeError(false);
+                  }}
+                  className={`w-full px-4 py-3 bg-black/60 border ${
+                    passcodeError ? 'border-red-500' : 'border-white/20'
+                  } rounded-lg font-mono text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#ff2a2a] tracking-widest`}
+                />
+                {passcodeError && (
+                  <span className="font-mono text-[10px] text-red-400 mt-1.5 block">
+                    Access Denied. Incorrect director passcode.
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-white text-black hover:bg-[#ff2a2a] hover:text-white font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-colors mt-2"
+              >
+                UNLOCK TERMINAL →
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div className="text-center font-mono text-[10px] text-white/30">
+          MOIZ KHAN • ART DIRECTOR &amp; BRAND VISUAL DESIGNER • PRIVATE BACKEND
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#0f0f11] text-white select-none selection:bg-[#ff2a2a] selection:text-white">
       <CustomCursor />
@@ -241,6 +347,14 @@ export default function AdminDashboardPage() {
           <Link href="/canvas" className="text-[#ff2a2a] font-bold hover:underline transition-colors uppercase">
             CANVAS ↗
           </Link>
+          <button
+            type="button"
+            onClick={handleLock}
+            className="px-2.5 py-1 bg-white/10 hover:bg-red-500/20 text-white/60 hover:text-red-400 rounded font-mono text-[10px] uppercase transition-colors"
+            title="Lock Terminal"
+          >
+            🔒 LOCK
+          </button>
         </div>
       </header>
 

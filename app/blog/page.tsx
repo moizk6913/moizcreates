@@ -47,12 +47,6 @@ export default function BlogIndexPage() {
           >
             ARCHIVE ↗
           </Link>
-          <Link
-            href="/admin"
-            className="hidden sm:inline-block px-3 py-1 bg-subtle border border-border-medium rounded-full text-[10px] text-secondary hover:text-primary transition-colors"
-          >
-            STUDIO ADMIN
-          </Link>
         </div>
       </header>
 
