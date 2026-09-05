@@ -93,10 +93,10 @@ export default function Header({ visible = true }: HeaderProps) {
           <Link href="/canvas" className="font-mono text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
             ARCHIVE ↗
           </Link>
-          <Link href="#about" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
-            ABOUT
+          <Link href="/about" className="font-mono text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
+            ABOUT ↗
           </Link>
-          <Link href="#contact" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
+          <Link href="/#contact" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
             CONTACT
           </Link>
         </nav>
