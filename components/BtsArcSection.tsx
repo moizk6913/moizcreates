@@ -143,29 +143,61 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
   const rowOnePosRef = useRef(0);
   const rowTwoPosRef = useRef(0);
 
-  // Smooth infinite continuous sliding animation loop
+  const rowOneSpeedRef = useRef(36);
+  const rowTwoSpeedRef = useRef(32);
+
+  const rowOneWidthRef = useRef(0);
+  const rowTwoWidthRef = useRef(0);
+
+  // Measure track widths once and update on resize (avoids layout thrashing every frame)
+  useEffect(() => {
+    const updateWidths = () => {
+      if (rowOneRef.current) {
+        rowOneWidthRef.current = rowOneRef.current.scrollWidth / 2;
+      }
+      if (rowTwoRef.current) {
+        rowTwoWidthRef.current = rowTwoRef.current.scrollWidth / 2;
+      }
+    };
+
+    updateWidths();
+    const timer = setTimeout(updateWidths, 400);
+    window.addEventListener('resize', updateWidths, { passive: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateWidths);
+    };
+  }, []);
+
+  // Smooth infinite continuous sliding animation loop with velocity damping
   useEffect(() => {
     let lastTs = performance.now();
     let animId: number;
 
     const loop = (ts: number) => {
-      const dt = Math.min((ts - lastTs) / 1000, 0.1);
+      const dt = Math.min((ts - lastTs) / 1000, 0.05);
       lastTs = ts;
 
-      // Row 1 slides left
-      if (!isRowOneHovered && rowOneRef.current) {
-        rowOnePosRef.current += 36 * dt; // 36px/sec
-        const trackWidth = rowOneRef.current.scrollWidth / 2;
+      // Smooth velocity easing for Row 1 (gentle glide to halt when hovered, smooth ramp up)
+      const targetSpeedOne = isRowOneHovered ? 0 : 36;
+      rowOneSpeedRef.current += (targetSpeedOne - rowOneSpeedRef.current) * (isRowOneHovered ? 0.09 : 0.05);
+
+      if (rowOneRef.current && Math.abs(rowOneSpeedRef.current) > 0.01) {
+        rowOnePosRef.current += rowOneSpeedRef.current * dt;
+        const trackWidth = rowOneWidthRef.current || (rowOneRef.current.scrollWidth / 2);
         if (trackWidth > 0 && rowOnePosRef.current >= trackWidth) {
           rowOnePosRef.current -= trackWidth;
         }
         rowOneRef.current.style.transform = `translate3d(-${rowOnePosRef.current}px, 0, 0)`;
       }
 
-      // Row 2 slides right
-      if (!isRowTwoHovered && rowTwoRef.current) {
-        rowTwoPosRef.current += 32 * dt; // 32px/sec
-        const trackWidth = rowTwoRef.current.scrollWidth / 2;
+      // Smooth velocity easing for Row 2 (gentle glide to halt when hovered, smooth ramp up)
+      const targetSpeedTwo = isRowTwoHovered ? 0 : 32;
+      rowTwoSpeedRef.current += (targetSpeedTwo - rowTwoSpeedRef.current) * (isRowTwoHovered ? 0.09 : 0.05);
+
+      if (rowTwoRef.current && Math.abs(rowTwoSpeedRef.current) > 0.01) {
+        rowTwoPosRef.current += rowTwoSpeedRef.current * dt;
+        const trackWidth = rowTwoWidthRef.current || (rowTwoRef.current.scrollWidth / 2);
         if (trackWidth > 0 && rowTwoPosRef.current >= trackWidth) {
           rowTwoPosRef.current -= trackWidth;
         }

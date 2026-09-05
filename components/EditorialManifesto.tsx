@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -29,23 +29,27 @@ const shutterPool2 = [
 
 export default function EditorialManifesto() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [img1, setImg1] = useState(shutterPool1[0]);
-  const [img2, setImg2] = useState(shutterPool2[0]);
+  const img1Ref = useRef<HTMLImageElement>(null);
+  const img2Ref = useRef<HTMLImageElement>(null);
 
-  // Pill live shutter asset cycling
+  // Pill live shutter asset cycling using direct DOM updates (zero React re-renders = silky 60/120fps scroll)
   useEffect(() => {
     let idx1 = 0;
     let idx2 = 2;
 
     const interval1 = setInterval(() => {
       idx1 = (idx1 + 1) % shutterPool1.length;
-      setImg1(shutterPool1[idx1]);
-    }, 100);
+      if (img1Ref.current) {
+        img1Ref.current.src = shutterPool1[idx1];
+      }
+    }, 180);
 
     const interval2 = setInterval(() => {
       idx2 = (idx2 + 1) % shutterPool2.length;
-      setImg2(shutterPool2[idx2]);
-    }, 125);
+      if (img2Ref.current) {
+        img2Ref.current.src = shutterPool2[idx2];
+      }
+    }, 220);
 
     return () => {
       clearInterval(interval1);
@@ -128,7 +132,8 @@ export default function EditorialManifesto() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={img1}
+                  ref={img1Ref}
+                  src={shutterPool1[0]}
                   alt="Campaign Shutter Clip"
                   className="w-full h-full object-cover rounded-full pointer-events-none"
                 />
@@ -151,7 +156,8 @@ export default function EditorialManifesto() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={img2}
+                  ref={img2Ref}
+                  src={shutterPool2[0]}
                   alt="Production Shutter Clip"
                   className="w-full h-full object-cover rounded-full pointer-events-none"
                 />

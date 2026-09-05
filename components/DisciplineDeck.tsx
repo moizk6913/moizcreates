@@ -336,11 +336,11 @@ export default function DisciplineDeck() {
                   onMouseEnter={() => setHoveredIdx(originalIdx)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   style={{
-                    transform: `translate(${posX}px, ${posY}px) rotate(${rot}deg) ${isHovered ? 'scale(1.08)' : 'scale(1)'}`,
+                    transform: `translate3d(${posX}px, ${posY}px, 0) rotate(${rot}deg) ${isHovered ? 'scale(1.08)' : 'scale(1)'}`,
                     zIndex: z,
                     transformOrigin: 'center 95%',
                   }}
-                  className="absolute w-[210px] sm:w-[225px] md:w-[240px] h-[310px] sm:h-[330px] md:h-[350px] rounded-[16px] cursor-pointer transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none border-0 select-none block"
+                  className="absolute w-[210px] sm:w-[225px] md:w-[240px] h-[310px] sm:h-[330px] md:h-[350px] rounded-[16px] cursor-pointer will-change-transform transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none border-0 select-none block"
                 >
                   <div className={`w-full h-full rounded-[16px] p-5 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
                     {/* Top Graphic Pattern */}
