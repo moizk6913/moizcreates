@@ -332,7 +332,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
     <section
       ref={containerRef}
       id="top"
-      className="relative w-full min-h-screen min-h-[750px] md:min-h-[900px] lg:min-h-[1000px] bg-canvas overflow-hidden flex flex-col justify-between border-none select-none"
+      className="relative w-full h-screen min-h-screen bg-canvas overflow-hidden flex flex-col justify-between border-none select-none"
     >
       {/* Delicate Dotted Background Grid (Smoothly fades in ONLY after initial shutter completes) */}
       <div
@@ -346,7 +346,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
           shutterActive ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
         }`}
       >
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.02em] text-primary uppercase leading-[0.7]">
+        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[-0.02em] text-primary uppercase leading-[0.88] pt-1">
           MOIZ KHAN
         </h1>
         <p className="font-mono text-[11px] sm:text-xs md:text-sm tracking-[-0.02em] text-secondary uppercase font-medium">
@@ -452,9 +452,6 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
           </div>
         ))}
       </div>
-
-      {/* White gradient fading upside down to cover dots seamlessly at the bottom of hero */}
-      <div className="absolute bottom-0 inset-x-0 h-44 bg-gradient-to-b from-transparent via-white/60 to-white pointer-events-none z-20" />
     </section>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Header from '@/components/Header';
 import HeroScatter from '@/components/HeroScatter';
 import EditorialManifesto from '@/components/EditorialManifesto';
@@ -65,22 +64,6 @@ export default function Home() {
       {/* Section 04: Direct Inquiries & Contact */}
       <Contact />
 
-      {/* Clean Footer */}
-      <footer className="w-full py-8 bg-canvas">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center text-xs font-mono text-muted">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/assets/logo.png"
-              alt="Logo"
-              width={18}
-              height={18}
-              className="h-4 w-auto object-contain"
-            />
-            <span>&copy; 2026. All rights reserved.</span>
-          </div>
-          <div>DUBAI / WORLDWIDE</div>
-        </div>
-      </footer>
 
       {/* Case Study Modal */}
       <CaseModal projectId={selectedCase} onClose={() => setSelectedCase(null)} />

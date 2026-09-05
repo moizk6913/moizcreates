@@ -107,10 +107,10 @@ export default function EditorialManifesto() {
     <section
       ref={sectionRef}
       id="manifesto"
-      className="w-full py-8 md:py-12 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
+      className="w-full py-20 md:py-28 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
-        <h2 className="font-display font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.85] tracking-[-0.02em] text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">
+        <h2 className="font-display font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] tracking-[-0.02em] text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">
           {/* Line 1 */}
           <span className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-3 overflow-hidden py-0.5">
             <span className="manifesto-token inline-flex items-center will-change-transform">

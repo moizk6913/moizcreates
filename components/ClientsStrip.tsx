@@ -2,7 +2,7 @@
 
 export default function ClientsStrip() {
   return (
-    <section id="clients" className="w-full py-3 md:py-5 bg-canvas overflow-hidden border-none relative select-none">
+    <section id="clients" className="w-full py-12 md:py-16 bg-canvas overflow-hidden border-none relative select-none">
       {/* Marquee Wrapper with soft edge masks (zero lines) */}
       <div className="w-full overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <div className="flex items-center w-max gap-14 sm:gap-20 md:gap-24 animate-marquee-left hover:[animation-play-state:paused]">

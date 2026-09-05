@@ -149,14 +149,16 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
   const rowOneWidthRef = useRef(0);
   const rowTwoWidthRef = useRef(0);
 
-  // Measure track widths once and update on resize (avoids layout thrashing every frame)
+  const REPETITIONS = 10;
+
+  // Measure track single-set unit widths once and update on resize
   useEffect(() => {
     const updateWidths = () => {
       if (rowOneRef.current) {
-        rowOneWidthRef.current = rowOneRef.current.scrollWidth / 2;
+        rowOneWidthRef.current = rowOneRef.current.scrollWidth / REPETITIONS;
       }
       if (rowTwoRef.current) {
-        rowTwoWidthRef.current = rowTwoRef.current.scrollWidth / 2;
+        rowTwoWidthRef.current = rowTwoRef.current.scrollWidth / REPETITIONS;
       }
     };
 
@@ -184,7 +186,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
 
       if (rowOneRef.current && Math.abs(rowOneSpeedRef.current) > 0.01) {
         rowOnePosRef.current += rowOneSpeedRef.current * dt;
-        const trackWidth = rowOneWidthRef.current || (rowOneRef.current.scrollWidth / 2);
+        const trackWidth = rowOneWidthRef.current || (rowOneRef.current.scrollWidth / REPETITIONS);
         if (trackWidth > 0 && rowOnePosRef.current >= trackWidth) {
           rowOnePosRef.current -= trackWidth;
         }
@@ -197,7 +199,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
 
       if (rowTwoRef.current && Math.abs(rowTwoSpeedRef.current) > 0.01) {
         rowTwoPosRef.current += rowTwoSpeedRef.current * dt;
-        const trackWidth = rowTwoWidthRef.current || (rowTwoRef.current.scrollWidth / 2);
+        const trackWidth = rowTwoWidthRef.current || (rowTwoRef.current.scrollWidth / REPETITIONS);
         if (trackWidth > 0 && rowTwoPosRef.current >= trackWidth) {
           rowTwoPosRef.current -= trackWidth;
         }
@@ -301,7 +303,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
   };
 
   return (
-    <section id="work-showcase" className="w-full pt-2 pb-4 md:pt-3 md:pb-6 bg-canvas overflow-hidden">
+    <section id="work-showcase" className="w-full py-20 md:py-28 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks (Zero External Text) */}
       <div className="w-full flex flex-col gap-6 md:gap-8 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with mixed bento widths */}
@@ -311,8 +313,8 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
           onMouseLeave={() => setIsRowOneHovered(false)}
         >
           <div ref={rowOneRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
-            {/* Duplicated twice for seamless infinite marquee */}
-            {[...ROW_ONE_BENTO, ...ROW_ONE_BENTO].map((item, idx) =>
+            {/* Duplicated 10x for seamless infinite marquee across 4K, 8K & zoomed-out screens */}
+            {Array.from({ length: 10 }).flatMap(() => ROW_ONE_BENTO).map((item, idx) =>
               renderBentoCard(item, `lane1-${item.id}-${idx}`)
             )}
           </div>
@@ -325,8 +327,8 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
           onMouseLeave={() => setIsRowTwoHovered(false)}
         >
           <div ref={rowTwoRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
-            {/* Duplicated twice for seamless infinite marquee */}
-            {[...ROW_TWO_BENTO, ...ROW_TWO_BENTO].map((item, idx) =>
+            {/* Duplicated 10x for seamless infinite marquee across 4K, 8K & zoomed-out screens */}
+            {Array.from({ length: 10 }).flatMap(() => ROW_TWO_BENTO).map((item, idx) =>
               renderBentoCard(item, `lane2-${item.id}-${idx}`)
             )}
           </div>
