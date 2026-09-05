@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface CardData {
   id: string;
@@ -158,11 +159,11 @@ export default function DisciplineDeck() {
               }
 
               return (
-                <article
+                <Link
+                  href={`/canvas?discipline=${card.id}`}
                   key={card.id}
                   data-cursor="view"
                   data-cursor-text="OPEN ARCHIVE ↗"
-                  onClick={() => router.push(`/canvas?discipline=${card.id}`)}
                   onMouseEnter={() => setHoveredIdx(originalIdx)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   style={{
@@ -170,7 +171,7 @@ export default function DisciplineDeck() {
                     zIndex: z,
                     transformOrigin: 'center 95%',
                   }}
-                  className={`absolute w-[210px] sm:w-[225px] md:w-[240px] h-[310px] sm:h-[330px] md:h-[350px] rounded-[16px] cursor-pointer transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none select-none ${card.borderClass}`}
+                  className={`absolute w-[210px] sm:w-[225px] md:w-[240px] h-[310px] sm:h-[330px] md:h-[350px] rounded-[16px] cursor-pointer transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-none select-none touch-manipulation block ${card.borderClass}`}
                 >
                   <div className={`w-full h-full rounded-[16px] p-5 flex flex-col justify-between overflow-hidden relative shadow-none ${card.bgClass} ${card.textClass}`}>
                     {/* Top Half Graphic Pattern */}
@@ -305,7 +306,7 @@ export default function DisciplineDeck() {
                       </p>
                     </div>
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>
