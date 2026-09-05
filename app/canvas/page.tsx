@@ -407,14 +407,6 @@ export default function InfiniteCanvasPage() {
     setSelectedFile(file);
   };
 
-  const resetCenter = () => {
-    setPan({ x: 0, y: 0 });
-    setZoom(isMobile ? 0.75 : 1.0);
-  };
-
-  const zoomIn = () => setZoom((prev) => Math.min(prev + 0.15, 1.8));
-  const zoomOut = () => setZoom((prev) => Math.max(prev - 0.15, 0.4));
-
   return (
     <main
       ref={containerRef}
@@ -433,63 +425,25 @@ export default function InfiniteCanvasPage() {
       {/* Luxury Custom Fluid Cursor (Auto-disabled on mobile) */}
       <CustomCursor />
 
-      {/* Limitless Dotted Grid Infinite Canvas */}
+      {/* Limitless Dotted Grid Infinite Canvas (Fine subtle architectural dots) */}
       <div
         className="absolute inset-0 pointer-events-none will-change-transform"
         style={{
-          backgroundImage: 'radial-gradient(#c7c4ba 1.5px, transparent 1.5px)',
-          backgroundSize: `${32 * zoom}px ${32 * zoom}px`,
-          backgroundPosition: `${pan.x % (32 * zoom)}px ${pan.y % (32 * zoom)}px`,
+          backgroundImage: 'radial-gradient(#dcdad2 0.9px, transparent 0.9px)',
+          backgroundSize: `${(isMobile ? 22 : 28) * zoom}px ${(isMobile ? 22 : 28) * zoom}px`,
+          backgroundPosition: `${pan.x % ((isMobile ? 22 : 28) * zoom)}px ${pan.y % ((isMobile ? 22 : 28) * zoom)}px`,
         }}
       />
 
-      {/* Floating Modern Editorial Top Navigation */}
-      <header className="fixed top-0 inset-x-0 z-50 p-4 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <Link
-            href="/"
-            className="group flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-white/95 backdrop-blur-md border border-black/10 rounded-full font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red hover:border-accent-red active:scale-95 transition-all shadow-sm"
-          >
-            <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
-            <span className="font-bold">BACK TO PORTFOLIO</span>
-          </Link>
-        </div>
-
-        {/* Center Title Pill */}
-        <div className="hidden sm:flex items-center gap-3 px-5 py-2 bg-white/95 backdrop-blur-md border border-black/10 rounded-full font-mono text-xs text-primary shadow-sm pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-accent-red animate-pulse" />
-          <span className="font-bold tracking-tight">LIMITLESS ARCHIVE</span>
-          <span className="text-muted">/ 16 FILES</span>
-        </div>
-
-        {/* Zoom & Reset Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
-          <button
-            type="button"
-            onClick={zoomOut}
-            className="w-8 h-8 sm:w-9 sm:h-9 bg-white/95 backdrop-blur-md border border-black/10 rounded-full font-mono text-xs text-secondary hover:text-primary active:scale-90 transition-all shadow-sm flex items-center justify-center font-bold"
-            title="Zoom Out"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            onClick={zoomIn}
-            className="w-8 h-8 sm:w-9 sm:h-9 bg-white/95 backdrop-blur-md border border-black/10 rounded-full font-mono text-xs text-secondary hover:text-primary active:scale-90 transition-all shadow-sm flex items-center justify-center font-bold"
-            title="Zoom In"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            onClick={resetCenter}
-            className="px-3 h-8 sm:h-9 bg-white/95 backdrop-blur-md border border-black/10 rounded-full font-mono text-[11px] sm:text-xs text-secondary hover:text-primary active:scale-90 transition-all shadow-sm flex items-center gap-1"
-            title="Reset View"
-          >
-            <span>⊙</span>
-            <span className="hidden md:inline font-medium">CENTER</span>
-          </button>
-        </div>
+      {/* Floating Minimalist Back Button Only */}
+      <header className="fixed top-0 left-0 z-50 p-4 sm:p-6 md:p-8 pointer-events-none">
+        <Link
+          href="/"
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-full font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-none border-0"
+        >
+          <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
+          <span className="font-bold">BACK TO PORTFOLIO</span>
+        </Link>
       </header>
 
       {/* Limitless World Stage (Pans & Zooms smoothly with gestures) */}
@@ -500,14 +454,7 @@ export default function InfiniteCanvasPage() {
           transformOrigin: '0 0',
         }}
       >
-        {/* Origin Center Radar Marker */}
-        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center justify-center opacity-30">
-          <div className="w-10 h-px bg-black/40" />
-          <div className="h-10 w-px bg-black/40 -mt-5" />
-          <span className="font-mono text-[9px] tracking-widest text-black/60 mt-1 uppercase">ARCHIVE CENTER (0, 0)</span>
-        </div>
-
-        {/* 16 Archival File Folder Icons with Images Peeking Up */}
+        {/* 16 Archival File Folder Icons with Images Peeking Up (ZERO SHADOWS, ZERO STROKES) */}
         {ARCHIVE_FILES.map((file) => (
           <div
             key={file.id}
@@ -519,13 +466,13 @@ export default function InfiniteCanvasPage() {
               top: `${file.y}px`,
               transform: `translate(-50%, -50%) rotate(${file.rot}deg)`,
             }}
-            className="absolute group cursor-pointer transition-all duration-300 hover:z-50 select-none touch-manipulation"
+            className="absolute group cursor-pointer transition-transform duration-300 hover:z-50 select-none touch-manipulation"
           >
-            {/* The Archival File Sleeve Container */}
-            <div className="relative w-[180px] sm:w-[210px] md:w-[230px] pt-14 pb-4 px-3.5 sm:px-4 bg-[#f2efe9] border border-[#dedad1] rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] group-hover:-translate-y-2 transition-all duration-300">
+            {/* The Archival File Sleeve Container (Solid paper contrast, 0 shadow, 0 stroke) */}
+            <div className="relative w-[180px] sm:w-[210px] md:w-[230px] pt-14 pb-4 px-3.5 sm:px-4 bg-[#ede8df] rounded-[12px] shadow-none border-0 group-hover:-translate-y-2 transition-transform duration-300">
               
               {/* Folder Top Tab */}
-              <div className="absolute -top-3 left-3 sm:left-4 px-2.5 sm:px-3 py-1 bg-[#dedad1] rounded-t-[6px] border-t border-x border-[#cecac1] flex items-center gap-1.5 shadow-none">
+              <div className="absolute -top-3 left-3 sm:left-4 px-2.5 sm:px-3 py-1 bg-[#ded8cc] rounded-t-[6px] flex items-center gap-1.5 shadow-none border-0">
                 <span className={`w-1.5 h-1.5 rounded-full ${file.colorTag}`} />
                 <span className="font-mono text-[8px] sm:text-[9px] font-bold tracking-wider text-black/70">
                   {file.code}
@@ -533,21 +480,19 @@ export default function InfiniteCanvasPage() {
               </div>
 
               {/* THE IMAGE PEEKING UP FROM INSIDE THE FILE JACKET */}
-              <div className="absolute -top-10 inset-x-2.5 sm:inset-x-3 h-[96px] sm:h-[110px] rounded-[8px] overflow-hidden bg-black/10 border border-black/15 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-8 group-hover:scale-105 z-10">
+              <div className="absolute -top-10 inset-x-2.5 sm:inset-x-3 h-[96px] sm:h-[110px] rounded-[8px] overflow-hidden bg-black/10 shadow-none border-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-8 group-hover:scale-105 z-10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.img}
                   alt={file.name}
-                  className="w-full h-full object-cover block pointer-events-none"
+                  className="w-full h-full object-cover block pointer-events-none border-0"
                   loading="lazy"
                   draggable={false}
                 />
-                {/* Visual Glass Edge / Photo Film Border */}
-                <div className="absolute inset-0 border border-white/20 pointer-events-none" />
               </div>
 
               {/* Front File Sleeve Pocket (Sits in front of the lower half of the image) */}
-              <div className="relative z-20 mt-10 pt-2 border-t border-[#dedad1]/60">
+              <div className="relative z-20 mt-10 pt-2.5">
                 <h3 className="font-bold text-xs sm:text-sm tracking-tight text-primary leading-tight group-hover:text-accent-red transition-colors line-clamp-2">
                   {file.name}
                 </h3>
@@ -555,7 +500,7 @@ export default function InfiniteCanvasPage() {
                   {file.discipline}
                 </p>
                 
-                <div className="mt-2.5 sm:mt-3 flex items-center justify-between text-[8px] sm:text-[9px] font-mono text-muted border-t border-black/5 pt-1.5 sm:pt-2">
+                <div className="mt-2.5 sm:mt-3 flex items-center justify-between text-[8px] sm:text-[9px] font-mono text-muted pt-1.5 sm:pt-2">
                   <span>{file.year}</span>
                   <span className="text-accent-red font-bold opacity-70 group-hover:opacity-100 transition-opacity">
                     PEEK ↗
@@ -566,22 +511,6 @@ export default function InfiniteCanvasPage() {
           </div>
         ))}
       </div>
-
-      {/* Floating Bottom Instructions / Mobile HUD */}
-      <footer className="fixed bottom-4 sm:bottom-6 inset-x-0 flex justify-center pointer-events-none z-40 px-4">
-        <div className="px-4 py-2 sm:px-5 sm:py-2.5 bg-black/90 backdrop-blur-md text-white rounded-full font-mono text-[10px] sm:text-xs flex items-center gap-3 sm:gap-4 shadow-xl pointer-events-auto">
-          <span className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="tracking-tight">
-              {isMobile ? 'SWIPE ANYWHERE TO PAN • TAP FILE' : 'DRAG TO PAN • CLICK FILE'}
-            </span>
-          </span>
-          <span className="text-white/30 hidden sm:inline">|</span>
-          <span className="text-white/70 hidden sm:inline">
-            ZOOM: {Math.round(zoom * 100)}%
-          </span>
-        </div>
-      </footer>
 
       {/* Project Detail Lightbox Modal (Fully Touch-Friendly & Scrollable) */}
       {selectedFile && (

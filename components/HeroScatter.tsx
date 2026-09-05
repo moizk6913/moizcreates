@@ -6,6 +6,7 @@ import { useGSAP } from '@gsap/react';
 
 interface HeroScatterProps {
   onOpenCase: (id: string) => void;
+  onShutterFinish?: () => void;
 }
 
 interface CloudItem {
@@ -117,7 +118,7 @@ const popPresets = [
   { w: 84, h: 54, isVideo: false },
 ];
 
-export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
+export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatterProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
@@ -141,6 +142,7 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
     const timer = setTimeout(() => {
       clearInterval(cycleInterval);
       setShutterActive(false);
+      onShutterFinish?.();
     }, 1000);
 
     return () => {
@@ -308,8 +310,14 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
     <section
       ref={containerRef}
       id="top"
-      className="relative w-full h-screen min-h-screen bg-canvas bg-[radial-gradient(#d5d3cc_1.1px,transparent_1.1px)] [background-size:28px_28px] overflow-hidden flex flex-col justify-between border-none select-none"
+      className="relative w-full h-screen min-h-screen bg-canvas overflow-hidden flex flex-col justify-between border-none select-none"
     >
+      {/* Delicate Dotted Background Grid (Smoothly fades in ONLY after initial shutter completes) */}
+      <div
+        className={`absolute inset-0 pointer-events-none bg-[radial-gradient(#d5d3cc_1.1px,transparent_1.1px)] [background-size:28px_28px] transition-opacity duration-700 ease-out z-[1] ${
+          shutterActive ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
       {/* Central Artist Identity (Revealed cleanly after shutter dissolves) */}
       <div
         className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-[2] select-none flex flex-col items-center justify-center gap-0.5 transition-all duration-700 ease-out ${

@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function Header() {
+interface HeaderProps {
+  visible?: boolean;
+}
+
+export default function Header({ visible = true }: HeaderProps) {
   const [worldTime, setWorldTime] = useState('DUBAI 12:00 PM GST');
   const [isFading, setIsFading] = useState(false);
 
@@ -59,7 +63,11 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-6 py-6 md:px-12 flex justify-between items-center pointer-events-none">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 px-6 py-6 md:px-12 flex justify-between items-center pointer-events-none transition-opacity duration-700 ease-out ${
+        visible ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
       {/* Geometric Logo Only */}
       <Link href="#top" className="pointer-events-auto transition-transform hover:scale-105" aria-label="Home">
         <Image

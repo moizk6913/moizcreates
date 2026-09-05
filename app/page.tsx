@@ -16,17 +16,21 @@ import CustomCursor from '@/components/CustomCursor';
 
 export default function Home() {
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
+  const [isIntroDone, setIsIntroDone] = useState(false);
 
   return (
     <main className="relative min-h-screen bg-canvas">
       {/* Custom Luxury Magnetic Fluid Cursor */}
       <CustomCursor />
 
-      {/* Header */}
-      <Header />
+      {/* Header (Hidden during initial shutter, fades in smoothly) */}
+      <Header visible={isIntroDone} />
 
       {/* Section 01: Hero Center Shutter & Tight Overlapping Cluster */}
-      <HeroScatter onOpenCase={setSelectedCase} />
+      <HeroScatter
+        onOpenCase={setSelectedCase}
+        onShutterFinish={() => setIsIntroDone(true)}
+      />
 
       {/* Section 01.5: Editorial Manifesto Strip */}
       <EditorialManifesto />
