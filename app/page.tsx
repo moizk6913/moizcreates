@@ -53,11 +53,11 @@ export default function Home() {
       {/* Section 01.8: Collaborated Companies & Clients B&W Logo Marquee */}
       <ClientsStrip />
 
+      {/* Section 01.85: 3D Curved Arc BTS & Direction Reels (Upper from deck) */}
+      <BtsArcSection />
+
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
-
-      {/* Section 02: 3D Curved Arc BTS & Direction Reels */}
-      <BtsArcSection />
 
       {/* Section 03: About Director Profile */}
       <About />

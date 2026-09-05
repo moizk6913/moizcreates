@@ -1,181 +1,158 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Volume2, VolumeX, Maximize2, X } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface BtsItem {
   id: string;
   title: string;
-  format: 'portrait' | 'landscape' | 'square';
+  format: 'portrait' | 'landscape';
   videoUrl: string;
   posterUrl: string;
-  aspectRatio: string;
-  baseWidth: number; // in px
-  baseHeight: number; // in px
+  width: number;
+  height: number;
   hudCamera: string;
   hudLens: string;
   hudIso: string;
   hudFps: string;
   hudScene: string;
-  tiltOffset?: number;
-  yOffset?: number;
 }
 
 const RAW_BTS_ITEMS: BtsItem[] = [
   {
     id: 'bts-01',
-    title: 'RUNWAY PACING & CHOREOGRAPHY',
-    format: 'portrait',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/28/Chroma_-_Fashion_Video.webm',
-    posterUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '9/16',
-    baseWidth: 260,
-    baseHeight: 460,
-    hudCamera: 'ARRI ALEXA LF',
-    hudLens: '50MM T1.3',
+    title: 'PRECISION TRACKING & TELEMETRY',
+    format: 'landscape',
+    videoUrl: '/assets/bts/bts-01.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop',
+    width: 390,
+    height: 240,
+    hudCamera: 'ARRI ALEXA MINI LF',
+    hudLens: '35MM T1.3',
     hudIso: '800 ISO',
     hudFps: '24 FPS',
-    hudScene: 'SET // A1',
+    hudScene: 'RIG // CAR-01',
   },
   {
     id: 'bts-02',
-    title: 'CRANE TRACKING & MODEL BLOCKING',
-    format: 'landscape',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/08/The_Last_of_Us_-_Gastown_set_3.webm',
-    posterUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '16/9',
-    baseWidth: 440,
-    baseHeight: 260,
+    title: 'DYNAMIC GIMBAL PACING',
+    format: 'portrait',
+    videoUrl: '/assets/bts/bts-02.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop',
+    width: 250,
+    height: 420,
     hudCamera: 'RED V-RAPTOR 8K',
-    hudLens: '21MM ANAMORPHIC',
+    hudLens: '21MM ULTRA-WIDE',
     hudIso: '1280 ISO',
     hudFps: '48 FPS',
-    hudScene: 'RIG // TECH-04',
+    hudScene: 'REEL // SPEED-02',
   },
   {
     id: 'bts-03',
-    title: 'HIGH-FASHION EDITORIAL DIRECTION',
-    format: 'portrait',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2d/Fashion_Magazine.webm',
-    posterUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '9/16',
-    baseWidth: 250,
-    baseHeight: 440,
+    title: 'ANAMORPHIC OUTDOOR UNIT',
+    format: 'landscape',
+    videoUrl: '/assets/bts/bts-03.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
+    width: 400,
+    height: 245,
     hudCamera: 'SONY VENICE 2',
-    hudLens: '85MM T1.4',
-    hudIso: '400 ISO',
+    hudLens: '50MM ANAMORPHIC',
+    hudIso: '500 ISO',
     hudFps: '24 FPS',
-    hudScene: 'COVER // 02',
+    hudScene: 'EXTERIOR // WINTER',
   },
   {
     id: 'bts-04',
-    title: 'ASTERA LIGHTING SYNC & SHUTTER TEST',
-    format: 'landscape',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Photo_Shoot-A_Video_Demonstration.webm',
-    posterUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '16/9',
-    baseWidth: 460,
-    baseHeight: 270,
-    hudCamera: 'DIRECTOR MONITOR',
-    hudLens: 'MASTER ZOOM',
-    hudIso: '3200K TUNGSTEN',
-    hudFps: '60 FPS',
-    hudScene: 'LIGHTING // KEY',
+    title: '120 FPS VELOCITY MOTION CUE',
+    format: 'portrait',
+    videoUrl: '/assets/bts/bts-04.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
+    width: 250,
+    height: 420,
+    hudCamera: 'PHANTOM FLEX 4K',
+    hudLens: '85MM MASTER PRIME',
+    hudIso: '1600 ISO',
+    hudFps: '120 FPS',
+    hudScene: 'REEL // SPRINT-04',
   },
   {
     id: 'bts-05',
-    title: 'NATURAL LIGHT SUN-CHASING UNIT',
+    title: 'MACRO OPTICS & HOUSING TEST',
     format: 'landscape',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f8/Melt_Swim_Fashion_Video_Summer_2013.webm',
-    posterUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '16/9',
-    baseWidth: 420,
-    baseHeight: 250,
-    hudCamera: 'ALEXA MINI',
-    hudLens: '35MM ZEISS',
-    hudIso: 'ND 1.2 • 500 ISO',
-    hudFps: '24 FPS',
-    hudScene: 'EXTERIOR // B',
+    videoUrl: '/assets/bts/bts-05.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
+    width: 390,
+    height: 240,
+    hudCamera: 'DIRECTOR MONITOR',
+    hudLens: '100MM MACRO',
+    hudIso: '400 ISO',
+    hudFps: '60 FPS',
+    hudScene: 'UNDERWATER // HOUSING',
   },
   {
     id: 'bts-06',
-    title: 'STEADICAM DYNAMIC FOLLOW REEL',
+    title: 'STEADICAM RAPID CHOREOGRAPHY',
     format: 'portrait',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Ethical_fashion_show_berlin_2012.webm',
+    videoUrl: '/assets/bts/bts-06.mp4',
     posterUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '9/16',
-    baseWidth: 260,
-    baseHeight: 460,
-    hudCamera: 'GIMBAL PRO',
-    hudLens: '28MM ULTRA-WIDE',
-    hudIso: '1600 ISO',
+    width: 250,
+    height: 420,
+    hudCamera: 'STEADICAM M-2',
+    hudLens: '28MM T2.0',
+    hudIso: '800 ISO',
     hudFps: '24 FPS',
-    hudScene: 'REEL // D1',
+    hudScene: 'ACTION // CUE-06',
   },
   {
     id: 'bts-07',
-    title: 'SET REHEARSAL & TIMING CUES',
+    title: 'TELEPHOTO APERTURE & FOCUS PULL',
     format: 'landscape',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b0/The_Last_of_Us_-_Gastown_set_4.webm',
+    videoUrl: '/assets/bts/bts-07.mp4',
     posterUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '16/9',
-    baseWidth: 450,
-    baseHeight: 265,
-    hudCamera: 'DIRECTOR CUT',
-    hudLens: '50MM COOKE',
-    hudIso: '800 ISO',
+    width: 400,
+    height: 245,
+    hudCamera: 'CANON C500 MK II',
+    hudLens: '200MM T2.8',
+    hudIso: '640 ISO',
     hudFps: '24 FPS',
-    hudScene: 'TAKE // 07',
+    hudScene: 'LONG RANGE // FOCUS',
   },
   {
     id: 'bts-08',
-    title: 'TALENT STAGING & MONOCHROME LUT',
+    title: 'TALENT STAGING & CLOSEUP CUES',
     format: 'portrait',
-    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Doctor_Who_The_Giggle_June_2022_filming_-_David_Tennant_on-set.webm',
-    posterUrl: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=800&auto=format&fit=crop',
-    aspectRatio: '9/16',
-    baseWidth: 250,
-    baseHeight: 440,
-    hudCamera: 'MONOCHROME LUT',
-    hudLens: '100MM MACRO',
-    hudIso: '640 ISO',
+    videoUrl: '/assets/bts/bts-08.mp4',
+    posterUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop',
+    width: 250,
+    height: 420,
+    hudCamera: 'DIRECTOR VIEWFINDER',
+    hudLens: '50MM COOKE',
+    hudIso: '400 ISO',
     hudFps: '24 FPS',
-    hudScene: 'CLOSEUP // 01',
+    hudScene: 'STUDIO // CLOSEUP',
   },
 ];
 
 export default function BtsArcSection() {
   const [items, setItems] = useState<BtsItem[]>(RAW_BTS_ITEMS);
-  const [rotationAngle, setRotationAngle] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [activeModalItem, setActiveModalItem] = useState<BtsItem | null>(null);
   const [unmutedId, setUnmutedId] = useState<string | null>(null);
   const [timecode, setTimecode] = useState('00:14:28:12');
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInteractingRef = useRef(false);
   const dragStartXRef = useRef(0);
-  const dragStartAngleRef = useRef(0);
-  const velocityRef = useRef(0);
+  const dragCurrentXRef = useRef(0);
+  const dragOffsetRef = useRef(0);
+  const isInteractingRef = useRef(false);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
-  const animFrameRef = useRef<number | null>(null);
-  const currentAngleRef = useRef(0);
+  const velocityRef = useRef(0);
 
-  // Sync ref with state
+  // Client-side random shuffle on every load
   useEffect(() => {
-    currentAngleRef.current = rotationAngle;
-  }, [rotationAngle]);
-
-  // Dynamic shuffle on every mount + random slight tilts/offsets
-  useEffect(() => {
-    const shuffled = [...RAW_BTS_ITEMS]
-      .sort(() => Math.random() - 0.5)
-      .map((item) => ({
-        ...item,
-        tiltOffset: Number(((Math.random() - 0.5) * 3).toFixed(1)), // -1.5deg to +1.5deg
-        yOffset: Math.floor((Math.random() - 0.5) * 20), // -10px to +10px
-      }));
+    const shuffled = [...RAW_BTS_ITEMS].sort(() => Math.random() - 0.5);
     setItems(shuffled);
   }, []);
 
@@ -191,46 +168,13 @@ export default function BtsArcSection() {
     return () => clearInterval(interval);
   }, []);
 
-  // Smooth Inertia + Gentle Idle Orbit
-  useEffect(() => {
-    let lastTs = performance.now();
-
-    const loop = (ts: number) => {
-      const dt = Math.min((ts - lastTs) / 1000, 0.1);
-      lastTs = ts;
-
-      if (!isInteractingRef.current) {
-        if (Math.abs(velocityRef.current) > 0.005) {
-          // Apply friction to momentum
-          velocityRef.current *= Math.pow(0.92, dt * 60);
-          currentAngleRef.current += velocityRef.current;
-          setRotationAngle(currentAngleRef.current);
-        } else {
-          // Subtle idle orbit (drift)
-          velocityRef.current = 0;
-          currentAngleRef.current += 0.025 * (dt * 60);
-          setRotationAngle(currentAngleRef.current);
-        }
-      }
-
-      animFrameRef.current = requestAnimationFrame(loop);
-    };
-
-    animFrameRef.current = requestAnimationFrame(loop);
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    };
-  }, []);
-
   // Drag handlers
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    // Only trigger if not clicking directly on buttons
     if ((e.target as HTMLElement).closest('button')) return;
-
     isInteractingRef.current = true;
     setIsDragging(true);
     dragStartXRef.current = e.clientX;
-    dragStartAngleRef.current = currentAngleRef.current;
+    dragCurrentXRef.current = e.clientX;
     lastXRef.current = e.clientX;
     lastTimeRef.current = performance.now();
     velocityRef.current = 0;
@@ -238,19 +182,14 @@ export default function BtsArcSection() {
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isInteractingRef.current) return;
-
+    dragCurrentXRef.current = e.clientX;
     const deltaX = e.clientX - dragStartXRef.current;
-    // 0.12 degrees per pixel
-    const newAngle = dragStartAngleRef.current - deltaX * 0.12;
-    currentAngleRef.current = newAngle;
-    setRotationAngle(newAngle);
+    dragOffsetRef.current = deltaX;
 
-    // Calculate instantaneous velocity for momentum release
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     if (dt > 8) {
-      const dx = e.clientX - lastXRef.current;
-      velocityRef.current = -dx * 0.12;
+      velocityRef.current = (e.clientX - lastXRef.current) / dt;
       lastXRef.current = e.clientX;
       lastTimeRef.current = now;
     }
@@ -260,41 +199,27 @@ export default function BtsArcSection() {
     if (!isInteractingRef.current) return;
     isInteractingRef.current = false;
     setIsDragging(false);
-  }, []);
 
-  // Mouse wheel horizontal scroll support
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (Math.abs(delta) > 4) {
-      currentAngleRef.current += delta * 0.04;
-      setRotationAngle(currentAngleRef.current);
+    const deltaX = dragOffsetRef.current;
+    const v = velocityRef.current;
+    dragOffsetRef.current = 0;
+
+    // Threshold to shift card
+    if (deltaX < -60 || v < -0.4) {
+      setCurrentIndex((prev) => (prev + 1) % items.length);
+    } else if (deltaX > 60 || v > 0.4) {
+      setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
     }
-  }, []);
+  }, [items.length]);
 
-  // Compute angles along the 3D cylinder
-  // Radius of cylinder
-  const cylinderRadius = 1150;
-  
-  // Compute individual angular step for each card based on its actual width
-  // This guarantees ZERO overlap whether landscape or portrait!
-  let totalCalculatedAngle = 0;
-  const cardAngles: number[] = [];
-  
-  for (let i = 0; i < items.length; i++) {
-    const card = items[i];
-    const prevCard = items[(i - 1 + items.length) % items.length];
-    // Gap between card borders is 75px
-    const halfPrev = (prevCard.baseWidth / 2);
-    const halfCurr = (card.baseWidth / 2);
-    const centerDist = halfPrev + halfCurr + 75;
-    
-    // Angular span = (arc length / radius) in degrees
-    const stepDeg = (centerDist / cylinderRadius) * (180 / Math.PI);
-    totalCalculatedAngle += stepDeg;
-    cardAngles.push(totalCalculatedAngle);
-  }
+  const slidePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
+  };
 
-  // Toggle video mute
+  const slideNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % items.length);
+  };
+
   const toggleMute = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setUnmutedId((prev) => (prev === id ? null : id));
@@ -303,71 +228,110 @@ export default function BtsArcSection() {
   return (
     <section
       id="bts-direction"
-      className="w-full relative py-16 md:py-28 bg-canvas overflow-hidden select-none"
+      className="w-full relative py-12 md:py-20 bg-canvas overflow-hidden select-none"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      onWheel={handleWheel}
       style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
-      {/* Viewport 3D Stage */}
+      {/* 3D Curved Arc Stage - Height tuned for tallest card */}
       <div
         ref={containerRef}
-        className="w-full relative flex items-center justify-center min-h-[560px] md:min-h-[640px]"
+        className="w-full relative flex items-center justify-center min-h-[480px] md:min-h-[540px] px-4"
         style={{
-          perspective: '1500px',
+          perspective: '1300px',
           perspectiveOrigin: '50% 50%',
         }}
       >
-        {/* 3D Orbit Cylinder Anchor */}
+        {/* Navigation Arrows (Subtle floating pills on desktop) */}
+        <button
+          type="button"
+          onClick={slidePrev}
+          aria-label="Previous reel"
+          className="hidden md:flex absolute left-6 z-40 w-11 h-11 rounded-full bg-white/80 hover:bg-white text-primary shadow-lg border border-black/10 backdrop-blur-md items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={slideNext}
+          aria-label="Next reel"
+          className="hidden md:flex absolute right-6 z-40 w-11 h-11 rounded-full bg-white/80 hover:bg-white text-primary shadow-lg border border-black/10 backdrop-blur-md items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* 3D Arc Elements Array */}
         <div
-          className="relative w-0 h-0 flex items-center justify-center"
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: 'translateZ(0px)',
-          }}
+          className="relative w-full max-w-7xl h-[460px] flex items-center justify-center"
+          style={{ transformStyle: 'preserve-3d' }}
         >
           {items.map((item, index) => {
-            const rawAngle = cardAngles[index] + rotationAngle;
-            // Modulo into 360 degree circle
-            const normalizedAngle = ((rawAngle % 360) + 360) % 360;
-            
-            // Only render cards in the front hemisphere (within ~115 degrees of front) to optimize performance
-            const angleFromFront = Math.min(normalizedAngle, 360 - normalizedAngle);
-            const isVisible = angleFromFront < 115;
-            
+            const count = items.length;
+            // Calculate signed distance d from currentIndex (-count/2 to +count/2)
+            let d = (index - currentIndex) % count;
+            if (d > count / 2) d -= count;
+            if (d < -count / 2) d += count;
+
+            // Only render cards within visual arc field (|d| <= 3)
+            const isVisible = Math.abs(d) <= 3;
             if (!isVisible) return null;
 
-            // Compute depth opacity & scale for natural atmospheric fade towards edges
-            const depthFactor = Math.cos((angleFromFront * Math.PI) / 180);
-            const opacity = Math.max(0.35, Math.pow(depthFactor, 0.7));
-            const isFrontCard = angleFromFront < 18;
+            // 3D Rainbow Arch Math (from reference media_1788612612711.png)
+            // Center is peak (Y=0, Z=0). Sides curve downwards and backwards in depth.
+            const isCenter = d === 0;
+            const xSpacing = 290; // px spacing horizontally
+            const posX = d * xSpacing;
+            
+            // Rainbow convex arch: center is highest, flanks drop down smoothly
+            const posY = Math.pow(Math.abs(d), 1.9) * 22; // 0, 22px, 80px, 175px
+            
+            // Z depth pushes into background on edges
+            const posZ = -Math.pow(Math.abs(d), 1.4) * 85; // 0, -85px, -220px...
+
+            // Rotate Y: turn inward toward center cylinder
+            const rotY = -d * 14; // -14deg, 0deg, +14deg
+
+            // Rotate Z: slight roll along the rainbow dome curve
+            const rotZ = d * 2.8;
+
+            // Scale & Opacity
+            const scale = Math.max(0.72, 1.04 - Math.abs(d) * 0.09);
+            const opacity = Math.max(0.55, 1 - Math.abs(d) * 0.14);
+            const zIndex = 50 - Math.round(Math.abs(d) * 10);
 
             return (
               <div
                 key={item.id}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-shadow duration-300"
+                className="absolute top-1/2 left-1/2 transition-all duration-500 ease-out"
                 style={{
-                  width: `${item.baseWidth}px`,
-                  height: `${item.baseHeight}px`,
-                  transformStyle: 'preserve-3d',
-                  transform: `rotateY(${normalizedAngle}deg) translateZ(${cylinderRadius}px) rotateY(${-normalizedAngle}deg) translateY(${item.yOffset || 0}px) rotateZ(${item.tiltOffset || 0}deg)`,
-                  zIndex: Math.round(depthFactor * 100),
+                  width: `${item.width}px`,
+                  height: `${item.height}px`,
+                  transform: `translate(-50%, -50%) translate3d(${posX}px, ${posY}px, ${posZ}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
+                  zIndex: zIndex,
                   opacity: opacity,
+                  transformStyle: 'preserve-3d',
                   willChange: 'transform, opacity',
                 }}
               >
-                {/* Visual Glass / Cinema Frame */}
+                {/* Cinema Video Frame */}
                 <div
-                  className={`group relative w-full h-full rounded-2xl overflow-hidden bg-black/90 transition-all duration-300 ${
-                    isFrontCard
-                      ? 'ring-1 ring-white/30 shadow-2xl scale-[1.03]'
-                      : 'ring-1 ring-white/10 hover:ring-white/30'
+                  className={`group relative w-full h-full rounded-2xl overflow-hidden bg-black shadow-2xl transition-all duration-300 ${
+                    isCenter
+                      ? 'ring-2 ring-black/40 shadow-[0_25px_60px_rgba(0,0,0,0.35)]'
+                      : 'ring-1 ring-black/10 hover:ring-black/30'
                   }`}
-                  onClick={() => setActiveModalItem(item)}
+                  onClick={() => {
+                    if (isCenter) {
+                      setActiveModalItem(item);
+                    } else {
+                      setCurrentIndex(index);
+                    }
+                  }}
                 >
-                  {/* HTML5 Seamless Looping Video */}
+                  {/* HTML5 Video with Local MP4 Stream */}
                   <video
                     src={item.videoUrl}
                     poster={item.posterUrl}
@@ -375,31 +339,31 @@ export default function BtsArcSection() {
                     loop
                     muted={unmutedId !== item.id}
                     playsInline
-                    preload="metadata"
-                    className="w-full h-full object-cover pointer-events-none transition-transform duration-700 group-hover:scale-105"
+                    preload="auto"
+                    className="w-full h-full object-cover pointer-events-none transition-transform duration-500 group-hover:scale-105"
                   />
 
-                  {/* Gradient Vignette */}
+                  {/* High-End Dark Cinematic Vignette */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/60 pointer-events-none" />
 
                   {/* Top HUD Viewfinder Bar */}
-                  <div className="absolute top-0 left-0 right-0 p-3.5 flex justify-between items-center text-[10px] font-mono tracking-wider text-white/80 pointer-events-none">
-                    <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded">
+                  <div className="absolute top-0 left-0 right-0 p-3.5 flex justify-between items-center text-[10px] font-mono tracking-wider text-white pointer-events-none">
+                    <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                       <span className="font-bold text-white">REC</span>
                       <span className="text-white/60">●</span>
                       <span>{timecode}</span>
                     </div>
 
-                    <div className="bg-black/50 backdrop-blur-md px-2 py-0.5 rounded text-white/70">
+                    <div className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-white/80 font-semibold">
                       {item.hudFps}
                     </div>
                   </div>
 
-                  {/* Center Director Crosshair (Fades on hover) */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 group-hover:opacity-60 transition-opacity duration-300">
+                  {/* Center Director Crosshair */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25 group-hover:opacity-75 transition-opacity duration-300">
                     <div className="w-8 h-8 border border-white/40 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white/60 rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-white/70 rounded-full" />
                     </div>
                   </div>
 
@@ -421,7 +385,7 @@ export default function BtsArcSection() {
                           type="button"
                           onClick={(e) => toggleMute(item.id, e)}
                           title={unmutedId === item.id ? 'Mute audio' : 'Unmute audio'}
-                          className="w-7 h-7 rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+                          className="w-7 h-7 rounded-full bg-black/70 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
                         >
                           {unmutedId === item.id ? (
                             <Volume2 className="w-3.5 h-3.5" />
@@ -437,14 +401,14 @@ export default function BtsArcSection() {
                             setActiveModalItem(item);
                           }}
                           title="Fullscreen View"
-                          className="w-7 h-7 rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+                          className="w-7 h-7 rounded-full bg-black/70 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
                         >
                           <Maximize2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[9px] font-mono text-white/60 pt-1 border-t border-white/10">
+                    <div className="flex items-center gap-2 text-[9px] font-mono text-white/70 pt-1 border-t border-white/15">
                       <span>{item.hudCamera}</span>
                       <span>•</span>
                       <span>{item.hudLens}</span>
