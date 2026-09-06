@@ -7,7 +7,6 @@ import EditorialManifesto from '@/components/EditorialManifesto';
 import ClientsStrip from '@/components/ClientsStrip';
 import DisciplineDeck from '@/components/DisciplineDeck';
 import BtsArcSection from '@/components/BtsArcSection';
-import About from '@/components/About';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
 
@@ -57,9 +56,6 @@ export default function Home() {
 
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
-
-      {/* Section 03: About Director Profile */}
-      <About />
 
       {/* Section 04: Direct Inquiries & Contact */}
       <Contact />
