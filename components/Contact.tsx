@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 
 export default function Contact() {
   return (
@@ -59,6 +61,12 @@ export default function Contact() {
       {/* Minimal Footer Signature */}
       <div className="w-full max-w-6xl mx-auto pt-16 md:pt-24 px-6 flex justify-between items-center text-[10px] font-mono text-muted tracking-wider uppercase">
         <span>© 2026. All rights reserved.</span>
+        <Link
+          href="/admin"
+          className="hover:text-primary transition-colors tracking-widest text-muted hover:underline"
+        >
+          STUDIO DESK [ADMIN] ↗
+        </Link>
         <span>DUBAI / WORLDWIDE</span>
       </div>
     </section>
