@@ -501,6 +501,24 @@ export default function InfiniteCanvasPage() {
   // Gallery filtering & lightbox browsing state
   const [activeTab, setActiveTab] = useState<'all' | 'social' | 'lookbook' | 'banners' | 'stills'>('all');
   const [enlargedIndex, setEnlargedIndex] = useState<number | null>(null);
+  const [photoRatios, setPhotoRatios] = useState<Record<string, number>>({});
+
+  // Asynchronously detect & cache natural aspect ratios for accurate deliverable classification
+  useEffect(() => {
+    if (!selectedFile) return;
+    const photos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
+    photos.forEach((url) => {
+      if (photoRatios[url]) return;
+      const img = new Image();
+      img.onload = () => {
+        if (img.naturalHeight > 0) {
+          const ratio = img.naturalWidth / img.naturalHeight;
+          setPhotoRatios((prev) => ({ ...prev, [url]: ratio }));
+        }
+      };
+      img.src = url;
+    });
+  }, [selectedFile, photoRatios]);
 
   // Mobile viewport detection, keydown, and smooth 3D tilt tracking
   useEffect(() => {
@@ -800,184 +818,205 @@ export default function InfiniteCanvasPage() {
         </div>
       </div>
 
-      {/* Project Detail Lightbox Modal (Apple Folder Gallery Drawer - Image 5 style) */}
+      {/* Project Detail Lightbox Modal (Expansive Luxury Masonry Showcase) */}
       {selectedFile && (() => {
         const rawPhotos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
         
+        // Accurate real aspect-ratio classification
+        const getCategory = (url: string): 'social' | 'lookbook' | 'banner' => {
+          const r = photoRatios[url];
+          if (!r) return 'lookbook';
+          if (r < 0.78) return 'social'; // 9:16 vertical reels & stories
+          if (r >= 1.20) return 'banner'; // 16:9 & 16:10 widescreen banners
+          return 'lookbook'; // 4:5 editorial portrait / 1:1 square
+        };
+
+        const socialCount = rawPhotos.filter((u) => getCategory(u) === 'social').length;
+        const lookbookCount = rawPhotos.filter((u) => getCategory(u) === 'lookbook').length;
+        const bannerCount = rawPhotos.filter((u) => getCategory(u) === 'banner').length;
+
         // Filter photos based on active category tab
-        const displayedPhotos = rawPhotos.filter((_, idx) => {
+        const displayedPhotos = rawPhotos.filter((url) => {
           if (activeTab === 'all') return true;
-          if (activeTab === 'social') return idx % 3 === 0;
-          if (activeTab === 'lookbook') return idx % 3 === 1;
-          if (activeTab === 'banners') return idx % 3 === 2;
+          const cat = getCategory(url);
+          if (activeTab === 'social') return cat === 'social';
+          if (activeTab === 'lookbook') return cat === 'lookbook';
+          if (activeTab === 'banners') return cat === 'banner';
           return true;
         });
 
         return (
           <div
             onClick={() => setSelectedFile(null)}
-            className="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-8 animate-fadeIn"
+            className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-5 md:p-8 animate-fadeIn"
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-5xl bg-[#faf9f6] rounded-[10px] overflow-hidden shadow-2xl border border-black/10 flex flex-col max-h-[92vh]"
+              className="relative w-full max-w-[96vw] xl:max-w-[1550px] h-[94vh] bg-[#faf9f6] rounded-[18px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.35)] border border-black/10 flex flex-col"
             >
-              {/* Folder Header with Back Arrow Button (Image 5 exact style) */}
-              <div className="px-5 py-4 sm:px-7 sm:py-5 bg-white/90 backdrop-blur-md border-b border-black/[0.06] flex justify-between items-center z-20 flex-shrink-0">
-                <div className="flex items-center gap-3 sm:gap-4">
+              {/* Luxury Gallery Header */}
+              <div className="px-5 py-4 sm:px-8 sm:py-5 bg-white/95 backdrop-blur-md border-b border-black/[0.06] flex flex-wrap justify-between items-center gap-4 z-20 flex-shrink-0">
+                <div className="flex items-center gap-4">
                   <button
                     type="button"
                     onClick={() => setSelectedFile(null)}
-                    className="w-10 h-10 rounded-[10px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 hover:bg-black hover:text-white active:scale-90 text-primary flex items-center justify-center text-lg font-bold transition-all cursor-pointer"
-                    title="Back to Archive"
+                    className="w-10 h-10 rounded-full bg-white shadow-sm border border-black/10 hover:bg-black hover:text-white active:scale-95 text-primary flex items-center justify-center text-lg font-bold transition-all cursor-pointer"
+                    title="Back to Canvas"
                   >
                     ←
                   </button>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg sm:text-2xl font-display font-black tracking-tight text-primary leading-tight">
-                        {selectedFile.name}
-                      </h2>
-                      <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-[10px] bg-black/5 text-secondary font-semibold">
-                        {rawPhotos.length} assets
-                      </span>
-                    </div>
-                    <p className="font-mono text-[10px] sm:text-xs text-secondary mt-0.5">
-                      {selectedFile.code} • {selectedFile.discipline} • {selectedFile.year}
-                    </p>
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-primary uppercase leading-tight">
+                      {selectedFile.name}
+                    </h2>
+                    <span className="font-mono text-xs px-3 py-1 rounded-full bg-black/5 text-secondary font-bold">
+                      {rawPhotos.length} ASSETS
+                    </span>
                   </div>
+                </div>
+
+                {/* Filter Pills Bar */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('all')}
+                    className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                      activeTab === 'all'
+                        ? 'bg-black text-white shadow-sm'
+                        : 'bg-black/5 text-secondary hover:bg-black/10'
+                    }`}
+                  >
+                    All ({rawPhotos.length})
+                  </button>
+                  {socialCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('social')}
+                      className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                        activeTab === 'social'
+                          ? 'bg-black text-white shadow-sm'
+                          : 'bg-black/5 text-secondary hover:bg-black/10'
+                      }`}
+                    >
+                      📱 9:16 Social Ads ({socialCount})
+                    </button>
+                  )}
+                  {lookbookCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('lookbook')}
+                      className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                        activeTab === 'lookbook'
+                          ? 'bg-black text-white shadow-sm'
+                          : 'bg-black/5 text-secondary hover:bg-black/10'
+                      }`}
+                    >
+                      📖 4:5 Lookbook ({lookbookCount})
+                    </button>
+                  )}
+                  {bannerCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('banners')}
+                      className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                        activeTab === 'banners'
+                          ? 'bg-black text-white shadow-sm'
+                          : 'bg-black/5 text-secondary hover:bg-black/10'
+                      }`}
+                    >
+                      🖥️ 16:9 Banners ({bannerCount})
+                    </button>
+                  )}
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setSelectedFile(null)}
-                  className="w-9 h-9 rounded-[10px] bg-black/5 hover:bg-black/10 active:scale-90 text-secondary flex items-center justify-center font-mono text-xs transition-all cursor-pointer"
-                  title="Close"
+                  className="w-10 h-10 rounded-full bg-black/5 hover:bg-black/15 active:scale-95 text-secondary flex items-center justify-center font-mono text-sm transition-all cursor-pointer"
+                  title="Close Gallery"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Deliverable Format Filter Pills */}
-              <div className="px-5 py-2.5 sm:px-7 bg-white/60 border-b border-black/[0.05] flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
-                <span className="font-mono text-[10px] text-muted uppercase tracking-wider hidden sm:inline">Category:</span>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('all')}
-                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
-                    activeTab === 'all'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-black/5 text-secondary hover:bg-black/10'
-                  }`}
-                >
-                  All ({rawPhotos.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('social')}
-                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
-                    activeTab === 'social'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-black/5 text-secondary hover:bg-black/10'
-                  }`}
-                >
-                  📱 Social Ads (9:16)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('lookbook')}
-                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
-                    activeTab === 'lookbook'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-black/5 text-secondary hover:bg-black/10'
-                  }`}
-                >
-                  📖 Lookbook & Print (4:5)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('banners')}
-                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
-                    activeTab === 'banners'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-black/5 text-secondary hover:bg-black/10'
-                  }`}
-                >
-                  🖥️ Wide Banners (16:9)
-                </button>
-              </div>
-
-              {/* Folder Content Gallery (Scrollable collection of campaign photos & stills) */}
-              <div className="p-5 sm:p-7 md:p-8 overflow-y-auto space-y-6">
+              {/* Seamless Editorial Masonry Gallery (Zero Padding Holes, Zero Clutter) */}
+              <div className="flex-1 p-5 sm:p-8 md:p-10 overflow-y-auto space-y-10">
                 
-                {/* Photo Grid Collection */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {displayedPhotos.map((photoUrl, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setEnlargedIndex(rawPhotos.indexOf(photoUrl))}
-                      className="group relative rounded-[10px] bg-white p-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] border border-black/[0.06] transition-all duration-300 hover:scale-[1.02] hover:border-black/20 cursor-zoom-in flex flex-col justify-between"
-                    >
-                      <div className="relative w-full rounded-[7px] overflow-hidden bg-[#f4f3ee] flex items-center justify-center min-h-[160px] max-h-[360px]">
+                {/* Seamless Masonry Columns */}
+                <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-5 sm:gap-6 space-y-5 sm:space-y-6">
+                  {displayedPhotos.map((photoUrl, idx) => {
+                    const rawIndex = rawPhotos.indexOf(photoUrl);
+                    const cat = getCategory(photoUrl);
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setEnlargedIndex(rawIndex)}
+                        className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de]"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photoUrl}
-                          alt={`${selectedFile.name} plate ${idx + 1}`}
-                          className="w-full h-auto max-h-[360px] object-contain block transition-transform duration-300 group-hover:scale-[1.03]"
+                          alt={`${selectedFile.name} asset ${rawIndex + 1}`}
+                          className="w-full h-auto block rounded-[14px] transition-transform duration-500 group-hover:scale-[1.02]"
                           loading="lazy"
                         />
+
+                        {/* Minimal Luxury Hover Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
+                          <div className="flex justify-end">
+                            <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
+                              {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-center text-white">
+                            <span className="font-mono text-[11px] font-bold tracking-wide">
+                              Asset {String(rawIndex + 1).padStart(2, '0')}
+                            </span>
+                            <span className="font-mono text-[11px] font-bold text-accent-red flex items-center gap-1">
+                              <span>Enlarge</span>
+                              <span>↗</span>
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="mt-2 px-0.5 flex justify-between items-center font-mono text-[10px] text-muted">
-                        <span>PLATE {String(idx + 1).padStart(2, '0')}</span>
-                        <span className="text-accent-red font-bold flex items-center gap-1 group-hover:underline">
-                          <span>INSPECT</span>
-                          <span>↗</span>
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Directorial Narrative & Deliverables */}
-                <div className="bg-white rounded-[10px] p-5 sm:p-6 border border-black/[0.06] shadow-sm space-y-4">
-                  <div>
-                    <span className="font-mono text-[10px] sm:text-xs text-accent-red font-bold uppercase tracking-wider block mb-1">
-                      Directorial Approach
-                    </span>
-                    <p className="text-xs sm:text-sm text-secondary leading-relaxed">
-                      {selectedFile.desc}
-                    </p>
-                  </div>
-
-                  <div className="border-t border-black/5 pt-4">
-                    <span className="font-mono text-[10px] sm:text-xs font-bold text-primary uppercase block mb-2">
-                      Scope of Deliverables:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {selectedFile.deliverables.map((item, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2.5 py-1 bg-[#f5f4f0] border border-black/5 rounded-[8px] font-mono text-[10px] sm:text-xs text-secondary"
-                        >
-                          {item}
-                        </span>
-                      ))}
+                {selectedFile.desc && (
+                  <div className="bg-white rounded-[16px] p-6 sm:p-8 border border-black/[0.06] shadow-sm space-y-4 max-w-4xl mx-auto mt-8">
+                    <div>
+                      <span className="font-mono text-xs text-accent-red font-bold uppercase tracking-wider block mb-1.5">
+                        Directorial Vision &amp; Strategy
+                      </span>
+                      <p className="text-sm sm:text-base text-secondary leading-relaxed">
+                        {selectedFile.desc}
+                      </p>
                     </div>
+
+                    {selectedFile.deliverables && selectedFile.deliverables.length > 0 && (
+                      <div className="border-t border-black/5 pt-4">
+                        <span className="font-mono text-xs font-bold text-primary uppercase block mb-2.5">
+                          Campaign Scope:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedFile.deliverables.map((item, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3.5 py-1.5 bg-[#f5f4f0] border border-black/5 rounded-[8px] font-mono text-xs text-secondary"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
-              </div>
-
-              {/* Folder Footer */}
-              <div className="px-6 py-3.5 bg-white/90 border-t border-black/[0.06] flex justify-between items-center text-xs font-mono text-secondary flex-shrink-0">
-                <span className="text-[10px] sm:text-xs">{selectedFile.role}</span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedFile(null)}
-                  className="font-bold text-accent-red hover:underline text-xs p-1 cursor-pointer"
-                >
-                  CLOSE ARCHIVE [✕]
-                </button>
               </div>
             </div>
           </div>
@@ -1022,22 +1061,22 @@ export default function InfiniteCanvasPage() {
 
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center"
+              className="relative max-w-6xl max-h-[92vh] flex flex-col items-center justify-center"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={currentPhoto}
                 alt={`Asset ${enlargedIndex + 1}`}
-                className="max-w-full max-h-[82vh] object-contain rounded-[8px] shadow-2xl select-none"
+                className="max-w-full max-h-[84vh] object-contain rounded-[10px] shadow-2xl select-none"
               />
               <div className="mt-4 flex items-center gap-6 text-white font-mono text-xs">
-                <span className="text-white/70">
-                  PHOTO {enlargedIndex + 1} OF {rawPhotos.length}
+                <span className="text-white/70 tracking-widest uppercase">
+                  Asset {enlargedIndex + 1} of {rawPhotos.length}
                 </span>
                 <button
                   type="button"
                   onClick={() => setEnlargedIndex(null)}
-                  className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold"
+                  className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold uppercase tracking-wider"
                 >
                   Close [ESC]
                 </button>
