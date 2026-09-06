@@ -106,7 +106,7 @@ export default function StudioDeskPage() {
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const storedCustom = typeof window !== 'undefined' ? localStorage.getItem('studio_custom_passcode') : null;
-    const validCodes = ['2026', 'moiz2026', 'moizcreates', storedCustom].filter(Boolean);
+    const validCodes = ['7741', storedCustom].filter(Boolean);
 
     if (validCodes.includes(passcode.trim())) {
       setIsAuthenticated(true);
@@ -1198,7 +1198,7 @@ export default function StudioDeskPage() {
                 <span className="text-[10px] text-emerald-400 font-normal">[PROTECTED]</span>
               </span>
               <p className="font-mono text-[11px] text-secondary">
-                Guards your backend with a security gate so the public cannot view or edit anything. Accepted: <code className="text-white">2026</code> or <code className="text-white">moiz2026</code>, or set your custom passcode below:
+                Guards your backend with a security gate so the public cannot view or edit anything. Master passcode: <code className="text-white">7741</code>, or customize below:
               </p>
               <div className="flex gap-3">
                 <input
