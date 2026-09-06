@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Space_Mono, DM_Mono } from 'next/font/google';
 import './globals.css';
 import SmoothScroll from '@/components/SmoothScroll';
+import SeoScriptInjector from '@/components/SeoScriptInjector';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -52,6 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${dmMono.variable} ${spaceMono.variable}`}>
       <body className="font-sans bg-canvas text-primary selection:bg-accent-red selection:text-white">
+        <SeoScriptInjector />
         <SmoothScroll>{children}</SmoothScroll>
         <Analytics />
         <SpeedInsights />

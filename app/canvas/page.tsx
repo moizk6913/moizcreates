@@ -468,6 +468,7 @@ export default function InfiniteCanvasPage() {
   const [zoom, setZoom] = useState(1);
   const [selectedFile, setSelectedFile] = useState<ArchiveFile | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const custom = getStoredCanvasFiles();
@@ -484,7 +485,7 @@ export default function InfiniteCanvasPage() {
   const initialPinchDistRef = useRef<number | null>(null);
   const initialZoomRef = useRef(1);
 
-  // Mobile viewport detection and initial scale adjustment
+  // Mobile viewport detection, keydown, and smooth 3D tilt tracking
   useEffect(() => {
     // Lock document scroll so dragging canvas does not trigger page bounce/scroll
     const prevBodyOverflow = document.body.style.overflow;
@@ -498,6 +499,14 @@ export default function InfiniteCanvasPage() {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
+
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      // Damped normalized mouse position (-1 to 1) for subtle 3D space depth
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      setTilt({ x, y });
+    };
+    window.addEventListener('mousemove', handleWindowMouseMove, { passive: true });
 
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -516,6 +525,7 @@ export default function InfiniteCanvasPage() {
       document.body.style.overflow = prevBodyOverflow;
       document.documentElement.style.overflow = prevHtmlOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousemove', handleWindowMouseMove);
       window.removeEventListener('resize', checkMobile);
     };
   }, []);
@@ -615,6 +625,38 @@ export default function InfiniteCanvasPage() {
     setSelectedFile(file);
   };
 
+  // Smoothly animated re-center back to (0, 0) and default zoom
+  const handleRecenter = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startPan = { ...pan };
+    const startZoom = zoom;
+    const targetPan = { x: 0, y: 0 };
+    const targetZoom = isMobile ? 0.75 : 1.0;
+    const startTime = performance.now();
+    const duration = 450; // ms
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Smooth cubic ease out curve
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      setPan({
+        x: startPan.x + (targetPan.x - startPan.x) * ease,
+        y: startPan.y + (targetPan.y - startPan.y) * ease,
+      });
+      setZoom(startZoom + (targetZoom - startZoom) * ease);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
+  };
+
   return (
     <main
       ref={containerRef}
@@ -643,25 +685,42 @@ export default function InfiniteCanvasPage() {
         }}
       />
 
-      {/* Floating Minimalist Back Button Only */}
-      <header className="fixed top-0 left-0 z-50 p-4 sm:p-6 md:p-8 pointer-events-none">
+      {/* Floating Minimalist Header: Back on Left, Re-Center Button on Top-Right */}
+      <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-none border-0"
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-none border border-black/5"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold">BACK TO PORTFOLIO</span>
         </Link>
+
+        {/* Top-Right Re-Center Button (Guarantees user never gets lost) */}
+        <button
+          type="button"
+          onClick={handleRecenter}
+          className="group pointer-events-auto inline-flex items-center gap-2 px-3.5 py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[11px] sm:text-xs text-primary hover:text-[#e60000] active:scale-95 transition-all shadow-none border border-black/5 cursor-pointer"
+          title="Reset canvas view to center"
+        >
+          <span className="text-xs transition-transform duration-300 group-hover:rotate-90">⌖</span>
+          <span className="font-bold uppercase tracking-wider">RE-CENTER [0, 0]</span>
+        </button>
       </header>
 
-      {/* Limitless World Stage (Pans & Zooms smoothly with gestures) */}
+      {/* 3D Perspective Stage Wrapper (Adds authentic spatial depth to infinite canvas) */}
       <div
-        className="absolute top-1/2 left-1/2 will-change-transform transition-transform duration-75 ease-out"
-        style={{
-          transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
-          transformOrigin: '0 0',
-        }}
+        className="w-full h-full relative flex items-center justify-center pointer-events-none overflow-hidden"
+        style={{ perspective: '1600px' }}
       >
+        {/* Limitless World Stage (Pans, Zooms & 3D Tilts smoothly with gestures) */}
+        <div
+          className="absolute top-1/2 left-1/2 will-change-transform transition-transform duration-100 ease-out"
+          style={{
+            transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom}) rotateX(${tilt.y * -3.5}deg) rotateY(${tilt.x * 5}deg)`,
+            transformOrigin: '0 0',
+            transformStyle: 'preserve-3d',
+          }}
+        >
         {/* Archival Frosted-Glass 3D Folders (Images 1, 3, 4, 5 Reference) */}
         {allFiles.map((file) => (
           <div
@@ -690,6 +749,7 @@ export default function InfiniteCanvasPage() {
             />
           </div>
         ))}
+        </div>
       </div>
 
       {/* Project Detail Lightbox Modal (Apple Folder Gallery Drawer - Image 5 style) */}
