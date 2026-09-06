@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   visible?: boolean;
@@ -62,14 +63,50 @@ export default function Header({ visible = true }: HeaderProps) {
     };
   }, []);
 
+  const router = useRouter();
+  const logoClicksRef = useRef<number>(0);
+  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        router.push('/admin');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [router]);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    logoClicksRef.current += 1;
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+
+    if (logoClicksRef.current >= 3) {
+      e.preventDefault();
+      logoClicksRef.current = 0;
+      router.push('/admin');
+      return;
+    }
+
+    clickTimerRef.current = setTimeout(() => {
+      logoClicksRef.current = 0;
+    }, 1000);
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 px-6 py-6 md:px-12 flex justify-between items-center pointer-events-none transition-opacity duration-700 ease-out ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      {/* Geometric Logo Only */}
-      <Link href="#top" className="pointer-events-auto transition-transform hover:scale-105" aria-label="Home">
+      {/* Geometric Logo (Click 3 times quickly to open Studio Desk secretly) */}
+      <Link
+        href="#top"
+        onClick={handleLogoClick}
+        className="pointer-events-auto transition-transform hover:scale-105"
+        aria-label="Home"
+      >
         <Image
           src="/assets/logo.png"
           alt="Art Director Logo"

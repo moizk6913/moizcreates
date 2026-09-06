@@ -53,6 +53,13 @@ export default function StudioDeskPage() {
   const [apiKey, setApiKey] = useState('');
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
+  // Studio Authentication Gate
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [passcode, setPasscode] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const [customPasscode, setCustomPasscode] = useState('');
+
   // Quick Photo State
   const [photoTitle, setPhotoTitle] = useState('');
   const [photoDiscipline, setPhotoDiscipline] = useState('Photography • Stills');
@@ -81,13 +88,57 @@ export default function StudioDeskPage() {
   const projCoverInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    refreshData();
     if (typeof window !== 'undefined') {
+      const isAuth = sessionStorage.getItem('studio_desk_auth') === 'true';
+      setIsAuthenticated(isAuth);
+      setHasCheckedAuth(true);
+
+      const storedCustom = localStorage.getItem('studio_custom_passcode') || '';
+      setCustomPasscode(storedCustom);
+
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab') as AdminTab;
       if (tabParam) setActiveTab(tabParam);
     }
+    refreshData();
   }, []);
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const storedCustom = typeof window !== 'undefined' ? localStorage.getItem('studio_custom_passcode') : null;
+    const validCodes = ['2026', 'moiz2026', 'moizcreates', storedCustom].filter(Boolean);
+
+    if (validCodes.includes(passcode.trim())) {
+      setIsAuthenticated(true);
+      setAuthError(null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('studio_desk_auth', 'true');
+      }
+    } else {
+      setAuthError('INVALID PASSCODE. ACCESS DENIED.');
+    }
+  };
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('studio_desk_auth');
+    }
+    setIsAuthenticated(false);
+    setPasscode('');
+    setAuthError(null);
+  };
+
+  const handleSaveCustomPasscode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customPasscode.trim()) {
+      showNotice('ERROR: Passcode cannot be empty.');
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('studio_custom_passcode', customPasscode.trim());
+    }
+    showNotice('SUCCESS: New Studio Passcode saved.');
+  };
 
   const refreshData = () => {
     setDeployedFiles(getStoredCanvasFiles());
@@ -252,6 +303,67 @@ export default function StudioDeskPage() {
     }
   };
 
+  if (!hasCheckedAuth) {
+    return <main className="min-h-screen bg-[#0d0d0f]" />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[#0d0d0f] text-[#f4f2ee] flex flex-col items-center justify-center p-6 select-none font-mono selection:bg-[#ff2a2a] selection:text-white">
+        <CustomCursor />
+        <div className="w-full max-w-sm flex flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-3.5 h-3.5 rounded-full bg-[#ff2a2a] animate-pulse shadow-[0_0_12px_rgba(255,42,42,0.6)]" />
+            <div className="text-center space-y-1">
+              <h1 className="text-xs font-bold tracking-[0.2em] text-white uppercase">
+                MOIZ KHAN // STUDIO DESK
+              </h1>
+              <p className="text-[10px] tracking-wider text-[#777780] uppercase">
+                RESTRICTED DIRECTORIAL ACCESS
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleAuthSubmit} className="w-full space-y-3">
+            <div className="relative">
+              <input
+                type="password"
+                value={passcode}
+                onChange={(e) => {
+                  setPasscode(e.target.value);
+                  setAuthError(null);
+                }}
+                placeholder="ENTER PASSCODE"
+                autoFocus
+                className="w-full px-4 py-3.5 bg-[#151518] border border-white/10 rounded-[10px] text-center text-sm tracking-[0.3em] text-white placeholder:text-[#55555e] focus:outline-none focus:border-[#ff2a2a] transition-all"
+              />
+            </div>
+
+            {authError && (
+              <p className="text-[10px] text-[#ff2a2a] text-center tracking-wider uppercase font-semibold">
+                {authError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3.5 bg-white text-black hover:bg-[#ff2a2a] hover:text-white transition-all text-xs font-bold uppercase tracking-widest rounded-[10px] active:scale-[0.98] cursor-pointer"
+            >
+              AUTHENTICATE ↵
+            </button>
+          </form>
+
+          <Link
+            href="/"
+            className="text-[10.5px] text-[#55555e] hover:text-[#f4f2ee] transition-colors tracking-widest uppercase"
+          >
+            ← Return to Portfolio
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-[#f4f2ee] font-sans selection:bg-[#ff2a2a] selection:text-white pb-24 select-none">
       <CustomCursor />
@@ -297,6 +409,12 @@ export default function StudioDeskPage() {
           >
             ✦ About Page
           </Link>
+          <button
+            onClick={handleLogout}
+            className="px-3.5 py-1.5 rounded-[10px] bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-[#ff4444] transition-all font-mono text-xs cursor-pointer"
+          >
+            🔒 Lock Desk
+          </button>
         </div>
       </header>
 
@@ -1071,6 +1189,33 @@ export default function StudioDeskPage() {
               <p className="font-mono text-xs text-secondary mt-1">
                 Manage local engine settings, Gemini intelligence keys, and cloud database migration.
               </p>
+            </div>
+
+            {/* Studio Passcode Configuration */}
+            <div className="p-6 rounded-[10px] bg-white/[0.02] border border-white/10 space-y-3">
+              <span className="font-mono text-xs font-bold text-white uppercase flex items-center gap-2">
+                <span>Studio Desk Access Passcode</span>
+                <span className="text-[10px] text-emerald-400 font-normal">[PROTECTED]</span>
+              </span>
+              <p className="font-mono text-[11px] text-secondary">
+                Guards your backend with a security gate so the public cannot view or edit anything. Accepted: <code className="text-white">2026</code> or <code className="text-white">moiz2026</code>, or set your custom passcode below:
+              </p>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={customPasscode}
+                  onChange={(e) => setCustomPasscode(e.target.value)}
+                  placeholder="e.g. your-secret-code"
+                  className="flex-1 px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-[#ff2a2a] outline-none font-mono text-xs text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveCustomPasscode}
+                  className="px-6 py-3 rounded-[10px] bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-all cursor-pointer"
+                >
+                  Update Passcode
+                </button>
+              </div>
             </div>
 
             {/* Gemini API Key */}
