@@ -249,7 +249,7 @@ export default function DisciplineDeck() {
   }, []);
 
   return (
-    <section id="disciplines" className="w-full py-20 md:py-28 bg-canvas border-none relative overflow-hidden select-none">
+    <section id="disciplines" className="w-full py-14 sm:py-18 md:py-22 bg-canvas border-none relative overflow-hidden select-none">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
 
         {/* MOBILE VIEW (< 768px): Tactile Horizontal Swipe Deck (Substantial size, crisp readability) */}

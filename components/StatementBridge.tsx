@@ -61,7 +61,7 @@ export default function StatementBridge() {
     <section
       ref={sectionRef}
       id="manifesto-bridge"
-      className="w-full py-28 sm:py-36 md:py-48 bg-gradient-to-b from-canvas via-[#f8f7f5] to-[#f4f2ee] relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
+      className="w-full py-16 sm:py-24 md:py-28 bg-gradient-to-b from-canvas via-[#f8f7f5] to-[#f4f2ee] relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
     >
       {/* Soft atmospheric ambient glow */}
       <div

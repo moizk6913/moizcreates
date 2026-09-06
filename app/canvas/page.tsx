@@ -498,6 +498,10 @@ export default function InfiniteCanvasPage() {
   const initialPinchDistRef = useRef<number | null>(null);
   const initialZoomRef = useRef(1);
 
+  // Gallery filtering & lightbox browsing state
+  const [activeTab, setActiveTab] = useState<'all' | 'social' | 'lookbook' | 'banners' | 'stills'>('all');
+  const [enlargedIndex, setEnlargedIndex] = useState<number | null>(null);
+
   // Mobile viewport detection, keydown, and smooth 3D tilt tracking
   useEffect(() => {
     // Lock document scroll so dragging canvas does not trigger page bounce/scroll
@@ -508,7 +512,11 @@ export default function InfiniteCanvasPage() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedFile(null);
+        if (enlargedIndex !== null) {
+          setEnlargedIndex(null);
+        } else {
+          setSelectedFile(null);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -524,7 +532,6 @@ export default function InfiniteCanvasPage() {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // On mobile screens, initialize with comfortable overview scale
       if (mobile) {
         setZoom(0.75);
       } else {
@@ -541,7 +548,23 @@ export default function InfiniteCanvasPage() {
       window.removeEventListener('mousemove', handleWindowMouseMove);
       window.removeEventListener('resize', checkMobile);
     };
-  }, []);
+  }, [enlargedIndex]);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (enlargedIndex === null || !selectedFile) return;
+    const photos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
+    
+    const handleNav = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        setEnlargedIndex((prev) => (prev !== null && prev < photos.length - 1 ? prev + 1 : 0));
+      } else if (e.key === 'ArrowLeft') {
+        setEnlargedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : photos.length - 1));
+      }
+    };
+    window.addEventListener('keydown', handleNav);
+    return () => window.removeEventListener('keydown', handleNav);
+  }, [enlargedIndex, selectedFile]);
 
   // --- UNIFIED POINTER & TOUCH GESTURE HANDLING ---
 
@@ -549,12 +572,18 @@ export default function InfiniteCanvasPage() {
     // Only capture primary button (mouse left or single touch)
     if (e.button !== 0) return;
     
+    // Check if clicked inside a folder card
+    const isFolderCard = (e.target as HTMLElement)?.closest?.('[data-folder-card]');
+    if (isFolderCard) {
+      // Let folder card handle its own click
+      return;
+    }
+
     isDraggingRef.current = true;
     hasMovedRef.current = false;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     panStartRef.current = { ...pan };
 
-    // Capture pointer so drag persists even if finger moves fast or leaves viewport
     try {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     } catch {
@@ -568,8 +597,7 @@ export default function InfiniteCanvasPage() {
     const deltaX = e.clientX - dragStartRef.current.x;
     const deltaY = e.clientY - dragStartRef.current.y;
 
-    // Movement threshold to differentiate between a tap and a drag
-    if (Math.hypot(deltaX, deltaY) > 6) {
+    if (Math.hypot(deltaX, deltaY) > 8) {
       hasMovedRef.current = true;
     }
 
@@ -586,6 +614,9 @@ export default function InfiniteCanvasPage() {
     } catch {
       // Fallback safe
     }
+    setTimeout(() => {
+      hasMovedRef.current = false;
+    }, 50);
   };
 
   // --- TWO-FINGER PINCH-TO-ZOOM FOR MOBILE TOUCH ---
@@ -745,7 +776,7 @@ export default function InfiniteCanvasPage() {
               top: `${file.y}px`,
               transform: `translate(-50%, -50%) rotate(${file.rot}deg)`,
             }}
-            className="absolute transition-transform duration-300 hover:z-50 select-none touch-manipulation"
+            className="absolute transition-transform duration-300 hover:z-50 select-none touch-manipulation pointer-events-auto cursor-pointer"
           >
             <ArchiveFolderCard
               id={file.id}
@@ -755,10 +786,14 @@ export default function InfiniteCanvasPage() {
               year={file.year}
               role={file.role}
               photos={file.photos && file.photos.length > 0 ? file.photos : [file.img]}
-              photoCount={file.photoCount || 68}
+              photoCount={file.photoCount || (file.photos ? file.photos.length : 68)}
               stickers={file.stickers}
               colorTag={file.colorTag}
-              onClick={() => handleFileClick(file)}
+              onClick={() => {
+                setSelectedFile(file);
+                setActiveTab('all');
+                setEnlargedIndex(null);
+              }}
             />
           </div>
         ))}
@@ -766,156 +801,251 @@ export default function InfiniteCanvasPage() {
       </div>
 
       {/* Project Detail Lightbox Modal (Apple Folder Gallery Drawer - Image 5 style) */}
-      {selectedFile && (
-        <div
-          onClick={() => setSelectedFile(null)}
-          className="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-8 animate-fadeIn"
-        >
+      {selectedFile && (() => {
+        const rawPhotos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
+        
+        // Filter photos based on active category tab
+        const displayedPhotos = rawPhotos.filter((_, idx) => {
+          if (activeTab === 'all') return true;
+          if (activeTab === 'social') return idx % 3 === 0;
+          if (activeTab === 'lookbook') return idx % 3 === 1;
+          if (activeTab === 'banners') return idx % 3 === 2;
+          return true;
+        });
+
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-4xl bg-[#faf9f6] rounded-[10px] overflow-hidden shadow-2xl border border-black/10 flex flex-col max-h-[92vh]"
+            onClick={() => setSelectedFile(null)}
+            className="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-8 animate-fadeIn"
           >
-            {/* Folder Header with Back Arrow Button (Image 5 exact style) */}
-            <div className="px-5 py-4 sm:px-7 sm:py-5 bg-white/80 backdrop-blur-md border-b border-black/[0.06] flex justify-between items-center z-20 flex-shrink-0">
-              <div className="flex items-center gap-3 sm:gap-4">
-                {/* Image 5 Top-Left Back Button */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-5xl bg-[#faf9f6] rounded-[10px] overflow-hidden shadow-2xl border border-black/10 flex flex-col max-h-[92vh]"
+            >
+              {/* Folder Header with Back Arrow Button (Image 5 exact style) */}
+              <div className="px-5 py-4 sm:px-7 sm:py-5 bg-white/90 backdrop-blur-md border-b border-black/[0.06] flex justify-between items-center z-20 flex-shrink-0">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFile(null)}
+                    className="w-10 h-10 rounded-[10px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 hover:bg-black hover:text-white active:scale-90 text-primary flex items-center justify-center text-lg font-bold transition-all cursor-pointer"
+                    title="Back to Archive"
+                  >
+                    ←
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg sm:text-2xl font-display font-black tracking-tight text-primary leading-tight">
+                        {selectedFile.name}
+                      </h2>
+                      <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-[10px] bg-black/5 text-secondary font-semibold">
+                        {rawPhotos.length} assets
+                      </span>
+                    </div>
+                    <p className="font-mono text-[10px] sm:text-xs text-secondary mt-0.5">
+                      {selectedFile.code} • {selectedFile.discipline} • {selectedFile.year}
+                    </p>
+                  </div>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setSelectedFile(null)}
-                  className="w-10 h-10 rounded-[10px] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 hover:bg-black hover:text-white active:scale-90 text-primary flex items-center justify-center text-lg font-bold transition-all"
-                  title="Back to Archive"
+                  className="w-9 h-9 rounded-[10px] bg-black/5 hover:bg-black/10 active:scale-90 text-secondary flex items-center justify-center font-mono text-xs transition-all cursor-pointer"
+                  title="Close"
                 >
-                  ←
+                  ✕
                 </button>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-2xl font-display font-black tracking-tight text-primary leading-tight">
-                      {selectedFile.name}
-                    </h2>
-                    <span className="hidden sm:inline-block font-mono text-[10px] px-2.5 py-0.5 rounded-[10px] bg-black/5 text-secondary font-semibold">
-                      {selectedFile.photoCount || 68} photos
+              </div>
+
+              {/* Deliverable Format Filter Pills */}
+              <div className="px-5 py-2.5 sm:px-7 bg-white/60 border-b border-black/[0.05] flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
+                <span className="font-mono text-[10px] text-muted uppercase tracking-wider hidden sm:inline">Category:</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('all')}
+                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
+                    activeTab === 'all'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-black/5 text-secondary hover:bg-black/10'
+                  }`}
+                >
+                  All ({rawPhotos.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('social')}
+                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
+                    activeTab === 'social'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-black/5 text-secondary hover:bg-black/10'
+                  }`}
+                >
+                  📱 Social Ads (9:16)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('lookbook')}
+                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
+                    activeTab === 'lookbook'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-black/5 text-secondary hover:bg-black/10'
+                  }`}
+                >
+                  📖 Lookbook & Print (4:5)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('banners')}
+                  className={`px-3 py-1 rounded-[8px] font-mono text-[11px] font-bold transition-all cursor-pointer uppercase ${
+                    activeTab === 'banners'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-black/5 text-secondary hover:bg-black/10'
+                  }`}
+                >
+                  🖥️ Wide Banners (16:9)
+                </button>
+              </div>
+
+              {/* Folder Content Gallery (Scrollable collection of campaign photos & stills) */}
+              <div className="p-5 sm:p-7 md:p-8 overflow-y-auto space-y-6">
+                
+                {/* Photo Grid Collection */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {displayedPhotos.map((photoUrl, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setEnlargedIndex(rawPhotos.indexOf(photoUrl))}
+                      className="group relative rounded-[10px] bg-white p-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] border border-black/[0.06] transition-all duration-300 hover:scale-[1.02] hover:border-black/20 cursor-zoom-in flex flex-col justify-between"
+                    >
+                      <div className="relative w-full rounded-[7px] overflow-hidden bg-[#f4f3ee] flex items-center justify-center min-h-[160px] max-h-[360px]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photoUrl}
+                          alt={`${selectedFile.name} plate ${idx + 1}`}
+                          className="w-full h-auto max-h-[360px] object-contain block transition-transform duration-300 group-hover:scale-[1.03]"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="mt-2 px-0.5 flex justify-between items-center font-mono text-[10px] text-muted">
+                        <span>PLATE {String(idx + 1).padStart(2, '0')}</span>
+                        <span className="text-accent-red font-bold flex items-center gap-1 group-hover:underline">
+                          <span>INSPECT</span>
+                          <span>↗</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Directorial Narrative & Deliverables */}
+                <div className="bg-white rounded-[10px] p-5 sm:p-6 border border-black/[0.06] shadow-sm space-y-4">
+                  <div>
+                    <span className="font-mono text-[10px] sm:text-xs text-accent-red font-bold uppercase tracking-wider block mb-1">
+                      Directorial Approach
                     </span>
+                    <p className="text-xs sm:text-sm text-secondary leading-relaxed">
+                      {selectedFile.desc}
+                    </p>
                   </div>
-                  <p className="font-mono text-[10px] sm:text-xs text-secondary mt-0.5">
-                    {selectedFile.code} • {selectedFile.discipline} • {selectedFile.year}
-                  </p>
-                </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedFile(null)}
-                className="w-9 h-9 rounded-[10px] bg-black/5 hover:bg-black/10 active:scale-90 text-secondary flex items-center justify-center font-mono text-xs transition-all"
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Folder Content Gallery (Scrollable collection of campaign photos & stills) */}
-            <div className="p-5 sm:p-7 md:p-8 overflow-y-auto space-y-6">
-              
-              {/* Photo Grid Collection (Adaptive Uncropped Editorial Layout) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                {(selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img]).map((photoUrl, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => setEnlargedPhoto(photoUrl)}
-                    className="group relative rounded-[10px] bg-white p-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.04] transition-all duration-300 hover:scale-[1.01] hover:border-black/20 cursor-zoom-in flex flex-col justify-between"
-                  >
-                    <div className="relative w-full rounded-[8px] overflow-hidden bg-[#f4f3ee] flex items-center justify-center min-h-[200px] max-h-[450px]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photoUrl}
-                        alt={`${selectedFile.name} still ${idx + 1}`}
-                        className="w-full h-auto max-h-[450px] object-contain block transition-transform duration-300 group-hover:scale-[1.02]"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="mt-2.5 px-1 flex justify-between items-center font-mono text-[10px] text-muted">
-                      <span>ASSET {String(idx + 1).padStart(2, '0')}</span>
-                      <span className="text-accent-red font-bold flex items-center gap-1 group-hover:underline">
-                        <span>ENLARGE</span>
-                        <span>↗</span>
-                      </span>
+                  <div className="border-t border-black/5 pt-4">
+                    <span className="font-mono text-[10px] sm:text-xs font-bold text-primary uppercase block mb-2">
+                      Scope of Deliverables:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                      {selectedFile.deliverables.map((item, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-1 bg-[#f5f4f0] border border-black/5 rounded-[8px] font-mono text-[10px] sm:text-xs text-secondary"
+                        >
+                          {item}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Directorial Narrative & Deliverables */}
-              <div className="bg-white rounded-[10px] p-5 sm:p-6 border border-black/[0.06] shadow-sm space-y-4">
-                <div>
-                  <span className="font-mono text-[10px] sm:text-xs text-accent-red font-bold uppercase tracking-wider block mb-1">
-                    Directorial Approach
-                  </span>
-                  <p className="text-xs sm:text-sm text-secondary leading-relaxed">
-                    {selectedFile.desc}
-                  </p>
                 </div>
 
-                <div className="border-t border-black/5 pt-4">
-                  <span className="font-mono text-[10px] sm:text-xs font-bold text-primary uppercase block mb-2">
-                    Scope of Deliverables:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                    {selectedFile.deliverables.map((item, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 bg-[#f5f4f0] border border-black/5 rounded-[10px] font-mono text-[10px] sm:text-xs text-secondary"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
 
-            </div>
-
-            {/* Folder Footer */}
-            <div className="px-6 py-3.5 bg-white/80 border-t border-black/[0.06] flex justify-between items-center text-xs font-mono text-secondary flex-shrink-0">
-              <span className="text-[10px] sm:text-xs">{selectedFile.role}</span>
-              <button
-                type="button"
-                onClick={() => setSelectedFile(null)}
-                className="font-bold text-accent-red hover:underline text-xs p-1 cursor-pointer"
-              >
-                CLOSE FOLDER [✕]
-              </button>
+              {/* Folder Footer */}
+              <div className="px-6 py-3.5 bg-white/90 border-t border-black/[0.06] flex justify-between items-center text-xs font-mono text-secondary flex-shrink-0">
+                <span className="text-[10px] sm:text-xs">{selectedFile.role}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFile(null)}
+                  className="font-bold text-accent-red hover:underline text-xs p-1 cursor-pointer"
+                >
+                  CLOSE ARCHIVE [✕]
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
-      {/* Full-Screen High-Resolution Image Lightbox Overlay */}
-      {enlargedPhoto && (
-        <div
-          onClick={() => setEnlargedPhoto(null)}
-          className="fixed inset-0 z-[20000] bg-black/90 backdrop-blur-lg flex items-center justify-center p-4 sm:p-8 animate-fadeIn cursor-zoom-out"
-        >
+      {/* Full-Screen High-Resolution Multi-Asset Lightbox Overlay with Next / Prev */}
+      {enlargedIndex !== null && selectedFile && (() => {
+        const rawPhotos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
+        const currentPhoto = rawPhotos[enlargedIndex] || rawPhotos[0];
+
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center"
+            onClick={() => setEnlargedIndex(null)}
+            className="fixed inset-0 z-[20000] bg-black/92 backdrop-blur-lg flex items-center justify-center p-4 sm:p-8 animate-fadeIn"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={enlargedPhoto}
-              alt="High resolution view"
-              className="max-w-full max-h-[85vh] object-contain rounded-[8px] shadow-2xl select-none"
-            />
-            <div className="mt-3 flex items-center gap-4 text-white font-mono text-xs">
-              <button
-                type="button"
-                onClick={() => setEnlargedPhoto(null)}
-                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold"
-              >
-                Close Preview [✕]
-              </button>
+            {/* Prev Arrow */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEnlargedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : rawPhotos.length - 1));
+              }}
+              className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
+              title="Previous Photo (Left Arrow)"
+            >
+              ←
+            </button>
+
+            {/* Next Arrow */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEnlargedIndex((prev) => (prev !== null && prev < rawPhotos.length - 1 ? prev + 1 : 0));
+              }}
+              className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
+              title="Next Photo (Right Arrow)"
+            >
+              →
+            </button>
+
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={currentPhoto}
+                alt={`Asset ${enlargedIndex + 1}`}
+                className="max-w-full max-h-[82vh] object-contain rounded-[8px] shadow-2xl select-none"
+              />
+              <div className="mt-4 flex items-center gap-6 text-white font-mono text-xs">
+                <span className="text-white/70">
+                  PHOTO {enlargedIndex + 1} OF {rawPhotos.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEnlargedIndex(null)}
+                  className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold"
+                >
+                  Close [ESC]
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </main>
   );
 }

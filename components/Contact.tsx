@@ -5,7 +5,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="w-full py-20 md:py-32 bg-gradient-to-b from-[#f4f2ee] via-[#faf9f6] to-canvas relative overflow-hidden flex flex-col items-center justify-center text-center select-none"
+      className="w-full py-16 sm:py-20 md:py-24 bg-gradient-to-b from-[#f4f2ee] via-[#faf9f6] to-canvas relative overflow-hidden flex flex-col items-center justify-center text-center select-none"
     >
       {/* Ambient luxury accent glow */}
       <div

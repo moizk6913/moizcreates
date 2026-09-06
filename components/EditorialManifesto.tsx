@@ -107,7 +107,7 @@ export default function EditorialManifesto() {
     <section
       ref={sectionRef}
       id="manifesto"
-      className="w-full pt-36 sm:pt-48 md:pt-60 pb-28 sm:pb-36 md:pb-44 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
+      className="w-full pt-20 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
         <h2 className="font-display font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] tracking-[-0.02em] text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">

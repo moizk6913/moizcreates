@@ -314,6 +314,8 @@ export default function ArchiveFolderCard({
   stickers,
   onClick,
 }: ArchiveFolderProps) {
+  const pointerStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
+
   // Ensure we have at least 4 photos for the fanned stack
   const displayPhotos = [
     photos[0] || 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop',
@@ -322,10 +324,36 @@ export default function ArchiveFolderCard({
     photos[3] || photos[1] || photos[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop',
   ];
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Record starting coordinate & time
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, time: performance.now() };
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!pointerStartRef.current) return;
+    const deltaX = Math.abs(e.clientX - pointerStartRef.current.x);
+    const deltaY = Math.abs(e.clientY - pointerStartRef.current.y);
+    const elapsed = performance.now() - pointerStartRef.current.time;
+    pointerStartRef.current = null;
+
+    // Genuine click: mouse moved less than 14px and held under 500ms
+    if (deltaX < 14 && deltaY < 14 && elapsed < 500) {
+      e.stopPropagation();
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
-      className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation"
+      data-folder-card="true"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation pointer-events-auto"
     >
       {/* 3D FOLDER STAGE: Headroom for upward peeking polaroid photo cards */}
       <div className="relative w-[215px] sm:w-[245px] md:w-[265px] h-[200px] sm:h-[225px] md:h-[240px] flex items-end justify-center">
@@ -336,11 +364,11 @@ export default function ArchiveFolderCard({
           <div className="absolute -top-2.5 left-3 w-20 sm:w-24 h-3.5 bg-[#ded8cc] rounded-t-[8px] border-t border-l border-r border-black/[0.04]" />
         </div>
 
-        {/* LAYER 2: FANNED POLAROID PHOTO STACK (Tucked inside folder, peeking UP above the flap, blooming higher on hover) */}
+        {/* LAYER 2: FANNED POLAROID PHOTO STACK (Tucked inside folder, peeking HIGH above flap with crisp borders) */}
         <div className="absolute inset-x-0 bottom-6 flex items-end justify-center pointer-events-none">
           
           {/* Card 1: Far Left (-16deg resting, peeking up -> -24deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_6px_18px_rgba(0,0,0,0.13)] ring-1 ring-black/5 transform -rotate-[16deg] -translate-x-[42px] -translate-y-[42px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[58px] group-hover:-translate-y-[76px] group-hover:scale-105 z-10">
+          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform -rotate-[16deg] -translate-x-[42px] -translate-y-[68px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[58px] group-hover:-translate-y-[96px] group-hover:scale-105 z-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[0]}
@@ -352,7 +380,7 @@ export default function ArchiveFolderCard({
           </div>
 
           {/* Card 2: Center Left (-5deg resting, peeking up -> -8deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.15)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[15px] -translate-y-[54px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[20px] group-hover:-translate-y-[92px] group-hover:scale-110 z-20">
+          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[15px] -translate-y-[84px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[20px] group-hover:-translate-y-[115px] group-hover:scale-110 z-20">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[1]}
@@ -364,7 +392,7 @@ export default function ArchiveFolderCard({
           </div>
 
           {/* Card 3: Center Right (+6deg resting, peeking up -> +8deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.15)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[15px] -translate-y-[50px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[20px] group-hover:-translate-y-[88px] group-hover:scale-110 z-20">
+          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[15px] -translate-y-[80px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[20px] group-hover:-translate-y-[110px] group-hover:scale-110 z-20">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[2]}
@@ -376,7 +404,7 @@ export default function ArchiveFolderCard({
           </div>
 
           {/* Card 4: Far Right (+18deg resting, peeking up -> +24deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_6px_18px_rgba(0,0,0,0.13)] ring-1 ring-black/5 transform rotate-[18deg] translate-x-[42px] -translate-y-[40px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[58px] group-hover:-translate-y-[74px] group-hover:scale-105 z-10">
+          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform rotate-[18deg] translate-x-[42px] -translate-y-[66px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[58px] group-hover:-translate-y-[94px] group-hover:scale-105 z-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayPhotos[3]}
@@ -389,11 +417,11 @@ export default function ArchiveFolderCard({
 
         </div>
 
-        {/* LAYER 3: FRONT FROSTED-GLASS FLAP (10px Apple Roundness, covers bottom 100%) */}
-        <div className="relative w-full h-[135px] sm:h-[150px] md:h-[160px] rounded-[10px] bg-white/75 backdrop-blur-md border border-white/80 shadow-[0_12px_28px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 z-30 transition-shadow duration-300 group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.12)]">
+        {/* LAYER 3: FRONT OPAQUE/TRANSLUCENT IVORY FLAP (Crisp, ZERO backdrop-blur smudge, 10px Apple radius) */}
+        <div className="relative w-full h-[135px] sm:h-[150px] md:h-[160px] rounded-[10px] bg-gradient-to-b from-[#fbf9f4] via-[#f7f4ed] to-[#eee8dd] border border-black/[0.08] shadow-[0_12px_28px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 z-30 transition-shadow duration-300 group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.12)]">
           
-          {/* Subtle Glassmorphic Highlight Gradient across the top lip */}
-          <div className="absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-white/80 via-white/35 to-transparent pointer-events-none" />
+          {/* Subtle Clean Highlight Gradient across the top lip */}
+          <div className="absolute inset-x-0 top-0 h-[28%] bg-gradient-to-b from-white/90 via-white/40 to-transparent pointer-events-none" />
 
           {/* STICKERS & POSTAGE STAMPS ROW (Images 1, 3, 4 reference) */}
           <div className="relative z-10 flex justify-between items-start pt-0.5">
@@ -430,7 +458,7 @@ export default function ArchiveFolderCard({
           {name}
         </h3>
         
-        {/* Soft Count Pill Badge ("68 photos", "83 photos", etc. - 10px radius) */}
+        {/* Soft Count Pill Badge ("68 photos", "88 photos", etc. - 10px radius) */}
         <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wide text-secondary/80 bg-black/[0.05] group-hover:bg-black/[0.08] px-3 py-0.5 rounded-[10px] transition-colors">
           {photoCount} photos
         </span>
