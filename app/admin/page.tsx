@@ -512,7 +512,7 @@ export default function StudioDeskPage() {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 pt-8 sm:pt-10">
 
         {/* Tab Navigation Pill Bar */}
-        <div className="flex gap-2 overflow-x-auto pb-4 border-b border-white/10 no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-4 border-b border-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             { id: 'quick_photo', label: '01 // QUICK STILL' },
             { id: 'quick_reel', label: '02 // QUICK REEL' },
