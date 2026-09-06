@@ -35,8 +35,8 @@ function calculateAspect(w: number, h: number): { aspectClass: string; aspectLab
   return { aspectClass: 'aspect-[9/16]', aspectLabel: '9:16 Vertical Reel' };
 }
 
-// Client-side image compressor: scales images so full folders fit in storage
-const compressFile = (file: File, maxDim = 1280, quality = 0.82): Promise<UploadedPhoto> => {
+// Client-side image compressor: scales images so 38+ photos comfortably fit in storage
+const compressFile = (file: File, maxDim = 850, quality = 0.76): Promise<UploadedPhoto> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -766,7 +766,7 @@ export default function StudioDeskPage() {
             }`}
           >
             <span>⚙</span>
-            <span>Archive &amp; Settings</span>
+            <span>Manage Work &amp; Passcode</span>
             {deployedFiles.length > 0 && (
               <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#ff2a2a] text-white font-bold ml-0.5">
                 {deployedFiles.length}
@@ -968,6 +968,41 @@ export default function StudioDeskPage() {
                     </div>
                   </div>
                 ))}
+
+                {/* Visual Direct Upload Box inside chat (Unmissable for 38+ Kaldhar photos) */}
+                {attachedPhotos.length === 0 && (
+                  <div className="p-6 rounded-[12px] border-2 border-dashed border-white/15 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-3.5 my-2">
+                    <span className="text-3xl">📁</span>
+                    <div>
+                      <p className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                        Upload Your Kaldhar Campaign (38+ Photos)
+                      </p>
+                      <p className="font-mono text-[10.5px] text-secondary mt-1 max-w-md">
+                        Click below to pick your <strong>Kaldhar</strong> folder from Desktop, or select pictures. You can also drag &amp; drop the folder directly!
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => chatFolderInputRef.current?.click()}
+                        className="px-4 py-2.5 rounded-[8px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shadow cursor-pointer flex items-center gap-2"
+                      >
+                        <span>📁</span>
+                        <span>Upload Kaldhar Folder (All 38 Photos)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => chatFilesInputRef.current?.click()}
+                        className="px-4 py-2.5 rounded-[8px] bg-white/10 hover:bg-white text-white hover:text-black font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2"
+                      >
+                        <span>🖼️</span>
+                        <span>Select Pictures (Ctrl+A for All 38)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {isAiThinking && (
                   <div className="flex flex-col items-start gap-1.5">
@@ -1671,6 +1706,37 @@ export default function StudioDeskPage() {
         {/* ============================================================ */}
         {activeTab === 'archive_settings' && (
           <div className="pt-6 space-y-8">
+
+            {/* Clear Explanation Card: What is this section? */}
+            <div className="p-5 rounded-[12px] bg-white/[0.03] border border-white/10 space-y-3">
+              <div className="flex items-center gap-2 text-white">
+                <span className="text-base">⚙</span>
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider">
+                  What is this tab? (Your Website Control Room)
+                </h3>
+              </div>
+              <p className="text-xs text-secondary leading-relaxed font-mono">
+                This tab lets you manage your live website, check your security code, and view your Google tools:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="p-3 rounded-[8px] bg-white/5 border border-white/5 font-mono text-[11px] space-y-1">
+                  <p className="text-white font-bold">1. Active Works ({deployedFiles.length})</p>
+                  <p className="text-secondary">See every project or photo currently live on your site, and delete anything you want to take down.</p>
+                </div>
+                <div className="p-3 rounded-[8px] bg-white/5 border border-white/5 font-mono text-[11px] space-y-1">
+                  <p className="text-white font-bold">2. Master Passcode (7741)</p>
+                  <p className="text-secondary">Your private security password that prevents visitors from opening this Studio Desk.</p>
+                </div>
+                <div className="p-3 rounded-[8px] bg-white/5 border border-white/5 font-mono text-[11px] space-y-1">
+                  <p className="text-emerald-400 font-bold">3. 100% Free AI Status ($0.00)</p>
+                  <p className="text-secondary">Confirms your Gemini 3.6 Flash free tier (1,500 free requests per day, $0.00 forever).</p>
+                </div>
+                <div className="p-3 rounded-[8px] bg-white/5 border border-white/5 font-mono text-[11px] space-y-1">
+                  <p className="text-white font-bold">4. 8 Free Google SEO Tools</p>
+                  <p className="text-secondary">Direct links to Google Search Console, Google Analytics 4, and Clarity to rank your site on Google.</p>
+                </div>
+              </div>
+            </div>
 
             {/* Section 1: Live Canvas Items */}
             <div>
