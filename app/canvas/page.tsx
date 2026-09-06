@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import CustomCursor from '@/components/CustomCursor';
 import { getStoredCanvasFiles, getStoredCanvasFilesAsync } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData } from '@/components/ArchiveFolderCard';
@@ -40,7 +41,7 @@ const ARCHIVE_FILES: ArchiveFile[] = [
     img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop',
     photos: [
       'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1519074069444-1ba4ea16e6f4?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1520690214124-2405c5217036?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800&auto=format&fit=crop',
     ],
@@ -148,7 +149,7 @@ const ARCHIVE_FILES: ArchiveFile[] = [
     img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop',
     photos: [
       'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop',
     ],
@@ -461,7 +462,21 @@ const ARCHIVE_FILES: ArchiveFile[] = [
   },
 ];
 
-export default function InfiniteCanvasPage() {
+const DISCIPLINE_FILE_MAP: Record<string, string> = {
+  'motion-graphics': 'prada-wireframe',
+  'brand-identity': 'easyhaibro',
+  'art-direction': 'windchasers',
+  'cinematography': 'balenciaga-tokyo',
+  'video-editing': 'porsche-sound',
+  'color-grading': 'acne-analogue',
+  'photography': 'chanel-macro',
+};
+
+function InfiniteCanvasContent() {
+  const searchParams = useSearchParams();
+  const disciplineParam = searchParams.get('discipline');
+  const folderParam = searchParams.get('folder');
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [allFiles, setAllFiles] = useState<ArchiveFile[]>(ARCHIVE_FILES);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -490,6 +505,25 @@ export default function InfiniteCanvasPage() {
       });
   }, []);
 
+  // Deep Link Auto-Navigation: Pans and automatically opens discipline or folder if passed in URL
+  useEffect(() => {
+    if (!disciplineParam && !folderParam) return;
+    const targetId = folderParam || (disciplineParam ? DISCIPLINE_FILE_MAP[disciplineParam] || disciplineParam : null);
+    if (!targetId) return;
+
+    const match = allFiles.find((f) =>
+      f.id.toLowerCase() === targetId.toLowerCase() ||
+      (disciplineParam && f.discipline.toLowerCase().includes(disciplineParam.replace(/-/g, ' ')))
+    );
+
+    if (match) {
+      setPan({ x: -match.x, y: -match.y });
+      setSelectedFile(match);
+      setActiveTab('all');
+      setEnlargedIndex(null);
+    }
+  }, [disciplineParam, folderParam, allFiles]);
+
   // Gesture tracking references
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
@@ -515,6 +549,9 @@ export default function InfiniteCanvasPage() {
           const ratio = img.naturalWidth / img.naturalHeight;
           setPhotoRatios((prev) => ({ ...prev, [url]: ratio }));
         }
+      };
+      img.onerror = () => {
+        setPhotoRatios((prev) => ({ ...prev, [url]: 1.0 }));
       };
       img.src = url;
     });
@@ -939,51 +976,167 @@ export default function InfiniteCanvasPage() {
                 </button>
               </div>
 
-              {/* Seamless Editorial Masonry Gallery (Zero Padding Holes, Zero Clutter) */}
+              {/* Adaptive Luxury Editorial Gallery (Zero Padding Holes, Zero Clutter) */}
               <div className="flex-1 p-5 sm:p-8 md:p-10 overflow-y-auto space-y-10">
-                
-                {/* Seamless Masonry Columns */}
-                <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-5 sm:gap-6 space-y-5 sm:space-y-6">
-                  {displayedPhotos.map((photoUrl, idx) => {
-                    const rawIndex = rawPhotos.indexOf(photoUrl);
-                    const cat = getCategory(photoUrl);
+                {displayedPhotos.length === 0 ? (
+                  <div className="py-20 text-center space-y-4 max-w-md mx-auto">
+                    <div className="w-12 h-12 rounded-full bg-black/5 mx-auto flex items-center justify-center font-mono text-lg text-secondary">
+                      ∅
+                    </div>
+                    <p className="font-mono text-xs text-secondary uppercase tracking-wider">
+                      No assets found in this format.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('all')}
+                      className="px-5 py-2 bg-black text-white rounded-full font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all cursor-pointer"
+                    >
+                      Show All Assets ({rawPhotos.length}) →
+                    </button>
+                  </div>
+                ) : displayedPhotos.length === 1 ? (
+                  /* Focused Centered Luxury Showcase for 1 Filtered Photo */
+                  <div className="max-w-xl mx-auto flex flex-col items-center">
+                    {(() => {
+                      const photoUrl = displayedPhotos[0];
+                      const rawIndex = rawPhotos.indexOf(photoUrl);
+                      const cat = getCategory(photoUrl);
+                      return (
+                        <div
+                          onClick={() => setEnlargedIndex(rawIndex)}
+                          className="w-full relative rounded-[18px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.01] shadow-[0_24px_60px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photoUrl}
+                            alt={`${selectedFile.name} asset ${rawIndex + 1}`}
+                            className="w-full h-auto max-h-[68vh] object-contain mx-auto block rounded-[18px] transition-transform duration-500 group-hover:scale-[1.02]"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                            }}
+                          />
 
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => setEnlargedIndex(rawIndex)}
-                        className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de]"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={photoUrl}
-                          alt={`${selectedFile.name} asset ${rawIndex + 1}`}
-                          className="w-full h-auto block rounded-[14px] transition-transform duration-500 group-hover:scale-[1.02]"
-                          loading="lazy"
-                        />
+                          {/* Minimal Luxury Hover Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-5 pointer-events-none">
+                            <div className="flex justify-end">
+                              <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
+                                {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                              </span>
+                            </div>
 
-                        {/* Minimal Luxury Hover Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
-                          <div className="flex justify-end">
-                            <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
-                              {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
-                            </span>
-                          </div>
-
-                          <div className="flex justify-between items-center text-white">
-                            <span className="font-mono text-[11px] font-bold tracking-wide">
-                              Asset {String(rawIndex + 1).padStart(2, '0')}
-                            </span>
-                            <span className="font-mono text-[11px] font-bold text-accent-red flex items-center gap-1">
-                              <span>Enlarge</span>
-                              <span>↗</span>
-                            </span>
+                            <div className="flex justify-between items-center text-white">
+                              <span className="font-mono text-xs font-bold tracking-wide">
+                                Asset {String(rawIndex + 1).padStart(2, '0')} of {rawPhotos.length}
+                              </span>
+                              <span className="font-mono text-xs font-bold text-accent-red flex items-center gap-1">
+                                <span>Click to Enlarge</span>
+                                <span>↗</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })()}
+                    <div className="mt-3 flex items-center gap-3 text-secondary font-mono text-[11px]">
+                      <span>Single Format Focus</span>
+                      <span>•</span>
+                      <span className="uppercase text-accent-red font-bold">
+                        {getCategory(displayedPhotos[0]) === 'social' ? '9:16 Vertical Reel' : getCategory(displayedPhotos[0]) === 'banner' ? '16:9 Widescreen Banner' : '4:5 Editorial Lookbook'}
+                      </span>
+                    </div>
+                  </div>
+                ) : displayedPhotos.length <= 3 ? (
+                  /* Balanced Centered Grid for 2-3 Photos */
+                  <div className={`grid grid-cols-1 sm:grid-cols-${displayedPhotos.length} gap-6 max-w-5xl mx-auto`}>
+                    {displayedPhotos.map((photoUrl, idx) => {
+                      const rawIndex = rawPhotos.indexOf(photoUrl);
+                      const cat = getCategory(photoUrl);
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => setEnlargedIndex(rawIndex)}
+                          className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photoUrl}
+                            alt={`${selectedFile.name} asset ${rawIndex + 1}`}
+                            className="w-full h-auto block rounded-[14px] transition-transform duration-500 group-hover:scale-[1.02]"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                            }}
+                          />
+
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
+                            <div className="flex justify-end">
+                              <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
+                                {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between items-center text-white">
+                              <span className="font-mono text-[11px] font-bold tracking-wide">
+                                Asset {String(rawIndex + 1).padStart(2, '0')}
+                              </span>
+                              <span className="font-mono text-[11px] font-bold text-accent-red flex items-center gap-1">
+                                <span>Enlarge</span>
+                                <span>↗</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Rich Editorial Masonry Columns for 4+ Photos */
+                  <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-5 sm:gap-6 space-y-5 sm:space-y-6">
+                    {displayedPhotos.map((photoUrl, idx) => {
+                      const rawIndex = rawPhotos.indexOf(photoUrl);
+                      const cat = getCategory(photoUrl);
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => setEnlargedIndex(rawIndex)}
+                          className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photoUrl}
+                            alt={`${selectedFile.name} asset ${rawIndex + 1}`}
+                            className="w-full h-auto block rounded-[14px] transition-transform duration-500 group-hover:scale-[1.02]"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                            }}
+                          />
+
+                          {/* Minimal Luxury Hover Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
+                            <div className="flex justify-end">
+                              <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
+                                {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between items-center text-white">
+                              <span className="font-mono text-[11px] font-bold tracking-wide">
+                                Asset {String(rawIndex + 1).padStart(2, '0')}
+                              </span>
+                              <span className="font-mono text-[11px] font-bold text-accent-red flex items-center gap-1">
+                                <span>Enlarge</span>
+                                <span>↗</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Directorial Narrative & Deliverables */}
                 {selectedFile.desc && (
@@ -1068,6 +1221,9 @@ export default function InfiniteCanvasPage() {
                 src={currentPhoto}
                 alt={`Asset ${enlargedIndex + 1}`}
                 className="max-w-full max-h-[84vh] object-contain rounded-[10px] shadow-2xl select-none"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop';
+                }}
               />
               <div className="mt-4 flex items-center gap-6 text-white font-mono text-xs">
                 <span className="text-white/70 tracking-widest uppercase">
@@ -1086,5 +1242,20 @@ export default function InfiniteCanvasPage() {
         );
       })()}
     </main>
+  );
+}
+
+export default function InfiniteCanvasPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-screen h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-mono text-xs text-neutral-500 gap-3">
+          <div className="w-7 h-7 border-2 border-black border-t-transparent rounded-full animate-spin" />
+          <span className="tracking-wider uppercase">Loading Spatial Archive...</span>
+        </div>
+      }
+    >
+      <InfiniteCanvasContent />
+    </Suspense>
   );
 }

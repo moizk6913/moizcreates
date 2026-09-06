@@ -78,7 +78,7 @@ const projectsData: Record<
       {
         format: '4-5',
         caption: '1080 × 1350 Cockpit Instrumentation Key Art',
-        image: 'https://images.unsplash.com/photo-1519074069444-1ba4ea16e6f4?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1520690214124-2405c5217036?q=80&w=1200&auto=format&fit=crop',
       },
     ],
   },
@@ -144,7 +144,7 @@ const projectsData: Record<
       {
         format: '4-5',
         caption: '1080 × 1350 Editorial Print Poster',
-        image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop',
       },
     ],
   },
@@ -293,7 +293,15 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                 {/* 16:9 Landscape Video / Broadcast Frame */}
                 {m.format === '16-9' && m.image && (
                   <div className="relative w-full aspect-[16/9] bg-subtle border border-border-hairline overflow-hidden">
-                    <img src={m.image} alt={m.caption} className="w-full h-full object-cover" loading="lazy" />
+                    <img
+                      src={m.image}
+                      alt={m.caption}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1600&auto=format&fit=crop';
+                      }}
+                    />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                       <span className="w-11 h-11 rounded-full bg-accent-red text-white flex items-center justify-center text-sm pl-0.5">
                         ▶
@@ -305,14 +313,30 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                 {/* 4:5 Portrait Poster */}
                 {m.format === '4-5' && m.image && (
                   <div className="relative w-full max-w-lg mx-auto aspect-[4/5] bg-subtle border border-border-hairline overflow-hidden">
-                    <img src={m.image} alt={m.caption} className="w-full h-full object-cover" loading="lazy" />
+                    <img
+                      src={m.image}
+                      alt={m.caption}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1520690214124-2405c5217036?q=80&w=1200&auto=format&fit=crop';
+                      }}
+                    />
                   </div>
                 )}
 
                 {/* 9:16 Vertical Reel */}
                 {m.format === '9-16' && m.image && (
                   <div className="relative w-full max-w-[280px] mx-auto aspect-[9/16] max-h-[500px] bg-subtle border border-border-hairline overflow-hidden">
-                    <img src={m.image} alt={m.caption} className="w-full h-full object-cover" loading="lazy" />
+                    <img
+                      src={m.image}
+                      alt={m.caption}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=900&auto=format&fit=crop';
+                      }}
+                    />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                       <span className="w-9 h-9 rounded-full bg-accent-red text-white flex items-center justify-center text-xs pl-0.5">
                         ▶
@@ -326,7 +350,15 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {m.items.map((it, i) => (
                       <div key={i} className="aspect-square bg-subtle border border-border-hairline overflow-hidden">
-                        <img src={it.image} alt="Setup" className="w-full h-full object-cover" loading="lazy" />
+                        <img
+                          src={it.image}
+                          alt="Setup"
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                          }}
+                        />
                       </div>
                     ))}
                   </div>

@@ -376,6 +376,9 @@ export default function ArchiveFolderCard({
               className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop';
+              }}
             />
           </div>
 
@@ -388,6 +391,9 @@ export default function ArchiveFolderCard({
               className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+              }}
             />
           </div>
 
@@ -400,6 +406,9 @@ export default function ArchiveFolderCard({
               className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop';
+              }}
             />
           </div>
 
@@ -412,6 +421,9 @@ export default function ArchiveFolderCard({
               className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
               loading="lazy"
               draggable={false}
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop';
+              }}
             />
           </div>
 

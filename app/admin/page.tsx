@@ -157,6 +157,180 @@ const STICKER_OPTIONS: Array<{ type: any; label: string }> = [
   { type: 'diamond', label: 'Diamond' },
 ];
 
+export interface AdminWorkItem {
+  id: string;
+  name: string;
+  discipline: string;
+  year: string;
+  role: string;
+  img: string;
+  photoCount: number;
+  isCustom: boolean;
+}
+
+const BUILTIN_WORK_ITEMS: AdminWorkItem[] = [
+  {
+    id: 'windchasers',
+    name: 'Windchasers Aviation Academy',
+    discipline: 'Art Direction • Lookbook',
+    year: '2026',
+    role: 'Lead Art Director',
+    img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop',
+    photoCount: 83,
+    isCustom: false,
+  },
+  {
+    id: 'easyhaibro',
+    name: 'Easy Hai Bro',
+    discipline: 'Brand Identity • Strategy',
+    year: '2026',
+    role: 'Creative Director',
+    img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop',
+    photoCount: 68,
+    isCustom: false,
+  },
+  {
+    id: 'kaladhar',
+    name: 'Kaladhar Heritage Bridal',
+    discipline: 'Lighting Direction • Styling',
+    year: '2025',
+    role: 'Director of Visuals',
+    img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop',
+    photoCount: 62,
+    isCustom: false,
+  },
+  {
+    id: 'ruchi',
+    name: 'Ruchi Fried Chicken',
+    discipline: 'Commercial Shoot • Food Art',
+    year: '2025',
+    role: 'Art Director',
+    img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop',
+    photoCount: 45,
+    isCustom: false,
+  },
+  {
+    id: 'oxymorons',
+    name: 'Oxymorons Collective',
+    discipline: 'Visual Identity • Architecture',
+    year: '2025',
+    role: 'Brand Architect',
+    img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
+    photoCount: 74,
+    isCustom: false,
+  },
+  {
+    id: 'balenciaga-tokyo',
+    name: 'Neo-Tokyo Runway Concept',
+    discipline: 'Cinematography • Stage Direction',
+    year: '2026',
+    role: 'Art Director',
+    img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop',
+    photoCount: 92,
+    isCustom: false,
+  },
+  {
+    id: 'vogue-arabia',
+    name: 'Vogue Monolith Editorial',
+    discipline: 'Fashion Editorial • Stills',
+    year: '2025',
+    role: 'Creative Director',
+    img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
+    photoCount: 64,
+    isCustom: false,
+  },
+  {
+    id: 'porsche-sound',
+    name: 'Porsche 911 Soundscape',
+    discipline: 'Video Editing • Sound Design',
+    year: '2026',
+    role: 'Editor & Colorist',
+    img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop',
+    photoCount: 88,
+    isCustom: false,
+  },
+  {
+    id: 'prada-wireframe',
+    name: 'Prada Structural Deconstruct',
+    discipline: 'Motion Graphics • 3D',
+    year: '2025',
+    role: 'Motion Director',
+    img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop',
+    photoCount: 56,
+    isCustom: false,
+  },
+  {
+    id: 'nike-kinetic',
+    name: 'Nike Hyperspeed Broadcast',
+    discipline: 'Motion Graphics • Title Rhythm',
+    year: '2026',
+    role: 'Art Director',
+    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop',
+    photoCount: 112,
+    isCustom: false,
+  },
+  {
+    id: 'chanel-macro',
+    name: 'Chanel Haute Horlogerie',
+    discipline: 'Photography • Viewfinder',
+    year: '2025',
+    role: 'Lead Photographer',
+    img: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=600&auto=format&fit=crop',
+    photoCount: 48,
+    isCustom: false,
+  },
+  {
+    id: 'acne-analogue',
+    name: 'Acne Studios Stockholm Archive',
+    discipline: 'Colour Grading • 35mm',
+    year: '2025',
+    role: 'Colorist & Stills',
+    img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop',
+    photoCount: 79,
+    isCustom: false,
+  },
+  {
+    id: 'apple-emblem',
+    name: 'Studio Monolith Emblem',
+    discipline: 'Brand System • Swiss Deck',
+    year: '2026',
+    role: 'Design Lead',
+    img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop',
+    photoCount: 52,
+    isCustom: false,
+  },
+  {
+    id: 'dior-tungsten',
+    name: 'Dior Midnight Nocturne',
+    discipline: 'Cinematography • Film Grade',
+    year: '2025',
+    role: 'Director of Photography',
+    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop',
+    photoCount: 84,
+    isCustom: false,
+  },
+  {
+    id: 'supreme-underground',
+    name: 'Underground Type Distort',
+    discipline: 'Motion Graphics • Experimental',
+    year: '2026',
+    role: 'Motion Designer',
+    img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop',
+    photoCount: 136,
+    isCustom: false,
+  },
+  {
+    id: 'saint-laurent-cut',
+    name: 'Saint Laurent Winter Cut',
+    discipline: 'Video Editing • Director Cut',
+    year: '2025',
+    role: 'Lead Video Editor',
+    img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop',
+    photoCount: 67,
+    isCustom: false,
+  },
+];
+
 export default function AdminPage() {
   // Passcode Lock State
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -173,6 +347,10 @@ export default function AdminPage() {
   const [publishProgress, setPublishProgress] = useState('');
   const [publishSuccess, setPublishSuccess] = useState<string | null>(null);
 
+  // Asset Filter & Sort State
+  const [assetFilter, setAssetFilter] = useState<'all' | 'social' | 'lookbook' | 'banner' | 'square'>('all');
+  const [assetSort, setAssetSort] = useState<'default' | 'name' | 'format'>('default');
+
   // Form Fields
   const [campaignTitle, setCampaignTitle] = useState('');
   const [clientBrand, setClientBrand] = useState('');
@@ -186,9 +364,12 @@ export default function AdminPage() {
   const [selectedStamp, setSelectedStamp] = useState(STAMP_OPTIONS[0]);
   const [selectedSticker, setSelectedSticker] = useState(STICKER_OPTIONS[0].type);
 
-  // Live Work State
+  // Live Work State & Filters
   const [liveFiles, setLiveFiles] = useState<DynamicCanvasFile[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [liveWorkFilter, setLiveWorkFilter] = useState<'all' | 'custom' | 'archive'>('all');
+  const [liveDisciplineFilter, setLiveDisciplineFilter] = useState('all');
+  const [liveWorkSearch, setLiveWorkSearch] = useState('');
 
   // SEO & Passcode Settings
   const [seo, setSeo] = useState<SeoConfig>({});
@@ -661,106 +842,190 @@ export default function AdminPage() {
           </div>
 
           {/* Uploaded Assets Breakdown & Thumbnail Grid */}
-          {uploadedAssets.length > 0 && (
-            <div className="bg-[#121215] border border-white/10 rounded-[12px] p-5 sm:p-7 space-y-6">
-              {/* Asset Metrics Header */}
-              <div className="flex flex-wrap justify-between items-center gap-3 border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2">
-                  <span className="font-display font-black text-base uppercase">
-                    Ready to Publish:
-                  </span>
-                  <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-white text-black font-bold">
-                    {uploadedAssets.length} Assets Loaded
-                  </span>
-                </div>
+          {uploadedAssets.length > 0 && (() => {
+            const displayedUploadedAssets = uploadedAssets
+              .map((asset, originalIndex) => ({ asset, originalIndex }))
+              .filter(({ asset }) => {
+                if (assetFilter === 'all') return true;
+                return asset.category === assetFilter;
+              })
+              .sort((a, b) => {
+                if (assetSort === 'name') return a.asset.name.localeCompare(b.asset.name);
+                if (assetSort === 'format') return a.asset.aspectLabel.localeCompare(b.asset.aspectLabel);
+                return a.originalIndex - b.originalIndex;
+              });
 
-                {/* Categorization Badges */}
-                <div className="flex flex-wrap gap-2 text-[11px] font-mono">
-                  {categoryCounts.social > 0 && (
-                    <span className="px-2.5 py-1 rounded-[6px] bg-sky-500/10 text-sky-300 border border-sky-500/20">
-                      📱 9:16 Social: {categoryCounts.social}
+            return (
+              <div className="bg-[#121215] border border-white/10 rounded-[12px] p-5 sm:p-7 space-y-6">
+                {/* Asset Metrics & Interactive Filter Header */}
+                <div className="flex flex-wrap justify-between items-center gap-3 border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-display font-black text-base uppercase">
+                      Ready to Publish:
                     </span>
-                  )}
-                  {categoryCounts.lookbook > 0 && (
-                    <span className="px-2.5 py-1 rounded-[6px] bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                      📖 4:5 Lookbook: {categoryCounts.lookbook}
+                    <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-white text-black font-bold">
+                      {uploadedAssets.length} Assets Loaded
                     </span>
-                  )}
-                  {categoryCounts.banner > 0 && (
-                    <span className="px-2.5 py-1 rounded-[6px] bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                      🖥️ 16:9 Banner: {categoryCounts.banner}
-                    </span>
-                  )}
-                  {categoryCounts.square > 0 && (
-                    <span className="px-2.5 py-1 rounded-[6px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                      ⬜ 1:1 Feed: {categoryCounts.square}
-                    </span>
-                  )}
-                </div>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => setUploadedAssets([])}
-                  className="font-mono text-xs text-red-400 hover:underline cursor-pointer"
-                >
-                  Clear All [✕]
-                </button>
-              </div>
-
-              {/* Photo Thumbnails Strip / Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-[360px] overflow-y-auto p-1 no-scrollbar">
-                {uploadedAssets.map((asset, idx) => {
-                  const isCover = coverIndex === idx;
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => setCoverIndex(idx)}
-                      className={`relative rounded-[8px] overflow-hidden border transition-all cursor-pointer group bg-black/40 ${
-                        isCover ? 'border-white ring-2 ring-white/50' : 'border-white/10 hover:border-white/30'
+                  {/* Interactive Category Filter Pills */}
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setAssetFilter('all')}
+                      className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                        assetFilter === 'all'
+                          ? 'bg-white text-black shadow-sm'
+                          : 'bg-white/5 text-neutral-300 hover:bg-white/10'
                       }`}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={asset.dataUrl}
-                        alt={asset.name}
-                        className="w-full h-24 sm:h-28 object-cover block group-hover:scale-105 transition-transform"
-                      />
-
-                      {/* Format Badge */}
-                      <span className="absolute bottom-1 left-1 font-mono text-[8px] px-1.5 py-0.5 rounded bg-black/80 text-white/90">
-                        {asset.aspectLabel.split(' ')[0]}
-                      </span>
-
-                      {/* Cover Badge */}
-                      {isCover && (
-                        <span className="absolute top-1 left-1 font-mono text-[8px] font-bold px-1.5 py-0.5 rounded bg-white text-black">
-                          COVER
-                        </span>
-                      )}
-
-                      {/* Remove Button */}
+                      All ({uploadedAssets.length})
+                    </button>
+                    {categoryCounts.social > 0 && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setUploadedAssets((prev) => prev.filter((_, i) => i !== idx));
-                          if (coverIndex === idx) setCoverIndex(0);
-                        }}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Remove photo"
+                        onClick={() => setAssetFilter('social')}
+                        className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                          assetFilter === 'social'
+                            ? 'bg-sky-400 text-black shadow-sm'
+                            : 'bg-sky-500/10 text-sky-300 border border-sky-500/20 hover:bg-sky-500/20'
+                        }`}
                       >
-                        ✕
+                        📱 9:16 Social ({categoryCounts.social})
+                      </button>
+                    )}
+                    {categoryCounts.lookbook > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAssetFilter('lookbook')}
+                        className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                          assetFilter === 'lookbook'
+                            ? 'bg-purple-400 text-black shadow-sm'
+                            : 'bg-purple-500/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20'
+                        }`}
+                      >
+                        📖 4:5 Lookbook ({categoryCounts.lookbook})
+                      </button>
+                    )}
+                    {categoryCounts.banner > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAssetFilter('banner')}
+                        className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                          assetFilter === 'banner'
+                            ? 'bg-amber-400 text-black shadow-sm'
+                            : 'bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20'
+                        }`}
+                      >
+                        🖥️ 16:9 Banner ({categoryCounts.banner})
+                      </button>
+                    )}
+                    {categoryCounts.square > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAssetFilter('square')}
+                        className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                          assetFilter === 'square'
+                            ? 'bg-emerald-400 text-black shadow-sm'
+                            : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20'
+                        }`}
+                      >
+                        ⬜ 1:1 Feed ({categoryCounts.square})
+                      </button>
+                    )}
+
+                    {/* Quick Sort Toggle */}
+                    <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-1">
+                      <span className="text-[10px] text-neutral-400 uppercase">Sort:</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAssetSort((prev) =>
+                            prev === 'default' ? 'name' : prev === 'name' ? 'format' : 'default'
+                          )
+                        }
+                        className="px-2.5 py-1 rounded-[6px] bg-white/10 text-white hover:bg-white/20 text-[10px] font-bold uppercase transition-all cursor-pointer"
+                        title="Change sorting order"
+                      >
+                        {assetSort === 'default' ? 'Upload Order' : assetSort === 'name' ? 'By Name' : 'By Format'} ⇅
                       </button>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
 
-              <p className="font-mono text-[10px] text-neutral-400">
-                Tip: Click any photo above to set it as the front cover plate for this campaign folder.
-              </p>
-            </div>
-          )}
+                  <button
+                    type="button"
+                    onClick={() => setUploadedAssets([])}
+                    className="font-mono text-xs text-red-400 hover:underline cursor-pointer"
+                  >
+                    Clear All [✕]
+                  </button>
+                </div>
+
+                {/* Photo Thumbnails Strip / Grid */}
+                {displayedUploadedAssets.length === 0 ? (
+                  <div className="py-8 text-center font-mono text-xs text-neutral-400">
+                    No assets match the selected filter.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-[360px] overflow-y-auto p-1 no-scrollbar">
+                    {displayedUploadedAssets.map(({ asset, originalIndex }) => {
+                      const isCover = coverIndex === originalIndex;
+                      return (
+                        <div
+                          key={originalIndex}
+                          onClick={() => setCoverIndex(originalIndex)}
+                          className={`relative rounded-[8px] overflow-hidden border transition-all cursor-pointer group bg-black/40 ${
+                            isCover ? 'border-white ring-2 ring-white/50' : 'border-white/10 hover:border-white/30'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={asset.dataUrl}
+                            alt={asset.name}
+                            className="w-full h-24 sm:h-28 object-cover block group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop';
+                            }}
+                          />
+
+                          {/* Format Badge */}
+                          <span className="absolute bottom-1 left-1 font-mono text-[8px] px-1.5 py-0.5 rounded bg-black/80 text-white/90">
+                            {asset.aspectLabel.split(' ')[0]}
+                          </span>
+
+                          {/* Cover Badge */}
+                          {isCover && (
+                            <span className="absolute top-1 left-1 font-mono text-[8px] font-bold px-1.5 py-0.5 rounded bg-white text-black">
+                              COVER
+                            </span>
+                          )}
+
+                          {/* Remove Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUploadedAssets((prev) => prev.filter((_, i) => i !== originalIndex));
+                              if (coverIndex === originalIndex) setCoverIndex(0);
+                            }}
+                            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove photo"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p className="font-mono text-[10px] text-neutral-400">
+                  Tip: Click any photo above to set it as the front cover plate for this campaign folder.
+                </p>
+              </div>
+            );
+          })()}
 
           {/* Campaign Metadata Fields Form */}
           <div className="bg-[#121215] border border-white/10 rounded-[12px] p-6 sm:p-8 space-y-6">
@@ -960,89 +1225,237 @@ export default function AdminPage() {
       )}
 
       {/* TAB 2: MANAGE LIVE WORK */}
-      {activeTab === 'manage' && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-8 space-y-6">
-          <div className="border-b border-white/10 pb-4 flex justify-between items-end">
-            <div>
-              <span className="font-mono text-[10px] text-neutral-400 tracking-widest uppercase block">
-                ACTIVE WORK DATABASE
-              </span>
-              <h2 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight">
-                Manage Live Campaigns
-              </h2>
-            </div>
-            <span className="font-mono text-xs text-neutral-400">
-              {liveFiles.length} Total Campaigns
-            </span>
-          </div>
+      {activeTab === 'manage' && (() => {
+        const allLiveWorkItems: AdminWorkItem[] = [
+          ...liveFiles.map((f) => ({
+            id: f.id,
+            name: f.name,
+            discipline: f.discipline,
+            year: f.year,
+            role: f.role,
+            img: f.img,
+            photoCount: f.photoCount || (f.photos ? f.photos.length : 1),
+            isCustom: true,
+          })),
+          ...BUILTIN_WORK_ITEMS,
+        ];
 
-          {liveFiles.length === 0 ? (
-            <div className="p-12 rounded-[12px] bg-[#121215] border border-white/10 text-center space-y-3">
-              <p className="font-mono text-sm text-neutral-400">
-                No custom campaigns published yet.
-              </p>
-              <button
-                type="button"
-                onClick={() => setActiveTab('upload')}
-                className="px-4 py-2 bg-white text-black font-mono text-xs font-bold rounded-[6px] uppercase"
-              >
-                Upload First Campaign →
-              </button>
+        const filteredLiveWork = allLiveWorkItems.filter((item) => {
+          if (liveWorkFilter === 'custom' && !item.isCustom) return false;
+          if (liveWorkFilter === 'archive' && item.isCustom) return false;
+
+          if (liveDisciplineFilter !== 'all') {
+            if (!item.discipline.toLowerCase().includes(liveDisciplineFilter.toLowerCase())) {
+              return false;
+            }
+          }
+
+          if (liveWorkSearch.trim()) {
+            const q = liveWorkSearch.toLowerCase();
+            const matchName = item.name.toLowerCase().includes(q);
+            const matchDisc = item.discipline.toLowerCase().includes(q);
+            const matchRole = item.role.toLowerCase().includes(q);
+            if (!matchName && !matchDisc && !matchRole) return false;
+          }
+
+          return true;
+        });
+
+        return (
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-8 space-y-6">
+            {/* Header */}
+            <div className="border-b border-white/10 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+              <div>
+                <span className="font-mono text-[10px] text-neutral-400 tracking-widest uppercase block">
+                  ACTIVE WORK DATABASE
+                </span>
+                <h2 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight">
+                  Manage Live Campaigns
+                </h2>
+              </div>
+              <div className="flex items-center gap-2 font-mono text-xs text-neutral-400">
+                <span className="px-2.5 py-1 rounded bg-white/10 text-white font-bold">
+                  {filteredLiveWork.length}
+                </span>
+                <span>of {allLiveWorkItems.length} Total Campaigns</span>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {liveFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="rounded-[10px] bg-[#121215] border border-white/10 p-4 sm:p-5 flex flex-col justify-between space-y-4 hover:border-white/30 transition-all"
+
+            {/* Controls Bar: Source Filter, Discipline Filter & Search */}
+            <div className="space-y-3 bg-[#121215] border border-white/10 rounded-[12px] p-4 sm:p-5">
+              <div className="flex flex-col md:flex-row justify-between gap-3">
+                {/* Source Filter Pills */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setLiveWorkFilter('all')}
+                    className={`px-3 py-1.5 rounded-[6px] font-mono text-xs uppercase font-bold transition-all cursor-pointer ${
+                      liveWorkFilter === 'all'
+                        ? 'bg-white text-black shadow-sm'
+                        : 'bg-white/5 text-neutral-300 hover:bg-white/10'
+                    }`}
+                  >
+                    All Work ({allLiveWorkItems.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLiveWorkFilter('custom')}
+                    className={`px-3 py-1.5 rounded-[6px] font-mono text-xs uppercase font-bold transition-all cursor-pointer ${
+                      liveWorkFilter === 'custom'
+                        ? 'bg-emerald-400 text-black shadow-sm'
+                        : 'bg-white/5 text-neutral-300 hover:bg-white/10'
+                    }`}
+                  >
+                    Custom Uploads ({liveFiles.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLiveWorkFilter('archive')}
+                    className={`px-3 py-1.5 rounded-[6px] font-mono text-xs uppercase font-bold transition-all cursor-pointer ${
+                      liveWorkFilter === 'archive'
+                        ? 'bg-sky-400 text-black shadow-sm'
+                        : 'bg-white/5 text-neutral-300 hover:bg-white/10'
+                    }`}
+                  >
+                    Built-in Archive ({BUILTIN_WORK_ITEMS.length})
+                  </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="w-full md:w-72">
+                  <input
+                    type="text"
+                    value={liveWorkSearch}
+                    onChange={(e) => setLiveWorkSearch(e.target.value)}
+                    placeholder="Search title, brand, or role..."
+                    className="w-full px-3.5 py-1.5 bg-black/50 border border-white/15 rounded-[6px] font-mono text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Discipline Quick Filters */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5 font-mono text-[10px]">
+                <span className="text-neutral-500 uppercase mr-1">Discipline:</span>
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'motion', label: 'Motion Graphics' },
+                  { id: 'brand', label: 'Brand Identity' },
+                  { id: 'art direction', label: 'Art Direction' },
+                  { id: 'cinematography', label: 'Cinematography' },
+                  { id: 'video editing', label: 'Video Editing' },
+                  { id: 'photography', label: 'Photography' },
+                ].map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setLiveDisciplineFilter(d.id)}
+                    className={`px-2.5 py-1 rounded-[4px] cursor-pointer transition-all ${
+                      liveDisciplineFilter === d.id
+                        ? 'bg-white/20 text-white font-bold border border-white/40'
+                        : 'bg-white/5 text-neutral-400 hover:text-white border border-transparent'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Campaign Grid */}
+            {filteredLiveWork.length === 0 ? (
+              <div className="p-12 rounded-[12px] bg-[#121215] border border-white/10 text-center space-y-3">
+                <p className="font-mono text-sm text-neutral-400">
+                  No campaigns match the current filter or search criteria.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLiveWorkFilter('all');
+                    setLiveDisciplineFilter('all');
+                    setLiveWorkSearch('');
+                  }}
+                  className="px-4 py-2 bg-white text-black font-mono text-xs font-bold rounded-[6px] uppercase cursor-pointer"
                 >
-                  <div className="flex gap-4 items-start">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={file.img}
-                      alt={file.name}
-                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-[8px] object-cover bg-black flex-shrink-0"
-                    />
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-display font-black text-base uppercase leading-tight">
-                          {file.name}
-                        </h4>
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredLiveWork.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-[10px] bg-[#121215] border border-white/10 p-4 sm:p-5 flex flex-col justify-between space-y-4 hover:border-white/30 transition-all"
+                  >
+                    <div className="flex gap-4 items-start">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.img}
+                        alt={item.name}
+                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-[8px] object-cover bg-black flex-shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop';
+                        }}
+                      />
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-display font-black text-base uppercase leading-tight truncate">
+                            {item.name}
+                          </h4>
+                          {item.isCustom ? (
+                            <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase">
+                              Custom IndexedDB
+                            </span>
+                          ) : (
+                            <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-white/10 text-neutral-300 uppercase">
+                              Archive Master
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-mono text-xs text-neutral-400">
+                          {item.discipline} • {item.year}
+                        </p>
+                        <p className="font-mono text-[11px] text-neutral-500">
+                          Role: {item.role}
+                        </p>
+                        <span className="inline-block font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-neutral-300">
+                          {item.photoCount} photos available
+                        </span>
                       </div>
-                      <p className="font-mono text-xs text-neutral-400">
-                        {file.discipline} • {file.year}
-                      </p>
-                      <span className="inline-block font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-neutral-300">
-                        {file.photoCount || (file.photos ? file.photos.length : 0)} photos stored
-                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-3 border-t border-white/10 font-mono text-xs">
+                      <Link
+                        href={`/canvas?folder=${item.id}`}
+                        target="_blank"
+                        className="text-white hover:text-accent-red hover:underline flex items-center gap-1 font-bold"
+                      >
+                        <span>Open on Canvas</span>
+                        <span>↗</span>
+                      </Link>
+
+                      {item.isCustom ? (
+                        <button
+                          type="button"
+                          disabled={deletingId === item.id}
+                          onClick={() => handleDeleteCampaign(item.id)}
+                          className="text-red-400 hover:text-red-300 hover:underline cursor-pointer disabled:opacity-50"
+                        >
+                          {deletingId === item.id ? 'Deleting...' : 'Delete Campaign [✕]'}
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-wider">
+                          Core Archive Asset
+                        </span>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex justify-between items-center pt-3 border-t border-white/10 font-mono text-xs">
-                    <Link
-                      href="/canvas"
-                      target="_blank"
-                      className="text-white hover:underline flex items-center gap-1 font-bold"
-                    >
-                      <span>View on Canvas</span>
-                      <span>↗</span>
-                    </Link>
-
-                    <button
-                      type="button"
-                      disabled={deletingId === file.id}
-                      onClick={() => handleDeleteCampaign(file.id)}
-                      className="text-red-400 hover:text-red-300 hover:underline cursor-pointer disabled:opacity-50"
-                    >
-                      {deletingId === file.id ? 'Deleting...' : 'Delete Campaign [✕]'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* TAB 3: SETTINGS & PASSCODE */}
       {activeTab === 'settings' && (
