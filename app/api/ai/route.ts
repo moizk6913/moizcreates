@@ -1,25 +1,40 @@
 import { NextResponse } from 'next/server';
 
+const DEFAULT_GEMINI_KEY = 'AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
+
+function parseInlineImage(dataUriOrBase64: string): { mimeType: string; data: string } | null {
+  if (!dataUriOrBase64) return null;
+  if (dataUriOrBase64.startsWith('data:')) {
+    const matches = dataUriOrBase64.match(/^data:([^;]+);base64,(.+)$/);
+    if (matches && matches.length === 3) {
+      return { mimeType: matches[1], data: matches[2] };
+    }
+  }
+  // Plain base64 string
+  return { mimeType: 'image/jpeg', data: dataUriOrBase64 };
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey } = body;
+    const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey, imageData } = body;
 
-    const apiKey = geminiKey || process.env.GEMINI_API_KEY || '';
+    const apiKey = geminiKey || process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
 
-    // Action 1: Smart Asset Upload Analyzer & Tagger
+    // Action 1: Smart Multimodal Asset & Campaign Analyzer
     if (action === 'analyze_upload') {
       const preferredAspect = detectedAspect || 'aspect-[16/10]';
       const sourceName = brief || folderName || fileName || 'Commercial Shoot';
 
       if (apiKey) {
         try {
-          const prompt = `You are the lead Art Director & Brand Visual Designer assistant for Moiz Khan (Dubai/Worldwide).
-Analyze this upload project context:
+          const promptText = `You are the lead Art Director & Brand Visual Designer assistant for Moiz Khan (Dubai/Worldwide).
+Analyze this upload project context and artwork:
 Folder/Collection: ${folderName || 'Single Asset'}
 File Name: ${fileName || 'Asset'}
 Brief/Concept: ${sourceName}
-Detected Physical Aspect Ratio: ${preferredAspect}
+Detected Aspect Ratio: ${preferredAspect}
 
 Output ONLY a raw valid JSON object (no markdown code fences, no extra text) with these exact keys:
 {
@@ -34,17 +49,20 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
   "deliverables": ["Deliverable 1", "Deliverable 2", "Deliverable 3", "Deliverable 4"]
 }`;
 
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: 'application/json' },
-              }),
-            }
-          );
+          const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [{ text: promptText }];
+          const parsedImg = imageData ? parseInlineImage(imageData) : null;
+          if (parsedImg) {
+            parts.push({ inlineData: parsedImg });
+          }
+
+          const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts }],
+              generationConfig: { responseMimeType: 'application/json' },
+            }),
+          });
 
           if (res.ok) {
             const data = await res.json();
@@ -52,7 +70,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
             if (text) {
               const parsed = JSON.parse(text);
               if (preferredAspect) parsed.aspect = preferredAspect;
-              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-1.5-flash' });
+              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-3.6-flash' });
             }
           }
         } catch (apiErr) {
@@ -60,7 +78,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
         }
       }
 
-      // Intelligent Built-in Fallback Director Engine
+      // Intelligent Fallback Director Engine
       const cleanBrief = sourceName.trim();
       const codeNum = Math.floor(Math.random() * 80 + 17);
       const isFashion = /fashion|model|bridal|luxury|wear|cloth|vogue|runway/i.test(cleanBrief);
@@ -89,12 +107,6 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
         role = 'Creative Director';
       }
 
-      // If user/image gave an explicit aspect ratio, preserve it unconditionally
-      if (preferredAspect) {
-        aspect = preferredAspect;
-      }
-
-      // Formulate a polished title from folder or brief
       let cleanedTitle = cleanBrief
         .replace(/[_-]+/g, ' ')
         .replace(/\.[a-zA-Z0-9]+$/, '')
@@ -138,37 +150,34 @@ Return ONLY raw JSON with:
   "readTime": "5 MIN READ",
   "category": "${category || 'LIGHTING & ON-SET'}",
   "specs": {
-    "camera": "Camera setup",
-    "lighting": "Lighting gear",
-    "aspectRatio": "Framing spec",
-    "deliverables": ["Item 1", "Item 2", "Item 3"]
+    "camera": "ARRI Alexa Mini LF • Cooke Anamorphic",
+    "lighting": "Continuous Tungsten Practicals & Astera Wireless Tubes",
+    "aspectRatio": "16:9 Cinema & 4:5 Editorial Deck",
+    "deliverables": ["Lighting Blueprint", "Shoot Direction", "ACES Color Bible"]
   },
   "content": [
-    "Paragraph 1",
-    "Paragraph 2",
-    "Paragraph 3",
-    "Paragraph 4"
+    "Paragraph 1...",
+    "Paragraph 2...",
+    "Paragraph 3...",
+    "Paragraph 4..."
   ]
 }`;
 
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: 'application/json' },
-              }),
-            }
-          );
+          const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: 'application/json' },
+            }),
+          });
 
           if (res.ok) {
             const data = await res.json();
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
-              const parsed = JSON.parse(text);
-              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-1.5-flash' });
+              const article = JSON.parse(text);
+              return NextResponse.json({ success: true, data: article, engine: 'gemini-3.6-flash' });
             }
           }
         } catch (apiErr) {
@@ -176,7 +185,6 @@ Return ONLY raw JSON with:
         }
       }
 
-      // Built-in Editorial Fallback
       const slug = topicText
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -206,43 +214,73 @@ Return ONLY raw JSON with:
       return NextResponse.json({ success: true, data: generatedArticle, engine: 'studio-director-engine' });
     }
 
-    // Action 3: Interactive Studio Co-Pilot Chat
+    // Action 3: Conversational Human Creative Co-Pilot with Multimodal Vision
     if (action === 'chat') {
       const history = messages || [];
       const lastUserMsg = history[history.length - 1]?.content || 'Hello';
 
       if (apiKey) {
         try {
-          const systemInstruction = `You are the private AI Studio Co-Pilot for Moiz Khan (Art Director & Brand Visual Designer, Dubai/Worldwide).
-You assist Moiz in:
-1. Managing uploads, organizing portfolio assets, and generating production tags.
-2. Brainstorming shoot treatments, lighting schemes, and typography systems.
-3. Writing sharp editorial articles for his standalone journal.
-Tone: Minimalist, authoritative, knowledgeable in cinematography (ARRI, Cooke, tungsten, chiaroscuro), Swiss modernist typography, and high-impact commercial campaigns. Keep responses concise, organized with clean bullet points.`;
+          const systemInstruction = `You are Moiz Khan's Senior Creative Producer & Co-Director (Dubai / Worldwide).
+You collaborate directly with Moiz to curate, organize, and present his brand visual direction, cinematography, and design campaigns.
 
-          const contents = history.map((m: { role: string; content: string }) => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }],
-          }));
+Tone & Style:
+- Speak conversationally, warmly, and naturally like an experienced, passionate human colleague. Never sound like a robotic generic assistant.
+- You have deep practical expertise in multi-channel commercial campaigns (Editorial Print Lookbooks, 9:16 vertical reels/stories, 1:1 Instagram carousels, panoramic e-commerce hero banners, retail OOH hoardings/billboards, ARRI/Cooke cinema setups, Swiss typography).
+- When Moiz provides an artwork or campaign artboard:
+  1. Carefully analyze all the distinct formats and deliverables present in the artwork.
+  2. Point out specific visual strengths (typography hierarchy, lighting, color grading, textile contrast).
+  3. Proactively ask Moiz 1 or 2 thoughtful, direct creative director questions to decide how to feature the assets on his portfolio (e.g. hero cover selection, multi-deliverable tab grouping vs. standalone drops, interactive viewer vs. full-bleed gallery).
+  4. Keep your responses crisp, engaging, structured, and easy to reply to in seconds.`;
 
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemInstruction }] },
-                contents,
-              }),
+          const contents = history.map((m: { role: string; content: string; image?: string }, index: number) => {
+            const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
+              { text: m.content || (m.image ? 'Please analyze this campaign artwork.' : '') },
+            ];
+
+            // If this message or the request has an attached image, attach it
+            const targetImg = m.image || (index === history.length - 1 ? imageData : null);
+            if (targetImg) {
+              const parsed = parseInlineImage(targetImg);
+              if (parsed) parts.push({ inlineData: parsed });
             }
-          );
+
+            return {
+              role: m.role === 'assistant' || m.role === 'model' ? 'model' : 'user',
+              parts,
+            };
+          });
+
+          // Ensure contents has at least one part
+          if (!contents.length) {
+            const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
+              { text: lastUserMsg || 'Hello!' },
+            ];
+            if (imageData) {
+              const parsed = parseInlineImage(imageData);
+              if (parsed) parts.push({ inlineData: parsed });
+            }
+            contents.push({ role: 'user', parts });
+          }
+
+          const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              contents,
+            }),
+          });
 
           if (res.ok) {
             const data = await res.json();
             const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (reply) {
-              return NextResponse.json({ success: true, reply, engine: 'gemini-1.5-flash' });
+              return NextResponse.json({ success: true, reply, engine: 'gemini-3.6-flash' });
             }
+          } else {
+            const errData = await res.json();
+            console.error('Gemini API error:', errData);
           }
         } catch (apiErr) {
           console.error('Gemini chat failed, using fallback', apiErr);
@@ -250,12 +288,12 @@ Tone: Minimalist, authoritative, knowledgeable in cinematography (ARRI, Cooke, t
       }
 
       // Directorial Heuristic Assistant Response
-      let reply = `Understood. Analyzing your request with Moiz Khan studio standards:\n\n• **Directorial Focus**: Maintain tactile contrast, deliberate shadow placement, and Swiss grid restraint.\n• **Asset Strategy**: Organize into archival file codes with dedicated aspect ratios (16:9 for cinema broadcast, 4:5 for editorial decks, 9:16 for velocity mobile reels).\n• **Next Action**: Use the **Upload & AI Auto-Tagger** tab above to ingest your stills or switch to the **AI Article Studio** to publish your shoot breakdown directly to the Journal.`;
+      let reply = `Hey Moiz! Analyzing your project standards:\n\n• **Directorial Focus**: Maintain tactile contrast, deliberate shadow placement, and Swiss grid restraint.\n• **Deliverable Breakdown**: Multi-format campaigns should be separated into dedicated containers: 16:9 for cinema & lookbooks, 4:5 for editorial decks, 9:16 for velocity mobile reels, and 21:9 for panoramic e-commerce hero banners.\n\nQuick question: Do you want to package this as an integrated 360° campaign with deliverable tabs, or deploy individual cards directly to the Infinite Canvas?`;
 
       if (/lighting|camera|set|shoot/i.test(lastUserMsg)) {
-        reply = `For on-set direction, I recommend:\n\n1. **Key Lighting**: Skim continuous warm tungsten (2K-3K) across primary textures to avoid flat digital reflection.\n2. **Fill Control**: Use negative black solids on the shadow side to maintain dramatic chiaroscuro falloff.\n3. **Optics**: 35mm / 50mm Anamorphic primes for gentle barrel curvature and organic lens breathing.\n\nReady to draft a technical breakdown article for the Journal?`;
-      } else if (/upload|tag|file|manage/i.test(lastUserMsg)) {
-        reply = `Asset management workflow active. Drop your image link or preview in the **Upload & AI Auto-Tagger** tab above. I will automatically classify its discipline, generate production codes (e.g., FILE_18.DIR), and format it for the Limitless Archive Canvas.`;
+        reply = `For on-set lighting and direction, here is what works best:\n\n1. **Key Lighting**: Skim continuous warm tungsten (2K-3K) across primary textures to avoid flat digital reflection.\n2. **Fill Control**: Use negative black solids on the shadow side to maintain dramatic chiaroscuro falloff.\n3. **Optics**: 35mm / 50mm Anamorphic primes for gentle barrel curvature and organic lens breathing.\n\nShall we draft a technical breakdown article for the Journal?`;
+      } else if (/upload|tag|file|manage|kaladhar/i.test(lastUserMsg)) {
+        reply = `I'm ready to organize your campaign assets. Drop the artwork or image preview here and I'll analyze every format (print lookbooks, 9:16 stories, e-commerce banners) and ask you how you'd like them featured!`;
       }
 
       return NextResponse.json({ success: true, reply, engine: 'studio-director-engine' });

@@ -25,7 +25,8 @@ type AdminTab =
   | 'full_project'
   | 'journal'
   | 'seo_analytics'
-  | 'system';
+  | 'system'
+  | 'ai_copilot';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -86,6 +87,92 @@ export default function StudioDeskPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reelCoverInputRef = useRef<HTMLInputElement>(null);
   const projCoverInputRef = useRef<HTMLInputElement>(null);
+
+  // AI Co-Pilot State
+  const [chatMessages, setChatMessages] = useState<
+    Array<{ role: 'user' | 'assistant'; content: string; image?: string; time: string }>
+  >([
+    {
+      role: 'assistant',
+      content:
+        "Hey Moiz! I'm your AI Creative Producer & Co-Director powered by Gemini 3.6 Flash.\n\nDrop any multi-format campaign artboard, lookbook, or photo still here. I will break down every format (Print, Social 9:16, Web Banners, OOH), talk through the concept with you, and ask you smart questions on how to present it on your site.",
+      time: 'ONLINE',
+    },
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatImage, setChatImage] = useState<string | null>(null);
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const chatImageInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isAiThinking]);
+
+  const handleSendChatMessage = async (presetText?: string) => {
+    const textToSend = (presetText || chatInput).trim();
+    if (!textToSend && !chatImage) return;
+
+    const userMsg = {
+      role: 'user' as const,
+      content: textToSend || (chatImage ? 'Analyze this campaign artwork' : ''),
+      image: chatImage || undefined,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    const newHistory = [...chatMessages, userMsg];
+    setChatMessages(newHistory);
+    setChatInput('');
+    const currentImg = chatImage;
+    setChatImage(null);
+    setIsAiThinking(true);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          messages: newHistory.map((m) => ({ role: m.role, content: m.content })),
+          imageData: currentImg,
+          geminiKey: apiKey,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.reply) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.reply,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content:
+              'Sorry Moiz, I ran into an issue connecting to the engine. Please make sure your Gemini API key is saved in Tab 06.',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Network error connecting to AI service.',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setIsAiThinking(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -430,6 +517,7 @@ export default function StudioDeskPage() {
             { id: 'journal', label: '04 // ESSAYS & ARTICLES' },
             { id: 'seo_analytics', label: '05 // SEO & ANALYTICS' },
             { id: 'system', label: '06 // SYSTEM & CLOUD' },
+            { id: 'ai_copilot', label: '07 // ✦ AI CO-PILOT' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1271,6 +1359,283 @@ export default function StudioDeskPage() {
               <p className="font-mono text-[10.5px] text-secondary pt-1">
                 A complete architectural guide has been generated in your workspace under <code className="text-white">backend_architecture_research.md</code>.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 07: AI CAMPAIGN CO-PILOT (MULTIMODAL GEMINI VISION)       */}
+        {/* ============================================================ */}
+        {activeTab === 'ai_copilot' && (
+          <div className="pt-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display font-black text-2xl uppercase tracking-tight">
+                    AI Campaign Co-Pilot
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-[6px] bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold tracking-wider uppercase border border-emerald-500/20">
+                    GEMINI 3.6 FLASH • FREE VISION
+                  </span>
+                </div>
+                <p className="font-mono text-xs text-secondary mt-1">
+                  Upload multi-format artboards (like Kaladhar) or stills. Your AI Co-Director analyzes deliverables, breaks down formats, and collaborates conversationally.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setChatMessages([
+                    {
+                      role: 'assistant',
+                      content:
+                        "Hey Moiz! Conversation refreshed. Drop any artwork, shoot brief, or question here!",
+                      time: 'ONLINE',
+                    },
+                  ])
+                }
+                className="self-start sm:self-auto px-3.5 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-muted hover:text-white font-mono text-[11px] uppercase tracking-wider transition-all border border-white/5 cursor-pointer"
+              >
+                Clear History
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Artwork Drop & Quick Actions */}
+              <div className="lg:col-span-4 space-y-5">
+                {/* Artwork Drop Card */}
+                <div className="p-5 rounded-[12px] bg-white/[0.02] border border-white/10 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                      Attached Artwork / Artboard
+                    </span>
+                    {chatImage && (
+                      <button
+                        onClick={() => setChatImage(null)}
+                        className="text-[10px] font-mono text-[#ff2a2a] hover:underline cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  {chatImage ? (
+                    <div className="relative rounded-[8px] overflow-hidden border border-white/20 bg-black max-h-[220px] flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={chatImage}
+                        alt="Attached artwork"
+                        className="w-full h-auto object-contain max-h-[220px]"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => chatImageInputRef.current?.click()}
+                      className="border-2 border-dashed border-white/15 hover:border-[#ff2a2a] rounded-[10px] p-6 text-center cursor-pointer transition-all hover:bg-white/[0.02] flex flex-col items-center gap-2"
+                    >
+                      <span className="text-2xl">🖼️</span>
+                      <p className="font-mono text-xs font-bold text-white uppercase">
+                        Drop Artboard or Click to Browse
+                      </p>
+                      <p className="font-mono text-[10px] text-muted">
+                        Supports high-res PNG, JPG, WebP artboards
+                      </p>
+                    </div>
+                  )}
+
+                  <input
+                    ref={chatImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                          setChatImage(evt.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Quick Director Prompts */}
+                <div className="p-5 rounded-[12px] bg-white/[0.02] border border-white/10 space-y-2.5">
+                  <span className="font-mono text-[11px] font-bold text-secondary uppercase tracking-wider block">
+                    Quick Collaboration Actions
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSendChatMessage(
+                          'Look at this campaign artboard. Break down every single format you see (print lookbook, social 9:16, web hero, OOH) and tell me how each should be handled.'
+                        )
+                      }
+                      className="text-left px-3.5 py-2.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-white font-mono text-[11px] tracking-wide transition-all border border-white/5 flex items-center justify-between cursor-pointer"
+                    >
+                      <span>🔍 Scan artboard &amp; list deliverables</span>
+                      <span className="text-secondary text-xs">→</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSendChatMessage(
+                          'How should we structure this campaign on the website to impress creative agency directors and brand founders?'
+                        )
+                      }
+                      className="text-left px-3.5 py-2.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-white font-mono text-[11px] tracking-wide transition-all border border-white/5 flex items-center justify-between cursor-pointer"
+                    >
+                      <span>🎯 Recommend hierarchy &amp; questions</span>
+                      <span className="text-secondary text-xs">→</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSendChatMessage(
+                          'Which visual from this artwork should be the main hero cover, and what aspect ratio should we use?'
+                        )
+                      }
+                      className="text-left px-3.5 py-2.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-white font-mono text-[11px] tracking-wide transition-all border border-white/5 flex items-center justify-between cursor-pointer"
+                    >
+                      <span>📐 Pick hero cover &amp; aspect ratios</span>
+                      <span className="text-secondary text-xs">→</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSendChatMessage(
+                          'Write a high-impact, 2-paragraph creative director narrative for this project focusing on lighting, typography, and visual authority.'
+                        )
+                      }
+                      className="text-left px-3.5 py-2.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-white font-mono text-[11px] tracking-wide transition-all border border-white/5 flex items-center justify-between cursor-pointer"
+                    >
+                      <span>✍️ Draft directorial case narrative</span>
+                      <span className="text-secondary text-xs">→</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Conversational Chat Thread */}
+              <div className="lg:col-span-8 flex flex-col rounded-[12px] bg-[#111114] border border-white/10 overflow-hidden shadow-2xl">
+                {/* Chat Header */}
+                <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#151518]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <div>
+                      <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                        Co-Director AI Dialogue
+                      </span>
+                      <span className="font-mono text-[10px] text-muted ml-2">
+                        [READY // GEMINI 3.6 FLASH]
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[10px] text-muted uppercase">
+                    TALKS LIKE HUMAN • ASKS QUESTIONS
+                  </span>
+                </div>
+
+                {/* Messages Scroll Area */}
+                <div className="p-6 overflow-y-auto max-h-[500px] min-h-[400px] space-y-6 font-mono text-xs leading-relaxed">
+                  {chatMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex flex-col gap-1.5 ${
+                        msg.role === 'user' ? 'items-end' : 'items-start'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[4px] ${
+                            msg.role === 'user'
+                              ? 'bg-white text-black'
+                              : 'bg-[#ff2a2a]/20 text-[#ff4444] border border-[#ff2a2a]/30'
+                          }`}
+                        >
+                          {msg.role === 'user' ? 'MOIZ KHAN' : 'CO-DIRECTOR AI'}
+                        </span>
+                        <span className="text-[9px] text-muted">{msg.time}</span>
+                      </div>
+
+                      {msg.image && (
+                        <div className="rounded-[8px] overflow-hidden border border-white/20 max-w-[280px] my-1">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={msg.image}
+                            alt="Attached"
+                            className="w-full h-auto object-cover max-h-[160px]"
+                          />
+                        </div>
+                      )}
+
+                      <div
+                        className={`p-4 rounded-[10px] max-w-[90%] whitespace-pre-wrap ${
+                          msg.role === 'user'
+                            ? 'bg-white/10 text-white border border-white/10'
+                            : 'bg-[#18181c] text-[#eceae5] border border-white/5'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
+
+                  {isAiThinking && (
+                    <div className="flex flex-col items-start gap-1.5">
+                      <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[4px] bg-[#ff2a2a]/20 text-[#ff4444] border border-[#ff2a2a]/30">
+                        CO-DIRECTOR AI
+                      </span>
+                      <div className="p-4 rounded-[10px] bg-[#18181c] text-secondary border border-white/5 flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-[#ff2a2a] animate-ping" />
+                        <span className="text-xs">
+                          Analyzing composition, visual hierarchy &amp; formulating questions...
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={chatBottomRef} />
+                </div>
+
+                {/* Input Form */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendChatMessage();
+                  }}
+                  className="p-4 border-t border-white/10 bg-[#151518] flex gap-3 items-center"
+                >
+                  <button
+                    type="button"
+                    onClick={() => chatImageInputRef.current?.click()}
+                    title="Attach artboard or still"
+                    className="px-3.5 py-3 rounded-[10px] bg-white/5 hover:bg-white/10 border border-white/10 text-secondary hover:text-white transition-all text-sm flex items-center justify-center cursor-pointer"
+                  >
+                    📎
+                  </button>
+
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Talk to your Co-Director or answer its questions..."
+                    className="flex-1 px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-[#ff2a2a] outline-none font-mono text-xs text-white placeholder:text-muted"
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={isAiThinking || (!chatInput.trim() && !chatImage)}
+                    className="px-6 py-3 rounded-[10px] bg-white text-black hover:bg-[#ff2a2a] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-black cursor-pointer"
+                  >
+                    Send ↵
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         )}

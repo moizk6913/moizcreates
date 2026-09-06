@@ -111,7 +111,7 @@ export function deleteBlogPost(slug: string): void {
 
 export function getStoredApiKey(): string {
   if (typeof window === 'undefined') return '';
-  return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || '';
+  return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || 'AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4';
 }
 
 export function saveApiKey(key: string): void {
