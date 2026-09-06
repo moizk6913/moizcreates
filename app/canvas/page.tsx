@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import CustomCursor from '@/components/CustomCursor';
-import { getStoredCanvasFiles } from '@/lib/contentStore';
+import { getStoredCanvasFiles, getStoredCanvasFilesAsync } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData } from '@/components/ArchiveFolderCard';
 
 interface ArchiveFile {
@@ -467,14 +467,27 @@ export default function InfiniteCanvasPage() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [selectedFile, setSelectedFile] = useState<ArchiveFile | null>(null);
+  const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const custom = getStoredCanvasFiles();
-    if (custom && custom.length > 0) {
-      setAllFiles([...custom, ...ARCHIVE_FILES]);
+    // 1. Instant sync hydration from localStorage cache
+    const cached = getStoredCanvasFiles();
+    if (cached && cached.length > 0) {
+      setAllFiles([...cached, ...ARCHIVE_FILES]);
     }
+
+    // 2. Async hydration from IndexedDB for complete 38+ photo arrays
+    getStoredCanvasFilesAsync()
+      .then((fullFiles) => {
+        if (fullFiles && fullFiles.length > 0) {
+          setAllFiles([...fullFiles, ...ARCHIVE_FILES]);
+        }
+      })
+      .catch((err) => {
+        console.warn('Async canvas files hydration failed:', err);
+      });
   }, []);
 
   // Gesture tracking references
@@ -686,24 +699,24 @@ export default function InfiniteCanvasPage() {
       />
 
       {/* Floating Minimalist Header: Back on Left, Re-Center Button on Top-Right */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[11px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-none border border-black/5"
+          className="group pointer-events-auto inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-sm border border-black/5"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
-          <span className="font-bold">BACK TO PORTFOLIO</span>
+          <span className="font-bold">PORTFOLIO</span>
         </Link>
 
         {/* Top-Right Re-Center Button (Guarantees user never gets lost) */}
         <button
           type="button"
           onClick={handleRecenter}
-          className="group pointer-events-auto inline-flex items-center gap-2 px-3.5 py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[11px] sm:text-xs text-primary hover:text-[#e60000] active:scale-95 transition-all shadow-none border border-black/5 cursor-pointer"
+          className="group pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-[#e60000] active:scale-95 transition-all shadow-sm border border-black/5 cursor-pointer"
           title="Reset canvas view to center"
         >
           <span className="text-xs transition-transform duration-300 group-hover:rotate-90">⌖</span>
-          <span className="font-bold uppercase tracking-wider">RE-CENTER [0, 0]</span>
+          <span className="font-bold uppercase tracking-wider">CENTER</span>
         </button>
       </header>
 
@@ -802,25 +815,29 @@ export default function InfiniteCanvasPage() {
             {/* Folder Content Gallery (Scrollable collection of campaign photos & stills) */}
             <div className="p-5 sm:p-7 md:p-8 overflow-y-auto space-y-6">
               
-              {/* Photo Grid Collection (White-Bordered Editorial Prints) */}
+              {/* Photo Grid Collection (Adaptive Uncropped Editorial Layout) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 {(selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img]).map((photoUrl, idx) => (
                   <div
                     key={idx}
-                    className="group relative rounded-[10px] bg-white p-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.04] transition-transform duration-300 hover:scale-[1.02]"
+                    onClick={() => setEnlargedPhoto(photoUrl)}
+                    className="group relative rounded-[10px] bg-white p-2.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.04] transition-all duration-300 hover:scale-[1.01] hover:border-black/20 cursor-zoom-in flex flex-col justify-between"
                   >
-                    <div className="relative w-full aspect-[4/3] rounded-[10px] overflow-hidden bg-black/5">
+                    <div className="relative w-full rounded-[8px] overflow-hidden bg-[#f4f3ee] flex items-center justify-center min-h-[200px] max-h-[450px]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photoUrl}
                         alt={`${selectedFile.name} still ${idx + 1}`}
-                        className="w-full h-full object-cover block"
+                        className="w-full h-auto max-h-[450px] object-contain block transition-transform duration-300 group-hover:scale-[1.02]"
                         loading="lazy"
                       />
                     </div>
-                    <div className="mt-2 px-1 flex justify-between items-center font-mono text-[9px] text-muted">
-                      <span>PLATE // 0{idx + 1}</span>
-                      <span className="text-accent-red font-semibold">35MM SCAN</span>
+                    <div className="mt-2.5 px-1 flex justify-between items-center font-mono text-[10px] text-muted">
+                      <span>ASSET {String(idx + 1).padStart(2, '0')}</span>
+                      <span className="text-accent-red font-bold flex items-center gap-1 group-hover:underline">
+                        <span>ENLARGE</span>
+                        <span>↗</span>
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -830,7 +847,7 @@ export default function InfiniteCanvasPage() {
               <div className="bg-white rounded-[10px] p-5 sm:p-6 border border-black/[0.06] shadow-sm space-y-4">
                 <div>
                   <span className="font-mono text-[10px] sm:text-xs text-accent-red font-bold uppercase tracking-wider block mb-1">
-                    Director Narrative &amp; Approach
+                    Directorial Approach
                   </span>
                   <p className="text-xs sm:text-sm text-secondary leading-relaxed">
                     {selectedFile.desc}
@@ -862,9 +879,38 @@ export default function InfiniteCanvasPage() {
               <button
                 type="button"
                 onClick={() => setSelectedFile(null)}
-                className="font-bold text-accent-red hover:underline text-xs p-1"
+                className="font-bold text-accent-red hover:underline text-xs p-1 cursor-pointer"
               >
                 CLOSE FOLDER [✕]
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen High-Resolution Image Lightbox Overlay */}
+      {enlargedPhoto && (
+        <div
+          onClick={() => setEnlargedPhoto(null)}
+          className="fixed inset-0 z-[20000] bg-black/90 backdrop-blur-lg flex items-center justify-center p-4 sm:p-8 animate-fadeIn cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-5xl max-h-[92vh] flex flex-col items-center justify-center"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={enlargedPhoto}
+              alt="High resolution view"
+              className="max-w-full max-h-[85vh] object-contain rounded-[8px] shadow-2xl select-none"
+            />
+            <div className="mt-3 flex items-center gap-4 text-white font-mono text-xs">
+              <button
+                type="button"
+                onClick={() => setEnlargedPhoto(null)}
+                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold"
+              >
+                Close Preview [✕]
               </button>
             </div>
           </div>

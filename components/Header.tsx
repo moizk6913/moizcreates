@@ -96,7 +96,7 @@ export default function Header({ visible = true }: HeaderProps) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 px-6 py-6 md:px-12 flex justify-between items-center pointer-events-none transition-opacity duration-700 ease-out ${
+      className={`fixed top-0 left-0 right-0 z-50 px-4 py-4 sm:px-6 sm:py-6 md:px-12 flex justify-between items-center pointer-events-none transition-opacity duration-700 ease-out ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
@@ -112,12 +112,12 @@ export default function Header({ visible = true }: HeaderProps) {
           alt="Art Director Logo"
           width={24}
           height={24}
-          className="h-6 w-auto object-contain"
+          className="h-5 sm:h-6 w-auto object-contain"
           priority
         />
       </Link>
 
-      <div className="flex items-center gap-8 pointer-events-auto">
+      <div className="flex items-center gap-4 sm:gap-8 pointer-events-auto">
         <div 
           className={`hidden sm:block font-mono text-xs text-muted tracking-wider transition-opacity duration-300 ${
             isFading ? 'opacity-30' : 'opacity-100'
@@ -126,14 +126,14 @@ export default function Header({ visible = true }: HeaderProps) {
           {worldTime}
         </div>
 
-        <nav className="flex items-center gap-6" aria-label="Main Navigation">
-          <Link href="/canvas" className="font-mono text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
+        <nav className="flex items-center gap-4 sm:gap-6" aria-label="Main Navigation">
+          <Link href="/canvas" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
             ARCHIVE ↗
           </Link>
-          <Link href="/about" className="font-mono text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
+          <Link href="/about" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
             ABOUT ↗
           </Link>
-          <Link href="/#contact" className="font-mono text-xs tracking-widest text-secondary hover:text-primary transition-colors">
+          <Link href="/#contact" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-primary transition-colors">
             CONTACT
           </Link>
         </nav>

@@ -6,7 +6,9 @@ import CustomCursor from '@/components/CustomCursor';
 import {
   DynamicCanvasFile,
   getStoredCanvasFiles,
+  getStoredCanvasFilesAsync,
   saveCanvasFile,
+  saveCanvasFileAsync,
   deleteCanvasFile,
   getStoredApiKey,
   saveApiKey,
@@ -35,14 +37,37 @@ function calculateAspect(w: number, h: number): { aspectClass: string; aspectLab
   return { aspectClass: 'aspect-[9/16]', aspectLabel: '9:16 Vertical Reel' };
 }
 
-// Client-side image compressor: scales images so 38+ photos comfortably fit in storage
-const compressFile = (file: File, maxDim = 850, quality = 0.76): Promise<UploadedPhoto> => {
+// Check if file is a supported image type (filters out .DS_Store, .ai, .psd, .pdf, Thumbs.db)
+const isImageFile = (file: File): boolean => {
+  if (file.type && file.type.startsWith('image/')) return true;
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  return ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'bmp'].includes(ext);
+};
+
+// Client-side image compressor: safely downscales images and skips corrupt/non-image files
+const compressFile = (file: File, maxDim = 800, quality = 0.72): Promise<UploadedPhoto | null> => {
   return new Promise((resolve) => {
+    if (!isImageFile(file)) {
+      resolve(null);
+      return;
+    }
+
+    // 6-second timeout safety to prevent batch hanging
+    const timeout = setTimeout(() => {
+      resolve(null);
+    }, 6000);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const src = e.target?.result as string;
+      if (!src) {
+        clearTimeout(timeout);
+        resolve(null);
+        return;
+      }
       const img = new Image();
       img.onload = () => {
+        clearTimeout(timeout);
         let width = img.naturalWidth;
         let height = img.naturalHeight;
         const aspect = calculateAspect(width, height);
@@ -57,35 +82,41 @@ const compressFile = (file: File, maxDim = 850, quality = 0.76): Promise<Uploade
           }
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve({
-            dataUrl: canvas.toDataURL('image/jpeg', quality),
-            name: file.name,
-            aspectClass: aspect.aspectClass,
-            aspectLabel: aspect.aspectLabel,
-          });
-        } else {
-          resolve({
-            dataUrl: src,
-            name: file.name,
-            aspectClass: aspect.aspectClass,
-            aspectLabel: aspect.aspectLabel,
-          });
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve({
+              dataUrl: canvas.toDataURL('image/jpeg', quality),
+              name: file.name,
+              aspectClass: aspect.aspectClass,
+              aspectLabel: aspect.aspectLabel,
+            });
+            return;
+          }
+        } catch {
+          // Fallback if canvas context fails
         }
-      };
-      img.onerror = () =>
+
         resolve({
           dataUrl: src,
           name: file.name,
-          aspectClass: 'aspect-[4/5]',
-          aspectLabel: '4:5 Portrait',
+          aspectClass: aspect.aspectClass,
+          aspectLabel: aspect.aspectLabel,
         });
+      };
+      img.onerror = () => {
+        clearTimeout(timeout);
+        resolve(null);
+      };
       img.src = src;
+    };
+    reader.onerror = () => {
+      clearTimeout(timeout);
+      resolve(null);
     };
     reader.readAsDataURL(file);
   });
@@ -190,6 +221,7 @@ export default function StudioDeskPage() {
   const [coverIndex, setCoverIndex] = useState<number>(0);
   const [folderNameTitle, setFolderNameTitle] = useState<string>('');
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState<{ current: number; total: number } | null>(null);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -250,8 +282,13 @@ export default function StudioDeskPage() {
     refreshData();
   }, []);
 
-  const refreshData = () => {
-    setDeployedFiles(getStoredCanvasFiles());
+  const refreshData = async () => {
+    try {
+      const files = await getStoredCanvasFilesAsync();
+      setDeployedFiles(files);
+    } catch {
+      setDeployedFiles(getStoredCanvasFiles());
+    }
     setSeoConfig(getStoredSeoConfig());
     setApiKey(getStoredApiKey());
   };
@@ -303,32 +340,49 @@ export default function StudioDeskPage() {
     files: File[],
     onComplete: (photos: UploadedPhoto[], detectedName?: string) => void
   ) => {
-    if (files.length === 0) return;
+    // Only accept valid image files (skip system files like .DS_Store, Thumbs.db, .ai, .psd)
+    const validFiles = files.filter(isImageFile);
+    if (validFiles.length === 0) {
+      showNotice('No supported image files found in folder or selection.');
+      return;
+    }
+
     setIsProcessingFiles(true);
-    showNotice(`Processing ${files.length} photo${files.length > 1 ? 's' : ''}...`);
+    setProcessingProgress({ current: 0, total: validFiles.length });
+    showNotice(`Preparing ${validFiles.length} photo${validFiles.length > 1 ? 's' : ''}...`);
 
     try {
       const results: UploadedPhoto[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const photo = await compressFile(files[i]);
-        results.push(photo);
+      for (let i = 0; i < validFiles.length; i++) {
+        setProcessingProgress({ current: i + 1, total: validFiles.length });
+        const photo = await compressFile(validFiles[i]);
+        if (photo) {
+          results.push(photo);
+        }
+      }
+
+      if (results.length === 0) {
+        showNotice('Could not load images. Please verify image file formats.');
+        return;
       }
 
       // Extract a clean folder/campaign name from relative path or first file
       let detectedName = '';
-      const firstRelPath = (files[0] as unknown as { webkitRelativePath?: string }).webkitRelativePath;
+      const firstRelPath = (validFiles[0] as unknown as { webkitRelativePath?: string }).webkitRelativePath;
       if (firstRelPath && firstRelPath.includes('/')) {
         detectedName = firstRelPath.split('/')[0];
       } else {
-        detectedName = files[0].name.replace(/\.[^/.]+$/, '').replace(/[-_0-9]+/g, ' ').trim();
+        detectedName = validFiles[0].name.replace(/\.[^/.]+$/, '').replace(/[-_0-9]+/g, ' ').trim();
       }
 
       onComplete(results, detectedName);
-      showNotice(`✦ Loaded ${results.length} asset${results.length > 1 ? 's' : ''}!`);
-    } catch {
+      showNotice(`✦ Loaded ${results.length} campaign photo${results.length > 1 ? 's' : ''}!`);
+    } catch (err) {
+      console.error(err);
       showNotice('Error processing uploaded images. Please try again.');
     } finally {
       setIsProcessingFiles(false);
+      setProcessingProgress(null);
     }
   };
 
@@ -414,7 +468,7 @@ export default function StudioDeskPage() {
   };
 
   // 1-Click Publishing of Single Picture OR Entire Folder to Canvas
-  const handlePublishFromAi = () => {
+  const handlePublishFromAi = async () => {
     if (attachedPhotos.length === 0 && !chatMessages.some((m) => m.image)) {
       showNotice('Please attach or drop an image or folder first.');
       return;
@@ -435,7 +489,7 @@ export default function StudioDeskPage() {
       id: `ai-${Date.now()}`,
       code: `FILE_${Math.floor(Math.random() * 80 + 15)}.${isMulti ? 'DIR' : 'IMG'}`,
       name: title,
-      discipline: isMulti ? 'Art Direction • Heritage Bridal Campaign' : 'Photography • Stills',
+      discipline: isMulti ? 'Art Direction • Bridal Campaign' : 'Photography • Stills',
       year: '2026',
       role: 'Director of Visuals',
       x: randomX,
@@ -449,35 +503,40 @@ export default function StudioDeskPage() {
         ? `${title} — Complete multi-channel campaign with ${totalCount} deliverables including lookbook editorial spreads, vertical social media motion, and retail standee assets.`
         : `${title} — High-impact still capture shot & graded under studio direction.`,
       deliverables: isMulti
-        ? ['Editorial Print Lookbook (4:5)', '9:16 Social Vertical Story', 'Retail Standee Displays', 'Web Hero Banners']
-        : ['High-Res Still', 'Color Emulation', 'Aspect Ratio Master'],
+        ? ['Editorial Lookbook (4:5)', 'Social Stories & Motion (9:16)', 'Retail Displays', 'Hero Banners']
+        : ['High-Res Still', 'Color Grade', 'Master Plate'],
       photoCount: totalCount,
       photos: allPhotoUrls,
     };
 
-    saveCanvasFile(newFile);
-    refreshData();
-    showNotice(`✦ SUCCESS: "${newFile.name}" (${totalCount} photo${totalCount > 1 ? 's' : ''}) published to Live Canvas!`);
+    try {
+      await saveCanvasFileAsync(newFile);
+      await refreshData();
+      showNotice(`✦ SUCCESS: "${newFile.name}" (${totalCount} photos) saved to Portfolio!`);
 
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: `🎉 Awesome Moiz! **"${newFile.name}"** has been published to your Live Canvas & Portfolio with **${totalCount} asset${totalCount > 1 ? 's' : ''}**.\n\nDeliverables:\n• Cover plate: ${coverPhoto?.name || 'Selected Hero'}\n• Total collection: ${totalCount} plates stored\n• Canvas code: ${newFile.code}\n\nVisitors can click the card on your Infinite Canvas to open the full lightbox gallery!`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        canPublish: false,
-      },
-    ]);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: `🎉 Awesome Moiz! **"${newFile.name}"** has been published to your Live Canvas & Portfolio with **${totalCount} assets**.\n\n• Cover Plate: ${coverPhoto?.name || 'Selected Hero'}\n• Total Photos: ${totalCount} plates stored safely in your database\n• Canvas Code: ${newFile.code}\n\nVisitors can click the card on your Infinite Canvas to open the full lightbox gallery!`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          canPublish: false,
+        },
+      ]);
 
-    // Reset attached buffer
-    setAttachedPhotos([]);
-    setFolderNameTitle('');
+      // Reset attached buffer
+      setAttachedPhotos([]);
+      setFolderNameTitle('');
+    } catch (err) {
+      console.error(err);
+      showNotice('ERROR: Could not save project. Please try again.');
+    }
   };
 
   // ----------------------------------------------------
   // Manual Upload: Single Photo Deploy
   // ----------------------------------------------------
-  const handleDeployQuickPhoto = (e: React.FormEvent) => {
+  const handleDeployQuickPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!singlePhotoDataUrl || !singlePhotoTitle.trim()) {
       showNotice('ERROR: Please provide a photo and a title.');
@@ -502,22 +561,27 @@ export default function StudioDeskPage() {
       colorTag: 'bg-[#ff2a2a]',
       assetType: 'single_photo',
       desc: `Single still capture: ${singlePhotoTitle.trim()}. Shot & graded under studio direction.`,
-      deliverables: ['High-Res Still', 'Color Emulation', 'Aspect Ratio Master'],
+      deliverables: ['High-Res Still', 'Color Grade', 'Master Plate'],
       photoCount: 1,
       photos: [singlePhotoDataUrl],
     };
 
-    saveCanvasFile(newFile);
-    refreshData();
-    setSinglePhotoTitle('');
-    setSinglePhotoDataUrl(null);
-    showNotice(`SUCCESS: Photo "${newFile.name}" deployed to Canvas!`);
+    try {
+      await saveCanvasFileAsync(newFile);
+      await refreshData();
+      setSinglePhotoTitle('');
+      setSinglePhotoDataUrl(null);
+      showNotice(`✦ SUCCESS: Photo "${newFile.name}" deployed to Canvas!`);
+    } catch (err) {
+      console.error(err);
+      showNotice('ERROR: Could not deploy photo.');
+    }
   };
 
   // ----------------------------------------------------
   // Manual Upload: Quick Reel Deploy
   // ----------------------------------------------------
-  const handleDeployQuickReel = (e: React.FormEvent) => {
+  const handleDeployQuickReel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reelCoverUrl || !reelTitle.trim()) {
       showNotice('ERROR: Please provide a poster frame and a title for the reel.');
@@ -548,18 +612,23 @@ export default function StudioDeskPage() {
       photos: [reelCoverUrl],
     };
 
-    saveCanvasFile(newFile);
-    refreshData();
-    setReelTitle('');
-    setReelCoverUrl(null);
-    setReelVideoLink('');
-    showNotice(`SUCCESS: Reel "${newFile.name}" deployed to Canvas!`);
+    try {
+      await saveCanvasFileAsync(newFile);
+      await refreshData();
+      setReelTitle('');
+      setReelCoverUrl(null);
+      setReelVideoLink('');
+      showNotice(`✦ SUCCESS: Reel "${newFile.name}" deployed to Canvas!`);
+    } catch (err) {
+      console.error(err);
+      showNotice('ERROR: Could not deploy reel.');
+    }
   };
 
   // ----------------------------------------------------
   // Manual Upload: Full Folder Deploy (Supports 25+ photos!)
   // ----------------------------------------------------
-  const handleDeployFullProject = (e: React.FormEvent) => {
+  const handleDeployFullProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (projPhotos.length === 0 || !projName.trim()) {
       showNotice('ERROR: Please upload at least one photo or folder, and provide a name.');
@@ -592,18 +661,23 @@ export default function StudioDeskPage() {
       photos: projPhotos.map((p) => p.dataUrl),
     };
 
-    saveCanvasFile(newFile);
-    refreshData();
-    setProjName('');
-    setProjDesc('');
-    setProjPhotos([]);
-    showNotice(`SUCCESS: Folder "${newFile.name}" (${newFile.photoCount} photos) deployed to Canvas!`);
+    try {
+      await saveCanvasFileAsync(newFile);
+      await refreshData();
+      setProjName('');
+      setProjDesc('');
+      setProjPhotos([]);
+      showNotice(`✦ SUCCESS: Folder "${newFile.name}" (${newFile.photoCount} photos) deployed to Canvas!`);
+    } catch (err) {
+      console.error(err);
+      showNotice('ERROR: Could not deploy folder.');
+    }
   };
 
-  const handleDeleteCanvasItem = (id: string, name: string) => {
+  const handleDeleteCanvasItem = async (id: string, name: string) => {
     if (confirm(`Remove "${name}" from the live canvas?`)) {
       deleteCanvasFile(id);
-      refreshData();
+      await refreshData();
       showNotice(`REMOVED: "${name}" has been deleted.`);
     }
   };
@@ -686,42 +760,43 @@ export default function StudioDeskPage() {
         </div>
       )}
 
-      {/* Clean Studio Desk Header */}
-      <header className="border-b border-white/10 bg-[#111114]/95 backdrop-blur-md sticky top-0 z-50 px-6 sm:px-10 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
+      {/* Responsive Studio Desk Header */}
+      <header className="border-b border-white/10 bg-[#111114]/95 backdrop-blur-md sticky top-0 z-50 px-4 sm:px-8 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)] shrink-0" />
           <div>
-            <h1 className="font-display font-black text-base sm:text-lg tracking-tight uppercase">
-              MOIZ KHAN <span className="text-secondary font-mono text-xs font-normal ml-2">// STUDIO DESK</span>
+            <h1 className="font-display font-black text-sm sm:text-base tracking-tight uppercase flex items-center">
+              MOIZ KHAN <span className="text-secondary font-mono text-xs font-normal ml-2 hidden xs:inline">// STUDIO DESK</span>
             </h1>
-            <p className="font-mono text-[10px] text-emerald-400/90 tracking-wider uppercase mt-0.5">
-              ● Gemini 3.6 Flash Active • 100% Free Tier ($0.00)
+            <p className="font-mono text-[9.5px] text-emerald-400/90 tracking-wider uppercase mt-0.5">
+              ● Gemini 3.6 Flash Active • Free Tier ($0.00)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 font-mono text-xs">
+        <div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full sm:w-auto pb-1 sm:pb-0">
           <Link
             href="/"
-            className="px-3.5 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-secondary hover:text-white"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-secondary hover:text-white shrink-0"
           >
             ← Portfolio
           </Link>
           <Link
             href="/canvas"
-            className="px-3.5 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-secondary hover:text-white"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-secondary hover:text-white shrink-0"
           >
             ⌖ Canvas
           </Link>
           <Link
             href="/about"
-            className="px-3.5 py-1.5 rounded-[8px] bg-[#ff2a2a] text-white hover:bg-[#ff4444] transition-all font-semibold"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-[8px] bg-[#ff2a2a] text-white hover:bg-[#ff4444] transition-all font-semibold shrink-0"
           >
             ✦ About
           </Link>
           <button
+            type="button"
             onClick={handleLogout}
-            className="px-3.5 py-1.5 rounded-[8px] bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-[#ff4444] transition-all font-mono text-xs cursor-pointer"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-[8px] bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-[#ff4444] transition-all font-mono text-[11px] sm:text-xs cursor-pointer shrink-0 ml-auto sm:ml-0"
           >
             🔒 Lock
           </button>
@@ -731,11 +806,12 @@ export default function StudioDeskPage() {
       {/* Main Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
 
-        {/* Streamlined 3-Tab Bar */}
-        <div className="flex items-center justify-center sm:justify-start gap-2 pb-6 border-b border-white/10">
+        {/* Streamlined 3-Tab Bar (Touch Scrollable on Mobile) */}
+        <div className="flex items-center gap-2 pb-4 sm:pb-6 border-b border-white/10 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-nowrap">
           <button
+            type="button"
             onClick={() => setActiveTab('ai_copilot')}
-            className={`px-5 py-2.5 rounded-[10px] font-mono text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 sm:px-5 py-2.5 rounded-[10px] font-mono text-xs tracking-wider uppercase transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
               activeTab === 'ai_copilot'
                 ? 'bg-white text-black font-bold shadow-lg'
                 : 'bg-white/5 text-secondary hover:text-white hover:bg-white/10'
@@ -746,8 +822,9 @@ export default function StudioDeskPage() {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('manual_upload')}
-            className={`px-5 py-2.5 rounded-[10px] font-mono text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 sm:px-5 py-2.5 rounded-[10px] font-mono text-xs tracking-wider uppercase transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
               activeTab === 'manual_upload'
                 ? 'bg-white text-black font-bold shadow-lg'
                 : 'bg-white/5 text-secondary hover:text-white hover:bg-white/10'
@@ -758,8 +835,9 @@ export default function StudioDeskPage() {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('archive_settings')}
-            className={`px-5 py-2.5 rounded-[10px] font-mono text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 sm:px-5 py-2.5 rounded-[10px] font-mono text-xs tracking-wider uppercase transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
               activeTab === 'archive_settings'
                 ? 'bg-white text-black font-bold shadow-lg'
                 : 'bg-white/5 text-secondary hover:text-white hover:bg-white/10'
@@ -969,36 +1047,60 @@ export default function StudioDeskPage() {
                   </div>
                 ))}
 
-                {/* Visual Direct Upload Box inside chat (Unmissable for 38+ Kaldhar photos) */}
-                {attachedPhotos.length === 0 && (
-                  <div className="p-6 rounded-[12px] border-2 border-dashed border-white/15 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-3.5 my-2">
+                {/* Live Processing Progress Bar */}
+                {isProcessingFiles && processingProgress && (
+                  <div className="p-4 sm:p-5 rounded-[12px] bg-[#1a1a20] border border-white/10 space-y-2.5 my-2">
+                    <div className="flex items-center justify-between font-mono text-xs text-white">
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#ff2a2a] animate-ping" />
+                        <span className="font-bold">Optimizing Campaign Photos</span>
+                      </span>
+                      <span className="text-secondary font-bold">
+                        {processingProgress.current} / {processingProgress.total} ({Math.round((processingProgress.current / processingProgress.total) * 100)}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#ff2a2a] to-amber-500 transition-all duration-200"
+                        style={{ width: `${(processingProgress.current / processingProgress.total) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] font-mono text-secondary">
+                      Resizing into lightweight web images so your site loads lightning fast without errors.
+                    </p>
+                  </div>
+                )}
+
+                {/* Visual Direct Upload Box inside chat */}
+                {attachedPhotos.length === 0 && !isProcessingFiles && (
+                  <div className="p-5 sm:p-7 rounded-[12px] border-2 border-dashed border-white/15 bg-white/[0.02] flex flex-col items-center justify-center text-center gap-3.5 my-2">
                     <span className="text-3xl">📁</span>
                     <div>
                       <p className="font-mono text-xs font-bold text-white uppercase tracking-wider">
                         Upload Your Kaldhar Campaign (38+ Photos)
                       </p>
                       <p className="font-mono text-[10.5px] text-secondary mt-1 max-w-md">
-                        Click below to pick your <strong>Kaldhar</strong> folder from Desktop, or select pictures. You can also drag &amp; drop the folder directly!
+                        Pick your <strong>Kaldhar</strong> folder from Desktop, select photos, or drag &amp; drop the folder directly into this window!
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1 w-full max-w-md">
                       <button
                         type="button"
                         onClick={() => chatFolderInputRef.current?.click()}
-                        className="px-4 py-2.5 rounded-[8px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shadow cursor-pointer flex items-center gap-2"
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-[8px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shadow cursor-pointer flex items-center justify-center gap-2"
                       >
                         <span>📁</span>
-                        <span>Upload Kaldhar Folder (All 38 Photos)</span>
+                        <span>Upload Kaldhar Folder</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => chatFilesInputRef.current?.click()}
-                        className="px-4 py-2.5 rounded-[8px] bg-white/10 hover:bg-white text-white hover:text-black font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2"
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-[8px] bg-white/10 hover:bg-white text-white hover:text-black font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
                       >
                         <span>🖼️</span>
-                        <span>Select Pictures (Ctrl+A for All 38)</span>
+                        <span>Select Pictures (Ctrl+A)</span>
                       </button>
                     </div>
                   </div>
@@ -1256,13 +1358,15 @@ export default function StudioDeskPage() {
                         const file = e.target.files?.[0];
                         if (file) {
                           compressFile(file).then((photo) => {
-                            setSinglePhotoDataUrl(photo.dataUrl);
-                            setSinglePhotoAspect({
-                              aspectClass: photo.aspectClass,
-                              aspectLabel: photo.aspectLabel,
-                            });
-                            if (!singlePhotoTitle) {
-                              setSinglePhotoTitle(photo.name.replace(/\.[^/.]+$/, ''));
+                            if (photo) {
+                              setSinglePhotoDataUrl(photo.dataUrl);
+                              setSinglePhotoAspect({
+                                aspectClass: photo.aspectClass,
+                                aspectLabel: photo.aspectLabel,
+                              });
+                              if (!singlePhotoTitle) {
+                                setSinglePhotoTitle(photo.name.replace(/\.[^/.]+$/, ''));
+                              }
                             }
                           });
                         }
@@ -1386,8 +1490,10 @@ export default function StudioDeskPage() {
                         const file = e.target.files?.[0];
                         if (file) {
                           compressFile(file).then((photo) => {
-                            setReelCoverUrl(photo.dataUrl);
-                            if (!reelTitle) setReelTitle(photo.name.replace(/\.[^/.]+$/, ''));
+                            if (photo) {
+                              setReelCoverUrl(photo.dataUrl);
+                              if (!reelTitle) setReelTitle(photo.name.replace(/\.[^/.]+$/, ''));
+                            }
                           });
                         }
                       }}
