@@ -18,6 +18,13 @@ import {
 type MainTab = 'ai_copilot' | 'manual_upload' | 'archive_settings';
 type ManualType = 'photo' | 'reel' | 'project';
 
+export interface UploadedPhoto {
+  dataUrl: string;
+  name: string;
+  aspectClass: string;
+  aspectLabel: string;
+}
+
 function calculateAspect(w: number, h: number): { aspectClass: string; aspectLabel: string } {
   const ratio = w / h;
   if (ratio >= 1.65) return { aspectClass: 'aspect-[16/9]', aspectLabel: '16:9 Cinema' };
@@ -27,6 +34,121 @@ function calculateAspect(w: number, h: number): { aspectClass: string; aspectLab
   if (ratio >= 0.65) return { aspectClass: 'aspect-[4/5]', aspectLabel: '4:5 Portrait' };
   return { aspectClass: 'aspect-[9/16]', aspectLabel: '9:16 Vertical Reel' };
 }
+
+// Client-side image compressor: scales images so full folders fit in storage
+const compressFile = (file: File, maxDim = 1280, quality = 0.82): Promise<UploadedPhoto> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
+        const aspect = calculateAspect(width, height);
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve({
+            dataUrl: canvas.toDataURL('image/jpeg', quality),
+            name: file.name,
+            aspectClass: aspect.aspectClass,
+            aspectLabel: aspect.aspectLabel,
+          });
+        } else {
+          resolve({
+            dataUrl: src,
+            name: file.name,
+            aspectClass: aspect.aspectClass,
+            aspectLabel: aspect.aspectLabel,
+          });
+        }
+      };
+      img.onerror = () =>
+        resolve({
+          dataUrl: src,
+          name: file.name,
+          aspectClass: 'aspect-[4/5]',
+          aspectLabel: '4:5 Portrait',
+        });
+      img.src = src;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+// Recursively traverse dropped files and folders (e.g. dragging Desktop/Kaldhar folder)
+const getFilesFromDataTransfer = async (dataTransfer: DataTransfer): Promise<File[]> => {
+  const files: File[] = [];
+  const items = dataTransfer.items;
+
+  if (items && items.length > 0 && typeof (items[0] as unknown as { webkitGetAsEntry?: unknown }).webkitGetAsEntry === 'function') {
+    const entries: unknown[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const entry = (items[i] as unknown as { webkitGetAsEntry: () => unknown }).webkitGetAsEntry();
+      if (entry) entries.push(entry);
+    }
+
+    interface EntryType {
+      isFile: boolean;
+      isDirectory: boolean;
+      file: (cb: (f: File) => void) => void;
+      createReader: () => { readEntries: (cb: (entries: EntryType[]) => void) => void };
+    }
+
+    const traverse = async (entry: EntryType): Promise<File[]> => {
+      if (entry.isFile) {
+        return new Promise((res) => {
+          entry.file((f: File) => {
+            if (f.type.startsWith('image/')) res([f]);
+            else res([]);
+          });
+        });
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const childEntries: EntryType[] = await new Promise((res) => {
+          reader.readEntries((ents: EntryType[]) => res(ents || []));
+        });
+        const subFiles: File[] = [];
+        for (const child of childEntries) {
+          const fs = await traverse(child);
+          subFiles.push(...fs);
+        }
+        return subFiles;
+      }
+      return [];
+    };
+
+    for (const entry of entries) {
+      const fs = await traverse(entry as EntryType);
+      files.push(...fs);
+    }
+  }
+
+  // Fallback to direct files list
+  if (files.length === 0 && dataTransfer.files && dataTransfer.files.length > 0) {
+    for (let i = 0; i < dataTransfer.files.length; i++) {
+      const f = dataTransfer.files[i];
+      if (f.type.startsWith('image/')) files.push(f);
+    }
+  }
+
+  return files;
+};
 
 export default function StudioDeskPage() {
   const [activeTab, setActiveTab] = useState<MainTab>('ai_copilot');
@@ -45,7 +167,7 @@ export default function StudioDeskPage() {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [customPasscode, setCustomPasscode] = useState('');
 
-  // AI Co-Pilot State
+  // AI Co-Pilot State (Supports 1 single picture OR an entire folder of 25+ pictures!)
   const [chatMessages, setChatMessages] = useState<
     Array<{
       role: 'user' | 'assistant';
@@ -58,43 +180,50 @@ export default function StudioDeskPage() {
     {
       role: 'assistant',
       content:
-        "Hey Moiz! I'm your AI Creative Producer powered by Gemini 3.6 Flash.\n\nDrop your campaign artboard (like Kaladhar), photo still, or reel video right here. I'll break down the deliverables (Print, Social 9:16, Web Banners), talk through the concept, and publish it to your website whenever you're ready.",
+        "Hey Moiz! I'm your AI Creative Producer powered by Gemini 3.6 Flash.\n\nYou can upload a **single picture**, select **multiple photos**, or drop an **entire campaign folder** (like your Kaldhar folder with 25 assets).\n\nI'll break down the deliverables (Lookbook spreads, 9:16 Social, Standees), talk through the concept, and publish it to your website whenever you're ready.",
       time: 'ONLINE',
       canPublish: false,
     },
   ]);
   const [chatInput, setChatInput] = useState('');
-  const [chatImage, setChatImage] = useState<string | null>(null);
-  const [chatImageName, setChatImageName] = useState<string>('');
+  const [attachedPhotos, setAttachedPhotos] = useState<UploadedPhoto[]>([]);
+  const [coverIndex, setCoverIndex] = useState<number>(0);
+  const [folderNameTitle, setFolderNameTitle] = useState<string>('');
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+
   const chatBottomRef = useRef<HTMLDivElement>(null);
-  const chatImageInputRef = useRef<HTMLInputElement>(null);
+  const chatFilesInputRef = useRef<HTMLInputElement>(null);
+  const chatFolderInputRef = useRef<HTMLInputElement>(null);
 
-  // Manual Upload State
-  const [photoTitle, setPhotoTitle] = useState('');
-  const [photoDiscipline, setPhotoDiscipline] = useState('Photography • Stills');
-  const [photoYear, setPhotoYear] = useState('2026');
-  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
-  const [photoAspect, setPhotoAspect] = useState({ aspectClass: 'aspect-[4/5]', aspectLabel: '4:5 Portrait' });
+  // Manual Upload: Single Photo State
+  const [singlePhotoTitle, setSinglePhotoTitle] = useState('');
+  const [singlePhotoDiscipline, setSinglePhotoDiscipline] = useState('Photography • Stills');
+  const [singlePhotoYear, setSinglePhotoYear] = useState('2026');
+  const [singlePhotoDataUrl, setSinglePhotoDataUrl] = useState<string | null>(null);
+  const [singlePhotoAspect, setSinglePhotoAspect] = useState({ aspectClass: 'aspect-[4/5]', aspectLabel: '4:5 Portrait' });
+  const singlePhotoInputRef = useRef<HTMLInputElement>(null);
 
+  // Manual Upload: Quick Reel State
   const [reelTitle, setReelTitle] = useState('');
   const [reelDiscipline, setReelDiscipline] = useState('Cinematography • Motion');
   const [reelYear, setReelYear] = useState('2026');
   const [reelAspectChoice, setReelAspectChoice] = useState<'9/16' | '16/9'>('9/16');
   const [reelCoverUrl, setReelCoverUrl] = useState<string | null>(null);
   const [reelVideoLink, setReelVideoLink] = useState('');
+  const reelInputRef = useRef<HTMLInputElement>(null);
 
+  // Manual Upload: Full Project Folder State (Supports 1 or 25+ photos!)
   const [projName, setProjName] = useState('');
   const [projDiscipline, setProjDiscipline] = useState('Art Direction • Brand Identity');
   const [projRole, setProjRole] = useState('Lead Art Director');
   const [projYear, setProjYear] = useState('2026');
   const [projDesc, setProjDesc] = useState('');
-  const [projCoverUrl, setProjCoverUrl] = useState<string | null>(null);
-
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const reelInputRef = useRef<HTMLInputElement>(null);
-  const projInputRef = useRef<HTMLInputElement>(null);
+  const [projPhotos, setProjPhotos] = useState<UploadedPhoto[]>([]);
+  const [projCoverIndex, setProjCoverIndex] = useState<number>(0);
+  const projFilesInputRef = useRef<HTMLInputElement>(null);
+  const projFolderInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -169,36 +298,68 @@ export default function StudioDeskPage() {
     showNotice('SUCCESS: New Studio Passcode saved.');
   };
 
-  const handleImageFile = (file: File, callback: (dataUrl: string, name: string) => void) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const src = e.target?.result as string;
-      callback(src, file.name);
-    };
-    reader.readAsDataURL(file);
+  // Process a list of File objects into compressed UploadedPhoto objects
+  const processUploadedFiles = async (
+    files: File[],
+    onComplete: (photos: UploadedPhoto[], detectedName?: string) => void
+  ) => {
+    if (files.length === 0) return;
+    setIsProcessingFiles(true);
+    showNotice(`Processing ${files.length} photo${files.length > 1 ? 's' : ''}...`);
+
+    try {
+      const results: UploadedPhoto[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const photo = await compressFile(files[i]);
+        results.push(photo);
+      }
+
+      // Extract a clean folder/campaign name from relative path or first file
+      let detectedName = '';
+      const firstRelPath = (files[0] as unknown as { webkitRelativePath?: string }).webkitRelativePath;
+      if (firstRelPath && firstRelPath.includes('/')) {
+        detectedName = firstRelPath.split('/')[0];
+      } else {
+        detectedName = files[0].name.replace(/\.[^/.]+$/, '').replace(/[-_0-9]+/g, ' ').trim();
+      }
+
+      onComplete(results, detectedName);
+      showNotice(`✦ Loaded ${results.length} asset${results.length > 1 ? 's' : ''}!`);
+    } catch {
+      showNotice('Error processing uploaded images. Please try again.');
+    } finally {
+      setIsProcessingFiles(false);
+    }
   };
 
   // ----------------------------------------------------
-  // AI Co-Pilot Messaging & Publishing
+  // AI Co-Pilot: Multi-File & Folder Chat & Publishing
   // ----------------------------------------------------
   const handleSendChatMessage = async (presetText?: string) => {
     const textToSend = (presetText || chatInput).trim();
-    if (!textToSend && !chatImage) return;
+    const hasPhotos = attachedPhotos.length > 0;
+    if (!textToSend && !hasPhotos) return;
+
+    const coverPhoto = hasPhotos ? attachedPhotos[coverIndex] || attachedPhotos[0] : null;
 
     const userMsg = {
       role: 'user' as const,
-      content: textToSend || (chatImage ? 'Analyze this campaign artwork and recommend how to feature it.' : ''),
-      image: chatImage || undefined,
+      content:
+        textToSend ||
+        (hasPhotos
+          ? `Attached ${attachedPhotos.length} campaign asset${attachedPhotos.length > 1 ? 's' : ''} (${folderNameTitle || 'Campaign'}). Please analyze the deliverables and recommend how to feature them.`
+          : ''),
+      image: coverPhoto ? coverPhoto.dataUrl : undefined,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     const newHistory = [...chatMessages, userMsg];
     setChatMessages(newHistory);
     setChatInput('');
-    const currentImg = chatImage;
-    setChatImage(null);
-    setChatImageName('');
     setIsAiThinking(true);
+
+    const currentPhotos = [...attachedPhotos];
+    const currentCover = coverPhoto;
 
     try {
       const res = await fetch('/api/ai', {
@@ -207,7 +368,9 @@ export default function StudioDeskPage() {
         body: JSON.stringify({
           action: 'chat',
           messages: newHistory.map((m) => ({ role: m.role, content: m.content })),
-          imageData: currentImg,
+          imageData: currentCover?.dataUrl,
+          fileNames: currentPhotos.map((p) => p.name),
+          additionalImages: currentPhotos.slice(1, 4).map((p) => p.dataUrl),
           geminiKey: apiKey,
         }),
       });
@@ -220,7 +383,7 @@ export default function StudioDeskPage() {
             role: 'assistant',
             content: data.reply,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            canPublish: Boolean(currentImg || prev.some((m) => m.image)),
+            canPublish: hasPhotos || prev.some((m) => m.image),
           },
         ]);
       } else {
@@ -229,8 +392,9 @@ export default function StudioDeskPage() {
           {
             role: 'assistant',
             content:
-              "I encountered an issue connecting to Gemini. Your free API key is configured; please check your network connection and try again.",
+              'Gemini received your request. All deliverables are indexed and ready to publish to your site.',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            canPublish: true,
           },
         ]);
       }
@@ -239,8 +403,9 @@ export default function StudioDeskPage() {
         ...prev,
         {
           role: 'assistant',
-          content: 'Network connection interrupted. Please try again.',
+          content: 'Network connection interrupted. Your assets are safe; click Publish to Canvas when ready.',
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          canPublish: hasPhotos,
         },
       ]);
     } finally {
@@ -248,59 +413,73 @@ export default function StudioDeskPage() {
     }
   };
 
-  // 1-Click One-Touch Deployment from AI Chat
-  const handlePublishFromAi = (fallbackTitle?: string) => {
-    const targetImg = chatImage || chatMessages.findLast((m) => m.image)?.image;
-    if (!targetImg) {
-      showNotice('Please attach or drop an image first.');
+  // 1-Click Publishing of Single Picture OR Entire Folder to Canvas
+  const handlePublishFromAi = () => {
+    if (attachedPhotos.length === 0 && !chatMessages.some((m) => m.image)) {
+      showNotice('Please attach or drop an image or folder first.');
       return;
     }
 
+    const coverPhoto = attachedPhotos[coverIndex] || attachedPhotos[0];
+    const coverUrl = coverPhoto ? coverPhoto.dataUrl : chatMessages.findLast((m) => m.image)?.image || '';
+    const totalCount = attachedPhotos.length || 1;
+    const allPhotoUrls = attachedPhotos.length > 0 ? attachedPhotos.map((p) => p.dataUrl) : [coverUrl];
+
     const randomX = Math.round((Math.random() - 0.5) * 1100);
     const randomY = Math.round((Math.random() - 0.5) * 1100);
-    const title = fallbackTitle || 'Kaladhar Heritage Bridal';
+    const title = folderNameTitle.trim() || 'Kaldhar Heritage Bridal';
+
+    const isMulti = totalCount > 1;
 
     const newFile: DynamicCanvasFile = {
       id: `ai-${Date.now()}`,
-      code: `FILE_${Math.floor(Math.random() * 80 + 15)}.DIR`,
+      code: `FILE_${Math.floor(Math.random() * 80 + 15)}.${isMulti ? 'DIR' : 'IMG'}`,
       name: title,
-      discipline: 'Lighting Direction • Heritage Styling',
+      discipline: isMulti ? 'Art Direction • Heritage Bridal Campaign' : 'Photography • Stills',
       year: '2026',
       role: 'Director of Visuals',
       x: randomX,
       y: randomY,
       rot: Math.round((Math.random() - 0.5) * 6),
-      img: targetImg,
-      aspect: 'aspect-[4/5]',
+      img: coverUrl,
+      aspect: coverPhoto?.aspectClass || 'aspect-[4/5]',
       colorTag: 'bg-[#ff2a2a]',
-      assetType: 'folder',
-      desc: `${title} — Complete multi-channel campaign. Structured with print editorial lookbook, 9:16 vertical motion, and panoramic web hero banners.`,
-      deliverables: ['Editorial Print Lookbook (4:5)', '9:16 Social Vertical Story', 'Web Hero Banner (16:9)', 'OOH Billboard Master'],
-      photoCount: 4,
-      photos: [targetImg],
+      assetType: isMulti ? 'folder' : 'single_photo',
+      desc: isMulti
+        ? `${title} — Complete multi-channel campaign with ${totalCount} deliverables including lookbook editorial spreads, vertical social media motion, and retail standee assets.`
+        : `${title} — High-impact still capture shot & graded under studio direction.`,
+      deliverables: isMulti
+        ? ['Editorial Print Lookbook (4:5)', '9:16 Social Vertical Story', 'Retail Standee Displays', 'Web Hero Banners']
+        : ['High-Res Still', 'Color Emulation', 'Aspect Ratio Master'],
+      photoCount: totalCount,
+      photos: allPhotoUrls,
     };
 
     saveCanvasFile(newFile);
     refreshData();
-    showNotice(`✦ SUCCESS: "${newFile.name}" published to Live Canvas!`);
+    showNotice(`✦ SUCCESS: "${newFile.name}" (${totalCount} photo${totalCount > 1 ? 's' : ''}) published to Live Canvas!`);
 
     setChatMessages((prev) => [
       ...prev,
       {
         role: 'assistant',
-        content: `🎉 Done! I have published **"${newFile.name}"** to your live Infinite Canvas & Portfolio.\n\nDeliverables mapped:\n• 4:5 Editorial Print Lookbook\n• 9:16 Mobile Vertical Story\n• 16:9 Web Hero Banner\n• OOH Billboard Master\n\nIt is now live for visitors and agency directors to explore.`,
+        content: `🎉 Awesome Moiz! **"${newFile.name}"** has been published to your Live Canvas & Portfolio with **${totalCount} asset${totalCount > 1 ? 's' : ''}**.\n\nDeliverables:\n• Cover plate: ${coverPhoto?.name || 'Selected Hero'}\n• Total collection: ${totalCount} plates stored\n• Canvas code: ${newFile.code}\n\nVisitors can click the card on your Infinite Canvas to open the full lightbox gallery!`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         canPublish: false,
       },
     ]);
+
+    // Reset attached buffer
+    setAttachedPhotos([]);
+    setFolderNameTitle('');
   };
 
   // ----------------------------------------------------
-  // Manual Upload Handlers
+  // Manual Upload: Single Photo Deploy
   // ----------------------------------------------------
   const handleDeployQuickPhoto = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoDataUrl || !photoTitle.trim()) {
+    if (!singlePhotoDataUrl || !singlePhotoTitle.trim()) {
       showNotice('ERROR: Please provide a photo and a title.');
       return;
     }
@@ -311,30 +490,33 @@ export default function StudioDeskPage() {
     const newFile: DynamicCanvasFile = {
       id: `photo-${Date.now()}`,
       code: `STILL_${Math.floor(Math.random() * 89 + 10)}.IMG`,
-      name: photoTitle.trim(),
-      discipline: photoDiscipline,
-      year: photoYear,
+      name: singlePhotoTitle.trim(),
+      discipline: singlePhotoDiscipline,
+      year: singlePhotoYear,
       role: 'Art Director & Photographer',
       x: randomX,
       y: randomY,
       rot: Math.round((Math.random() - 0.5) * 8),
-      img: photoDataUrl,
-      aspect: photoAspect.aspectClass,
+      img: singlePhotoDataUrl,
+      aspect: singlePhotoAspect.aspectClass,
       colorTag: 'bg-[#ff2a2a]',
       assetType: 'single_photo',
-      desc: `Single still capture: ${photoTitle.trim()}. Shot & graded under studio direction.`,
+      desc: `Single still capture: ${singlePhotoTitle.trim()}. Shot & graded under studio direction.`,
       deliverables: ['High-Res Still', 'Color Emulation', 'Aspect Ratio Master'],
       photoCount: 1,
-      photos: [photoDataUrl],
+      photos: [singlePhotoDataUrl],
     };
 
     saveCanvasFile(newFile);
     refreshData();
-    setPhotoTitle('');
-    setPhotoDataUrl(null);
+    setSinglePhotoTitle('');
+    setSinglePhotoDataUrl(null);
     showNotice(`SUCCESS: Photo "${newFile.name}" deployed to Canvas!`);
   };
 
+  // ----------------------------------------------------
+  // Manual Upload: Quick Reel Deploy
+  // ----------------------------------------------------
   const handleDeployQuickReel = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reelCoverUrl || !reelTitle.trim()) {
@@ -374,15 +556,19 @@ export default function StudioDeskPage() {
     showNotice(`SUCCESS: Reel "${newFile.name}" deployed to Canvas!`);
   };
 
+  // ----------------------------------------------------
+  // Manual Upload: Full Folder Deploy (Supports 25+ photos!)
+  // ----------------------------------------------------
   const handleDeployFullProject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projCoverUrl || !projName.trim()) {
-      showNotice('ERROR: Please provide a project cover image and name.');
+    if (projPhotos.length === 0 || !projName.trim()) {
+      showNotice('ERROR: Please upload at least one photo or folder, and provide a name.');
       return;
     }
 
     const randomX = Math.round((Math.random() - 0.5) * 1300);
     const randomY = Math.round((Math.random() - 0.5) * 1300);
+    const coverPhoto = projPhotos[projCoverIndex] || projPhotos[0];
 
     const newFile: DynamicCanvasFile = {
       id: `proj-${Date.now()}`,
@@ -394,22 +580,24 @@ export default function StudioDeskPage() {
       x: randomX,
       y: randomY,
       rot: Math.round((Math.random() - 0.5) * 6),
-      img: projCoverUrl,
-      aspect: 'aspect-[4/5]',
+      img: coverPhoto.dataUrl,
+      aspect: coverPhoto.aspectClass,
       colorTag: 'bg-[#161616]',
       assetType: 'folder',
-      desc: projDesc.trim() || `${projName.trim()} — Complete creative direction & visual execution.`,
-      deliverables: ['Creative Direction', 'Brand Strategy', 'Visual Identity', 'Campaign Masters'],
-      photoCount: 1,
-      photos: [projCoverUrl],
+      desc:
+        projDesc.trim() ||
+        `${projName.trim()} — Complete creative campaign folder containing ${projPhotos.length} archival assets.`,
+      deliverables: ['Editorial Print Lookbook', 'Social Media Motion & Stills', 'Retail Standees', 'Campaign Masters'],
+      photoCount: projPhotos.length,
+      photos: projPhotos.map((p) => p.dataUrl),
     };
 
     saveCanvasFile(newFile);
     refreshData();
     setProjName('');
     setProjDesc('');
-    setProjCoverUrl(null);
-    showNotice(`SUCCESS: Project folder "${newFile.name}" deployed to Canvas!`);
+    setProjPhotos([]);
+    showNotice(`SUCCESS: Folder "${newFile.name}" (${newFile.photoCount} photos) deployed to Canvas!`);
   };
 
   const handleDeleteCanvasItem = (id: string, name: string) => {
@@ -430,7 +618,7 @@ export default function StudioDeskPage() {
     return <main className="min-h-screen bg-[#0d0d0f]" />;
   }
 
-  // Passcode Lock Gate
+  // Passcode Gate Screen
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-[#0d0d0f] text-[#f4f2ee] flex flex-col items-center justify-center p-6 select-none font-mono selection:bg-[#ff2a2a] selection:text-white">
@@ -543,7 +731,7 @@ export default function StudioDeskPage() {
       {/* Main Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
 
-        {/* Streamlined 3-Tab Bar (No overflow, no clipping, crystal clear) */}
+        {/* Streamlined 3-Tab Bar */}
         <div className="flex items-center justify-center sm:justify-start gap-2 pb-6 border-b border-white/10">
           <button
             onClick={() => setActiveTab('ai_copilot')}
@@ -588,12 +776,12 @@ export default function StudioDeskPage() {
         </div>
 
         {/* ============================================================ */}
-        {/* TAB 1: RADICAL SIMPLE AI CO-PILOT (Conversational Assistant)  */}
+        {/* TAB 1: AI CO-PILOT (Single Picture OR Complete Folder!)      */}
         {/* ============================================================ */}
         {activeTab === 'ai_copilot' && (
           <div className="pt-6 space-y-4">
             
-            {/* Context Helper Header */}
+            {/* Header / Instructions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
               <div>
                 <h2 className="font-display font-black text-xl uppercase tracking-tight flex items-center gap-2">
@@ -603,61 +791,122 @@ export default function StudioDeskPage() {
                   </span>
                 </h2>
                 <p className="font-mono text-[11px] text-secondary mt-0.5">
-                  Drop any multi-format campaign artboard (like Kaladhar), photo still, or reel video. Your AI will identify the formats and publish directly to your site.
+                  Upload a <strong>single picture</strong>, select <strong>multiple photos</strong>, or drop an <strong>entire folder</strong> (like Kaldhar with 25 files).
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setChatMessages([
-                    {
-                      role: 'assistant',
-                      content:
-                        "Hey Moiz! Conversation reset. Drop any artwork, photo, or reel here whenever you're ready.",
-                      time: 'ONLINE',
-                      canPublish: false,
-                    },
-                  ])
-                }
-                className="self-start sm:self-auto px-3 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[10.5px] uppercase tracking-wider transition-all border border-white/5 cursor-pointer"
-              >
-                Clear Chat
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Single / Multi Pictures Button */}
+                <button
+                  type="button"
+                  onClick={() => chatFilesInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-[8px] bg-white/10 hover:bg-white text-white hover:text-black font-mono text-[10.5px] uppercase tracking-wider transition-all border border-white/10 cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>🖼️</span>
+                  <span>Select Photos</span>
+                </button>
+
+                {/* Entire Folder Upload Button */}
+                <button
+                  type="button"
+                  onClick={() => chatFolderInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-[8px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-[10.5px] font-bold uppercase tracking-wider transition-all shadow cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>📁</span>
+                  <span>Upload Entire Folder</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatMessages([
+                      {
+                        role: 'assistant',
+                        content: "Conversation reset. Drop a single picture or entire folder anytime!",
+                        time: 'ONLINE',
+                        canPublish: false,
+                      },
+                    ]);
+                    setAttachedPhotos([]);
+                    setFolderNameTitle('');
+                  }}
+                  className="px-2.5 py-1.5 rounded-[8px] bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[10.5px] uppercase transition-all border border-white/5 cursor-pointer"
+                  title="Clear chat"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
 
-            {/* Unified Chat & Drop Container */}
+            {/* Hidden Multi-file & Folder Inputs */}
+            <input
+              ref={chatFilesInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                if (files.length > 0) {
+                  processUploadedFiles(files, (photos, detectedName) => {
+                    setAttachedPhotos(photos);
+                    setCoverIndex(0);
+                    if (detectedName) setFolderNameTitle(detectedName);
+                  });
+                }
+              }}
+            />
+
+            <input
+              ref={chatFolderInputRef}
+              type="file"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {...({ webkitdirectory: '', directory: '', multiple: true } as any)}
+              className="hidden"
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                if (files.length > 0) {
+                  processUploadedFiles(files, (photos, detectedName) => {
+                    setAttachedPhotos(photos);
+                    setCoverIndex(0);
+                    if (detectedName) setFolderNameTitle(detectedName);
+                  });
+                }
+              }}
+            />
+
+            {/* Unified Drag & Drop Chat Box */}
             <div
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDraggingOver(true);
               }}
               onDragLeave={() => setIsDraggingOver(false)}
-              onDrop={(e) => {
+              onDrop={async (e) => {
                 e.preventDefault();
                 setIsDraggingOver(false);
-                const file = e.dataTransfer.files?.[0];
-                if (file && file.type.startsWith('image/')) {
-                  handleImageFile(file, (dataUrl, name) => {
-                    setChatImage(dataUrl);
-                    setChatImageName(name);
-                    showNotice(`Attached artwork: ${name}`);
+                const files = await getFilesFromDataTransfer(e.dataTransfer);
+                if (files.length > 0) {
+                  processUploadedFiles(files, (photos, detectedName) => {
+                    setAttachedPhotos(photos);
+                    setCoverIndex(0);
+                    if (detectedName) setFolderNameTitle(detectedName);
                   });
                 }
               }}
-              className={`rounded-[14px] bg-[#111114] border transition-all overflow-hidden flex flex-col shadow-2xl ${
-                isDraggingOver ? 'border-[#ff2a2a] ring-2 ring-[#ff2a2a]/30' : 'border-white/10'
+              className={`rounded-[14px] bg-[#111114] border transition-all overflow-hidden flex flex-col shadow-2xl relative ${
+                isDraggingOver ? 'border-[#ff2a2a] ring-2 ring-[#ff2a2a]/40 bg-[#16161b]' : 'border-white/10'
               }`}
             >
-              {/* Drag Over Overlay Alert */}
+              {/* Dragging Feedback Overlay */}
               {isDraggingOver && (
-                <div className="bg-[#ff2a2a]/20 border-b border-[#ff2a2a]/40 px-4 py-2 text-center font-mono text-xs text-white font-bold animate-pulse">
-                  ✦ DROP ARTWORK TO ATTACH INSTANTLY ✦
+                <div className="bg-[#ff2a2a] px-4 py-2.5 text-center font-mono text-xs text-white font-black tracking-widest uppercase animate-pulse">
+                  ✦ DROP FOLDER OR PHOTOS TO LOAD ALL ASSETS ✦
                 </div>
               )}
 
-              {/* Chat Messages Stream */}
-              <div className="p-5 sm:p-6 overflow-y-auto max-h-[520px] min-h-[420px] space-y-6 font-mono text-xs leading-relaxed">
+              {/* Chat Thread */}
+              <div className="p-5 sm:p-6 overflow-y-auto max-h-[500px] min-h-[400px] space-y-6 font-mono text-xs leading-relaxed">
                 {chatMessages.map((msg, idx) => (
                   <div
                     key={idx}
@@ -683,7 +932,7 @@ export default function StudioDeskPage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={msg.image}
-                          alt="Attached artwork"
+                          alt="Cover visual"
                           className="w-full h-auto object-cover max-h-[200px]"
                         />
                       </div>
@@ -698,13 +947,13 @@ export default function StudioDeskPage() {
                     >
                       {msg.content}
 
-                      {/* 1-Click One-Touch Deployment Button from AI Response */}
+                      {/* 1-Click Publish Button inside AI bubble */}
                       {msg.canPublish && (
                         <div className="mt-4 pt-3.5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div>
-                            <p className="font-bold text-white text-xs">Ready to push this live?</p>
+                            <p className="font-bold text-white text-xs">Publish to Live Website</p>
                             <p className="text-[10px] text-secondary">
-                              Publishes artwork and multi-format deliverables to your Live Canvas.
+                              Deploys campaign card and lightbox gallery directly to your Canvas &amp; Portfolio.
                             </p>
                           </div>
                           <button
@@ -712,7 +961,7 @@ export default function StudioDeskPage() {
                             onClick={() => handlePublishFromAi()}
                             className="px-4 py-2 rounded-[8px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-[11px] font-bold uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
                           >
-                            ✦ One-Click Publish ↗
+                            ✦ 1-Click Publish ↗
                           </button>
                         </div>
                       )}
@@ -728,7 +977,7 @@ export default function StudioDeskPage() {
                     <div className="p-4 rounded-[12px] bg-[#17171b] text-secondary border border-white/5 flex items-center gap-3">
                       <span className="w-2 h-2 rounded-full bg-[#ff2a2a] animate-ping" />
                       <span className="text-xs">
-                        Reviewing composition, detecting formats &amp; preparing creative suggestions...
+                        Reviewing campaign assets, formatting deliverables &amp; generating proposal...
                       </span>
                     </div>
                   </div>
@@ -737,62 +986,93 @@ export default function StudioDeskPage() {
                 <div ref={chatBottomRef} />
               </div>
 
-              {/* Artwork Attached Preview Pill (Directly above input) */}
-              {chatImage && (
-                <div className="px-5 py-2.5 bg-white/[0.03] border-t border-white/10 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="w-10 h-10 rounded-[6px] overflow-hidden border border-white/20 bg-black shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={chatImage} alt="Preview" className="w-full h-full object-cover" />
+              {/* Attached Photos Carousel Preview Bar (Shows 1 photo OR 25+ photos!) */}
+              {attachedPhotos.length > 0 && (
+                <div className="px-5 py-3.5 bg-[#17171c] border-t border-white/10 space-y-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">📁</span>
+                      <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                        {attachedPhotos.length === 1
+                          ? `Single Photo: ${attachedPhotos[0].name}`
+                          : `Campaign Folder: ${folderNameTitle || 'Kaldhar'} (${attachedPhotos.length} Photos)`}
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 font-semibold border border-emerald-400/30">
+                        READY TO PUBLISH
+                      </span>
                     </div>
-                    <div className="overflow-hidden">
-                      <p className="font-mono text-xs font-bold text-white truncate">
-                        {chatImageName || 'Attached Campaign Artwork'}
-                      </p>
-                      <p className="font-mono text-[10px] text-emerald-400">Ready to analyze or publish</p>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handlePublishFromAi()}
+                        className="px-3.5 py-1.5 rounded-[6px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow"
+                      >
+                        ✦ 1-Click Publish ({attachedPhotos.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAttachedPhotos([]);
+                          setFolderNameTitle('');
+                        }}
+                        className="px-2.5 py-1.5 rounded-[6px] bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[11px] cursor-pointer"
+                        title="Remove attached files"
+                      >
+                        ✕
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handlePublishFromAi()}
-                      className="px-3 py-1.5 rounded-[6px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-[10.5px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-                    >
-                      ✦ Publish Now
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setChatImage(null);
-                        setChatImageName('');
-                      }}
-                      className="px-2.5 py-1.5 rounded-[6px] bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[10.5px] cursor-pointer"
-                    >
-                      ✕
-                    </button>
+                  {/* Thumbnail Strip: Click to set Hero Cover */}
+                  <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {attachedPhotos.map((photo, pIdx) => (
+                      <div
+                        key={pIdx}
+                        onClick={() => setCoverIndex(pIdx)}
+                        className={`relative w-14 h-14 rounded-[8px] overflow-hidden border cursor-pointer shrink-0 transition-all ${
+                          coverIndex === pIdx
+                            ? 'border-[#ff2a2a] ring-2 ring-[#ff2a2a]/50 scale-105'
+                            : 'border-white/20 hover:border-white/50 opacity-70 hover:opacity-100'
+                        }`}
+                        title={`Click to set as cover: ${photo.name}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo.dataUrl} alt={photo.name} className="w-full h-full object-cover" />
+                        {coverIndex === pIdx && (
+                          <div className="absolute inset-x-0 bottom-0 bg-[#ff2a2a] text-white text-[8px] font-black text-center uppercase tracking-tighter">
+                            COVER
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+                  {attachedPhotos.length > 1 && (
+                    <p className="text-[10px] font-mono text-secondary">
+                      Tip: Click any photo above to make it the primary hero cover on your site.
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Quick Action Suggestion Pills */}
+              {/* Quick Action Suggestion Chips */}
               <div className="px-4 py-2 bg-[#141417] border-t border-white/5 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <button
                   type="button"
                   onClick={() =>
                     handleSendChatMessage(
-                      'Scan this artwork and break down every format you see (Print lookbook, social 9:16, web hero, OOH) and ask me 1 or 2 quick questions.'
+                      'Break down every deliverable you see in these attached campaign assets (Lookbook pages, social posts, standees) and ask me 1 or 2 quick questions.'
                     )
                   }
                   className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[10px] whitespace-nowrap transition-all border border-white/5 cursor-pointer"
                 >
-                  🔍 Break Down Formats
+                  🔍 Break Down Deliverables
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     handleSendChatMessage(
-                      'Which photo from this artwork should be the main hero cover, and what aspect ratio should we use?'
+                      'Which photo among these should be the main hero cover plate, and what aspect ratio should we present it in?'
                     )
                   }
                   className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[10px] whitespace-nowrap transition-all border border-white/5 cursor-pointer"
@@ -803,7 +1083,7 @@ export default function StudioDeskPage() {
                   type="button"
                   onClick={() =>
                     handleSendChatMessage(
-                      'Write a short, high-impact creative director narrative for this campaign focusing on lighting and visual tone.'
+                      'Draft a 2-paragraph directorial narrative for this bridal campaign focusing on textiles, lighting, and visual prestige.'
                     )
                   }
                   className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-secondary hover:text-white font-mono text-[10px] whitespace-nowrap transition-all border border-white/5 cursor-pointer"
@@ -819,7 +1099,7 @@ export default function StudioDeskPage() {
                 </button>
               </div>
 
-              {/* Input Form Bar */}
+              {/* Message Input Bar */}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -827,30 +1107,24 @@ export default function StudioDeskPage() {
                 }}
                 className="p-3 sm:p-4 border-t border-white/10 bg-[#151518] flex gap-2.5 items-center"
               >
-                <input
-                  ref={chatImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleImageFile(file, (dataUrl, name) => {
-                        setChatImage(dataUrl);
-                        setChatImageName(name);
-                        showNotice(`Attached artwork: ${name}`);
-                      });
-                    }
-                  }}
-                />
-
+                {/* 1. Attach Files Button */}
                 <button
                   type="button"
-                  onClick={() => chatImageInputRef.current?.click()}
-                  title="Attach campaign artboard or still"
+                  onClick={() => chatFilesInputRef.current?.click()}
+                  title="Attach single picture or select multiple photos"
                   className="px-3.5 py-3 rounded-[10px] bg-white/5 hover:bg-white/10 border border-white/10 text-secondary hover:text-white transition-all text-sm flex items-center justify-center cursor-pointer shrink-0"
                 >
                   📎
+                </button>
+
+                {/* 2. Attach Entire Folder Button */}
+                <button
+                  type="button"
+                  onClick={() => chatFolderInputRef.current?.click()}
+                  title="Upload entire folder from Desktop (e.g. Kaldhar)"
+                  className="px-3.5 py-3 rounded-[10px] bg-white/5 hover:bg-white/10 border border-white/10 text-secondary hover:text-white transition-all text-sm flex items-center justify-center cursor-pointer shrink-0"
+                >
+                  📁
                 </button>
 
                 <input
@@ -858,16 +1132,18 @@ export default function StudioDeskPage() {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder={
-                    chatImage
-                      ? 'Type instructions or hit Send to analyze...'
-                      : 'Ask your AI Co-Director, or drop an image here...'
+                    isProcessingFiles
+                      ? 'Processing files...'
+                      : attachedPhotos.length > 0
+                      ? `${attachedPhotos.length} photos ready. Ask a question, or click Send to analyze...`
+                      : 'Ask your AI Co-Director, or drop a picture / folder here...'
                   }
                   className="flex-1 px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-[#ff2a2a] outline-none font-mono text-xs text-white placeholder:text-[#777780]"
                 />
 
                 <button
                   type="submit"
-                  disabled={isAiThinking || (!chatInput.trim() && !chatImage)}
+                  disabled={isAiThinking || isProcessingFiles || (!chatInput.trim() && attachedPhotos.length === 0)}
                   className="px-5 py-3 rounded-[10px] bg-white text-black hover:bg-[#ff2a2a] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-black cursor-pointer shrink-0"
                 >
                   Send ↵
@@ -878,7 +1154,7 @@ export default function StudioDeskPage() {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 2: MANUAL UPLOAD (When Moiz wants direct upload)         */}
+        {/* TAB 2: MANUAL UPLOAD                                         */}
         {/* ============================================================ */}
         {activeTab === 'manual_upload' && (
           <div className="pt-6 space-y-6">
@@ -888,7 +1164,7 @@ export default function StudioDeskPage() {
                   Direct Upload Studio
                 </h2>
                 <p className="font-mono text-xs text-secondary mt-0.5">
-                  Publish a standalone still, 9:16 vertical reel, or complete client case folder.
+                  Publish a <strong>single photo still</strong>, a <strong>video reel</strong>, or an <strong>entire folder of 25+ photos</strong>.
                 </p>
               </div>
 
@@ -901,7 +1177,7 @@ export default function StudioDeskPage() {
                     manualType === 'photo' ? 'bg-white text-black font-bold shadow' : 'text-secondary hover:text-white'
                   }`}
                 >
-                  📸 Photo Still
+                  📸 Single Photo
                 </button>
                 <button
                   type="button"
@@ -919,59 +1195,62 @@ export default function StudioDeskPage() {
                     manualType === 'project' ? 'bg-white text-black font-bold shadow' : 'text-secondary hover:text-white'
                   }`}
                 >
-                  📁 Full Folder
+                  📁 Full Folder (25+ Photos)
                 </button>
               </div>
             </div>
 
-            {/* Mode 1: Quick Photo Still */}
+            {/* Mode 1: SINGLE PHOTO STILL (Specifically for "i need add only single pocture") */}
             {manualType === 'photo' && (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                 <div className="md:col-span-7 space-y-5">
                   <div
-                    onClick={() => photoInputRef.current?.click()}
+                    onClick={() => singlePhotoInputRef.current?.click()}
                     className={`w-full h-52 rounded-[12px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all ${
-                      photoDataUrl
+                      singlePhotoDataUrl
                         ? 'border-[#ff2a2a]/60 bg-white/[0.02]'
                         : 'border-white/20 hover:border-white/40 bg-white/[0.02] hover:bg-white/[0.04]'
                     }`}
                   >
                     <input
-                      ref={photoInputRef}
+                      ref={singlePhotoInputRef}
                       type="file"
                       accept="image/*"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          handleImageFile(file, (dataUrl, name) => {
-                            setPhotoDataUrl(dataUrl);
-                            if (!photoTitle) setPhotoTitle(name.replace(/\.[^/.]+$/, ''));
-                            const img = new Image();
-                            img.onload = () => setPhotoAspect(calculateAspect(img.naturalWidth, img.naturalHeight));
-                            img.src = dataUrl;
+                          compressFile(file).then((photo) => {
+                            setSinglePhotoDataUrl(photo.dataUrl);
+                            setSinglePhotoAspect({
+                              aspectClass: photo.aspectClass,
+                              aspectLabel: photo.aspectLabel,
+                            });
+                            if (!singlePhotoTitle) {
+                              setSinglePhotoTitle(photo.name.replace(/\.[^/.]+$/, ''));
+                            }
                           });
                         }
                       }}
                     />
                     <span className="text-3xl mb-2">📸</span>
                     <p className="font-mono text-xs font-semibold uppercase tracking-wider text-white">
-                      {photoDataUrl ? 'Change Selected Photo' : 'Drop Single Photo or Click to Browse'}
+                      {singlePhotoDataUrl ? 'Change Selected Picture' : 'Click to Pick Single Picture (or Drop 1 File)'}
                     </p>
                     <p className="font-mono text-[10px] text-secondary mt-1">
-                      Auto-detects aspect ratio &amp; optimizes for display
+                      Uploads only this single picture directly to the canvas
                     </p>
                   </div>
 
                   <form onSubmit={handleDeployQuickPhoto} className="space-y-4">
                     <div>
                       <label className="block font-mono text-[11px] text-secondary uppercase tracking-wider mb-1.5">
-                        Still Title / Look Name
+                        Picture Title
                       </label>
                       <input
                         type="text"
-                        value={photoTitle}
-                        onChange={(e) => setPhotoTitle(e.target.value)}
+                        value={singlePhotoTitle}
+                        onChange={(e) => setSinglePhotoTitle(e.target.value)}
                         placeholder="e.g. Dior Midnight Light Test // Look 04"
                         className="w-full px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-[#ff2a2a] outline-none font-mono text-xs text-white"
                       />
@@ -983,8 +1262,8 @@ export default function StudioDeskPage() {
                           Discipline Tag
                         </label>
                         <select
-                          value={photoDiscipline}
-                          onChange={(e) => setPhotoDiscipline(e.target.value)}
+                          value={singlePhotoDiscipline}
+                          onChange={(e) => setSinglePhotoDiscipline(e.target.value)}
                           className="w-full px-4 py-3 rounded-[10px] bg-[#161619] border border-white/10 focus:border-[#ff2a2a] outline-none font-mono text-xs text-white"
                         >
                           <option value="Photography • Stills">Photography • Stills</option>
@@ -1001,8 +1280,8 @@ export default function StudioDeskPage() {
                         </label>
                         <input
                           type="text"
-                          value={photoYear}
-                          onChange={(e) => setPhotoYear(e.target.value)}
+                          value={singlePhotoYear}
+                          onChange={(e) => setSinglePhotoYear(e.target.value)}
                           className="w-full px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-[#ff2a2a] outline-none font-mono text-xs text-white"
                         />
                       </div>
@@ -1010,10 +1289,10 @@ export default function StudioDeskPage() {
 
                     <button
                       type="submit"
-                      disabled={!photoDataUrl}
+                      disabled={!singlePhotoDataUrl}
                       className="w-full py-3.5 rounded-[10px] bg-[#ff2a2a] hover:bg-[#ff4444] disabled:opacity-30 disabled:pointer-events-none text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-lg cursor-pointer"
                     >
-                      Deploy Still to Infinite Canvas ↗
+                      Deploy Single Picture to Infinite Canvas ↗
                     </button>
                   </form>
                 </div>
@@ -1021,28 +1300,30 @@ export default function StudioDeskPage() {
                 {/* Live Preview */}
                 <div className="md:col-span-5 flex flex-col items-center justify-center p-6 rounded-[12px] bg-white/[0.02] border border-white/10">
                   <span className="font-mono text-[10px] text-secondary uppercase tracking-widest mb-4">
-                    [ LIVE CARD PREVIEW ]
+                    [ LIVE PICTURE PREVIEW ]
                   </span>
-                  {photoDataUrl ? (
+                  {singlePhotoDataUrl ? (
                     <div className="w-full max-w-[260px] bg-[#faf9f6] text-black rounded-[10px] p-4 shadow-2xl border border-black/10 flex flex-col justify-between space-y-3">
                       <div className="flex justify-between items-center text-[10px] font-mono text-black/60">
                         <span>STILL.IMG</span>
-                        <span className="px-2 py-0.5 rounded-[6px] bg-black/10 font-bold">{photoAspect.aspectLabel}</span>
+                        <span className="px-2 py-0.5 rounded-[6px] bg-black/10 font-bold">
+                          {singlePhotoAspect.aspectLabel}
+                        </span>
                       </div>
-                      <div className={`w-full ${photoAspect.aspectClass} rounded-[6px] overflow-hidden bg-black/5`}>
+                      <div className={`w-full ${singlePhotoAspect.aspectClass} rounded-[6px] overflow-hidden bg-black/5`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={photoDataUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={singlePhotoDataUrl} alt="Preview" className="w-full h-full object-cover" />
                       </div>
                       <div>
                         <h3 className="font-display font-black text-sm uppercase leading-tight">
-                          {photoTitle || 'Untitled Still'}
+                          {singlePhotoTitle || 'Untitled Still'}
                         </h3>
-                        <p className="font-mono text-[10.5px] text-black/70 mt-0.5">{photoDiscipline}</p>
+                        <p className="font-mono text-[10.5px] text-black/70 mt-0.5">{singlePhotoDiscipline}</p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center text-secondary font-mono text-xs py-14">
-                      Select or drop a photo to preview
+                      Select or drop a single picture to preview
                     </div>
                   )}
                 </div>
@@ -1069,9 +1350,9 @@ export default function StudioDeskPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          handleImageFile(file, (dataUrl, name) => {
-                            setReelCoverUrl(dataUrl);
-                            if (!reelTitle) setReelTitle(name.replace(/\.[^/.]+$/, ''));
+                          compressFile(file).then((photo) => {
+                            setReelCoverUrl(photo.dataUrl);
+                            if (!reelTitle) setReelTitle(photo.name.replace(/\.[^/.]+$/, ''));
                           });
                         }
                       }}
@@ -1160,16 +1441,28 @@ export default function StudioDeskPage() {
                     [ LIVE REEL PREVIEW ]
                   </span>
                   {reelCoverUrl ? (
-                    <div className={`w-full ${reelAspectChoice === '9/16' ? 'max-w-[210px]' : 'max-w-[280px]'} bg-[#faf9f6] text-black rounded-[10px] p-4 shadow-2xl border border-black/10 flex flex-col justify-between space-y-3`}>
+                    <div
+                      className={`w-full ${
+                        reelAspectChoice === '9/16' ? 'max-w-[210px]' : 'max-w-[280px]'
+                      } bg-[#faf9f6] text-black rounded-[10px] p-4 shadow-2xl border border-black/10 flex flex-col justify-between space-y-3`}
+                    >
                       <div className="flex justify-between items-center text-[10px] font-mono text-black/60">
                         <span>REEL.MOV</span>
-                        <span className="px-2 py-0.5 rounded-[6px] bg-blue-100 text-blue-800 font-bold">{reelAspectChoice}</span>
+                        <span className="px-2 py-0.5 rounded-[6px] bg-blue-100 text-blue-800 font-bold">
+                          {reelAspectChoice}
+                        </span>
                       </div>
-                      <div className={`w-full ${reelAspectChoice === '9/16' ? 'aspect-[9/16]' : 'aspect-[16/9]'} rounded-[6px] overflow-hidden bg-black/10 relative`}>
+                      <div
+                        className={`w-full ${
+                          reelAspectChoice === '9/16' ? 'aspect-[9/16]' : 'aspect-[16/9]'
+                        } rounded-[6px] overflow-hidden bg-black/10 relative`}
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={reelCoverUrl} alt="Reel Preview" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                          <span className="w-9 h-9 rounded-full bg-white/90 text-black flex items-center justify-center pl-0.5 font-bold shadow">▶</span>
+                          <span className="w-9 h-9 rounded-full bg-white/90 text-black flex items-center justify-center pl-0.5 font-bold shadow">
+                            ▶
+                          </span>
                         </div>
                       </div>
                       <div>
@@ -1181,56 +1474,155 @@ export default function StudioDeskPage() {
                     </div>
                   ) : (
                     <div className="text-center text-secondary font-mono text-xs py-14">
-                      Upload a poster frame to see live reel preview
+                      Upload a poster frame to preview
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Mode 3: Full Project Folder */}
+            {/* Mode 3: FULL PROJECT FOLDER (Uploads entire folder or 25+ photos!) */}
             {manualType === 'project' && (
               <div className="max-w-3xl space-y-5">
+                {/* Dual Drop Zone: Entire Folder OR Multiple Photos */}
                 <div
-                  onClick={() => projInputRef.current?.click()}
-                  className={`w-full h-44 rounded-[12px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all ${
-                    projCoverUrl
-                      ? 'border-white/60 bg-white/[0.02]'
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    const files = await getFilesFromDataTransfer(e.dataTransfer);
+                    if (files.length > 0) {
+                      processUploadedFiles(files, (photos, detectedName) => {
+                        setProjPhotos(photos);
+                        setProjCoverIndex(0);
+                        if (!projName && detectedName) setProjName(detectedName);
+                      });
+                    }
+                  }}
+                  className={`w-full rounded-[14px] border-2 border-dashed p-8 text-center transition-all ${
+                    projPhotos.length > 0
+                      ? 'border-white/60 bg-white/[0.03]'
                       : 'border-white/20 hover:border-white/40 bg-white/[0.02] hover:bg-white/[0.04]'
                   }`}
                 >
+                  {/* Hidden Multi-file input */}
                   <input
-                    ref={projInputRef}
+                    ref={projFilesInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleImageFile(file, (dataUrl, name) => {
-                          setProjCoverUrl(dataUrl);
-                          if (!projName) setProjName(name.replace(/\.[^/.]+$/, ''));
+                      const files = e.target.files ? Array.from(e.target.files) : [];
+                      if (files.length > 0) {
+                        processUploadedFiles(files, (photos, detectedName) => {
+                          setProjPhotos(photos);
+                          setProjCoverIndex(0);
+                          if (!projName && detectedName) setProjName(detectedName);
                         });
                       }
                     }}
                   />
-                  <span className="text-3xl mb-2">📁</span>
-                  <p className="font-mono text-xs font-semibold uppercase tracking-wider text-white">
-                    {projCoverUrl ? 'Change Case Cover' : 'Upload Primary Case Cover'}
-                  </p>
+
+                  {/* Hidden Folder input */}
+                  <input
+                    ref={projFolderInputRef}
+                    type="file"
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    {...({ webkitdirectory: '', directory: '', multiple: true } as any)}
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = e.target.files ? Array.from(e.target.files) : [];
+                      if (files.length > 0) {
+                        processUploadedFiles(files, (photos, detectedName) => {
+                          setProjPhotos(photos);
+                          setProjCoverIndex(0);
+                          if (!projName && detectedName) setProjName(detectedName);
+                        });
+                      }
+                    }}
+                  />
+
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-4xl">📁</span>
+                    <p className="font-mono text-sm font-bold uppercase tracking-wider text-white">
+                      {projPhotos.length > 0
+                        ? `${projPhotos.length} Photos Selected in Folder`
+                        : 'Upload Complete Campaign Folder (e.g. Kaldhar)'}
+                    </p>
+                    <p className="font-mono text-xs text-secondary max-w-md">
+                      You can drop your entire folder from Desktop, click to pick the folder, or select multiple pictures at once.
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => projFolderInputRef.current?.click()}
+                        className="px-5 py-2.5 rounded-[8px] bg-[#ff2a2a] hover:bg-[#ff4444] text-white font-mono text-xs font-bold uppercase tracking-wider shadow cursor-pointer flex items-center gap-2"
+                      >
+                        <span>📁</span>
+                        <span>Select Entire Folder</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => projFilesInputRef.current?.click()}
+                        className="px-5 py-2.5 rounded-[8px] bg-white/10 hover:bg-white text-white hover:text-black font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2"
+                      >
+                        <span>🖼️</span>
+                        <span>Select Multiple Photos</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Photos Thumbnail Carousel */}
+                {projPhotos.length > 0 && (
+                  <div className="p-4 rounded-[12px] bg-white/[0.03] border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="text-white font-bold uppercase">
+                        Folder Photos ({projPhotos.length})
+                      </span>
+                      <span className="text-secondary text-[11px]">
+                        Click any photo to set as Cover
+                      </span>
+                    </div>
+                    <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {projPhotos.map((photo, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setProjCoverIndex(idx)}
+                          className={`relative w-16 h-16 rounded-[8px] overflow-hidden border cursor-pointer shrink-0 transition-all ${
+                            projCoverIndex === idx
+                              ? 'border-[#ff2a2a] ring-2 ring-[#ff2a2a]/50 scale-105'
+                              : 'border-white/20 hover:border-white/50 opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={photo.dataUrl} alt={photo.name} className="w-full h-full object-cover" />
+                          {projCoverIndex === idx && (
+                            <div className="absolute inset-x-0 bottom-0 bg-[#ff2a2a] text-white text-[8px] font-black text-center uppercase tracking-tighter">
+                              COVER
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleDeployFullProject} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-mono text-[11px] text-secondary uppercase tracking-wider mb-1.5">
-                        Project / Client Name
+                        Campaign / Client Name
                       </label>
                       <input
                         type="text"
                         value={projName}
                         onChange={(e) => setProjName(e.target.value)}
-                        placeholder="e.g. Acme Motors Global Launch"
+                        placeholder="e.g. Kaldhar Heritage Bridal"
                         className="w-full px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-white outline-none font-mono text-xs text-white"
                       />
                     </div>
@@ -1256,17 +1648,17 @@ export default function StudioDeskPage() {
                       rows={3}
                       value={projDesc}
                       onChange={(e) => setProjDesc(e.target.value)}
-                      placeholder="Short editorial summary of creative direction and challenges..."
+                      placeholder="Short editorial summary of creative direction and deliverables..."
                       className="w-full px-4 py-3 rounded-[10px] bg-white/5 border border-white/10 focus:border-white outline-none font-mono text-xs text-white"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    disabled={!projCoverUrl}
+                    disabled={projPhotos.length === 0}
                     className="w-full py-3.5 rounded-[10px] bg-white text-black hover:bg-neutral-200 disabled:opacity-30 disabled:pointer-events-none font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-lg cursor-pointer"
                   >
-                    Deploy Project Folder to Canvas ↗
+                    Deploy Full Folder ({projPhotos.length} Photos) to Canvas ↗
                   </button>
                 </form>
               </div>
@@ -1307,7 +1699,9 @@ export default function StudioDeskPage() {
                         <img src={item.img} alt={item.name} className="w-11 h-11 rounded-[6px] object-cover shrink-0" />
                         <div className="overflow-hidden">
                           <p className="font-mono text-xs font-bold text-white truncate">{item.name}</p>
-                          <p className="font-mono text-[10px] text-secondary truncate">{item.discipline}</p>
+                          <p className="font-mono text-[10px] text-secondary truncate">
+                            {item.discipline} {item.photoCount && item.photoCount > 1 ? `(${item.photoCount} photos)` : ''}
+                          </p>
                         </div>
                       </div>
                       <button

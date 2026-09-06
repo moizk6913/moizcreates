@@ -218,6 +218,8 @@ Return ONLY raw JSON with:
     if (action === 'chat') {
       const history = messages || [];
       const lastUserMsg = history[history.length - 1]?.content || 'Hello';
+      const fileNamesList: string[] = body.fileNames || [];
+      const extraImages: string[] = body.additionalImages || [];
 
       if (apiKey) {
         try {
@@ -227,22 +229,36 @@ You collaborate directly with Moiz to curate, organize, and present his brand vi
 Tone & Style:
 - Speak conversationally, warmly, and naturally like an experienced, passionate human colleague. Never sound like a robotic generic assistant.
 - You have deep practical expertise in multi-channel commercial campaigns (Editorial Print Lookbooks, 9:16 vertical reels/stories, 1:1 Instagram carousels, panoramic e-commerce hero banners, retail OOH hoardings/billboards, ARRI/Cooke cinema setups, Swiss typography).
-- When Moiz provides an artwork or campaign artboard:
-  1. Carefully analyze all the distinct formats and deliverables present in the artwork.
+- When Moiz provides an artwork, folder, or collection of campaign assets (like Kaldhar with multiple pages, social posts, standees):
+  1. Acknowledge the assets by name and group them into formats (Lookbook prints, social posts, retail standees, artboards).
   2. Point out specific visual strengths (typography hierarchy, lighting, color grading, textile contrast).
-  3. Proactively ask Moiz 1 or 2 thoughtful, direct creative director questions to decide how to feature the assets on his portfolio (e.g. hero cover selection, multi-deliverable tab grouping vs. standalone drops, interactive viewer vs. full-bleed gallery).
+  3. Tell Moiz you can publish all these assets to his Infinite Canvas and Portfolio in 1 click, and ask him which visual should be the primary hero cover.
   4. Keep your responses crisp, engaging, structured, and easy to reply to in seconds.`;
 
           const contents = history.map((m: { role: string; content: string; image?: string }, index: number) => {
+            const isLast = index === history.length - 1;
+            let text = m.content || (m.image ? 'Please analyze this campaign artwork.' : '');
+            if (isLast && fileNamesList.length > 0) {
+              text += `\n\n[Campaign Assets Attached: ${fileNamesList.length} files: ${fileNamesList.slice(0, 25).join(', ')}]`;
+            }
+
             const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
-              { text: m.content || (m.image ? 'Please analyze this campaign artwork.' : '') },
+              { text },
             ];
 
             // If this message or the request has an attached image, attach it
-            const targetImg = m.image || (index === history.length - 1 ? imageData : null);
+            const targetImg = m.image || (isLast ? imageData : null);
             if (targetImg) {
               const parsed = parseInlineImage(targetImg);
               if (parsed) parts.push({ inlineData: parsed });
+            }
+
+            // If last message and there are extra images (up to 3), attach them for vision
+            if (isLast && extraImages.length > 0) {
+              for (const extraImg of extraImages.slice(0, 3)) {
+                const parsed = parseInlineImage(extraImg);
+                if (parsed) parts.push({ inlineData: parsed });
+              }
             }
 
             return {
