@@ -2,7 +2,7 @@
 
 export default function ClientsStrip() {
   return (
-    <section id="clients" className="w-full py-10 sm:py-12 md:py-14 bg-canvas overflow-hidden border-none relative select-none">
+    <section id="clients" className="w-full py-6 sm:py-8 md:py-10 bg-canvas overflow-hidden border-none relative select-none">
       {/* Marquee Wrapper with soft edge masks (zero lines) */}
       <div className="w-full overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <div className="flex items-center w-max gap-14 sm:gap-20 md:gap-24 animate-marquee-left hover:[animation-play-state:paused]">
@@ -15,55 +15,55 @@ export default function ClientsStrip() {
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Prada">
             <svg viewBox="0 0 120 24" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
-              <text x="0" y="20" font-family="'Times New Roman', Times, serif" font-size="24" font-weight="900" letterSpacing="4">PRADA</text>
+              <text x="0" y="20" fontFamily="'Times New Roman', Times, serif" fontSize="24" fontWeight="900" letterSpacing="4">PRADA</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Vogue">
             <svg viewBox="0 0 120 26" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
-              <text x="0" y="22" font-family="'Didot', 'Bodoni MT', serif" font-size="26" font-weight="900" letterSpacing="4">VOGUE</text>
+              <text x="0" y="22" fontFamily="'Didot', 'Bodoni MT', serif" fontSize="26" fontWeight="900" letterSpacing="4">VOGUE</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Balenciaga">
             <svg viewBox="0 0 156 22" fill="currentColor" className="h-full w-auto max-w-[150px] text-black block">
-              <text x="0" y="18" font-family="'Arial Black', sans-serif" font-size="18" font-weight="900" letterSpacing="4">BALENCIAGA</text>
+              <text x="0" y="18" fontFamily="'Arial Black', sans-serif" fontSize="18" fontWeight="900" letterSpacing="4">BALENCIAGA</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Saint Laurent">
             <svg viewBox="0 0 170 20" fill="currentColor" className="h-full w-auto max-w-[160px] text-black block">
-              <text x="0" y="16" font-family="'Helvetica Neue', Helvetica, sans-serif" font-size="16" font-weight="700" letterSpacing="3.5">SAINT LAURENT</text>
+              <text x="0" y="16" fontFamily="'Helvetica Neue', Helvetica, sans-serif" fontSize="16" fontWeight="700" letterSpacing="3.5">SAINT LAURENT</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Chanel">
             <svg viewBox="0 0 120 22" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
-              <text x="0" y="18" font-family="'Futura', 'Century Gothic', sans-serif" font-size="20" font-weight="800" letterSpacing="5">CHANEL</text>
+              <text x="0" y="18" fontFamily="'Futura', 'Century Gothic', sans-serif" fontSize="20" fontWeight="800" letterSpacing="5">CHANEL</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Dior">
             <svg viewBox="0 0 90 26" fill="currentColor" className="h-full w-auto max-w-[120px] text-black block">
-              <text x="0" y="22" font-family="'Didot', 'Bodoni MT', serif" font-size="26" font-weight="900" letterSpacing="3">DIOR</text>
+              <text x="0" y="22" fontFamily="'Didot', 'Bodoni MT', serif" fontSize="26" fontWeight="900" letterSpacing="3">DIOR</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Supreme">
             <svg viewBox="0 0 110 24" fill="currentColor" className="h-full w-auto max-w-[130px] text-black block">
-              <text x="0" y="20" font-family="'Futura', 'Arial Black', sans-serif" font-size="22" font-weight="900" font-style="italic" letterSpacing="1">Supreme</text>
+              <text x="0" y="20" fontFamily="'Futura', 'Arial Black', sans-serif" fontSize="22" fontWeight="900" fontStyle="italic" letterSpacing="1">Supreme</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Porsche">
             <svg viewBox="0 0 140 20" fill="currentColor" className="h-full w-auto max-w-[150px] text-black block">
-              <text x="0" y="16" font-family="'Copperplate', 'Helvetica Neue', sans-serif" font-size="16" font-weight="900" letterSpacing="5">PORSCHE</text>
+              <text x="0" y="16" fontFamily="'Copperplate', 'Helvetica Neue', sans-serif" fontSize="16" fontWeight="900" letterSpacing="5">PORSCHE</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Acne Studios">
             <svg viewBox="0 0 150 20" fill="currentColor" className="h-full w-auto max-w-[150px] text-black block">
-              <text x="0" y="16" font-family="'Helvetica Neue', sans-serif" font-size="15" font-weight="700" letterSpacing="3">ACNE STUDIOS</text>
+              <text x="0" y="16" fontFamily="'Helvetica Neue', sans-serif" fontSize="15" fontWeight="700" letterSpacing="3">ACNE STUDIOS</text>
             </svg>
           </div>
 
@@ -88,55 +88,55 @@ export default function ClientsStrip() {
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Prada" aria-hidden="true">
             <svg viewBox="0 0 120 24" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
-              <text x="0" y="20" font-family="'Times New Roman', Times, serif" font-size="24" font-weight="900" letterSpacing="4">PRADA</text>
+              <text x="0" y="20" fontFamily="'Times New Roman', Times, serif" fontSize="24" fontWeight="900" letterSpacing="4">PRADA</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Vogue" aria-hidden="true">
             <svg viewBox="0 0 120 26" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
-              <text x="0" y="22" font-family="'Didot', 'Bodoni MT', serif" font-size="26" font-weight="900" letterSpacing="4">VOGUE</text>
+              <text x="0" y="22" fontFamily="'Didot', 'Bodoni MT', serif" fontSize="26" fontWeight="900" letterSpacing="4">VOGUE</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Balenciaga" aria-hidden="true">
             <svg viewBox="0 0 156 22" fill="currentColor" className="h-full w-auto max-w-[150px] text-black block">
-              <text x="0" y="18" font-family="'Arial Black', sans-serif" font-size="18" font-weight="900" letterSpacing="4">BALENCIAGA</text>
+              <text x="0" y="18" fontFamily="'Arial Black', sans-serif" fontSize="18" fontWeight="900" letterSpacing="4">BALENCIAGA</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Saint Laurent" aria-hidden="true">
             <svg viewBox="0 0 170 20" fill="currentColor" className="h-full w-auto max-w-[160px] text-black block">
-              <text x="0" y="16" font-family="'Helvetica Neue', Helvetica, sans-serif" font-size="16" font-weight="700" letterSpacing="3.5">SAINT LAURENT</text>
+              <text x="0" y="16" fontFamily="'Helvetica Neue', Helvetica, sans-serif" fontSize="16" fontWeight="700" letterSpacing="3.5">SAINT LAURENT</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Chanel" aria-hidden="true">
             <svg viewBox="0 0 120 22" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
-              <text x="0" y="18" font-family="'Futura', 'Century Gothic', sans-serif" font-size="20" font-weight="800" letterSpacing="5">CHANEL</text>
+              <text x="0" y="18" fontFamily="'Futura', 'Century Gothic', sans-serif" fontSize="20" fontWeight="800" letterSpacing="5">CHANEL</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Dior" aria-hidden="true">
             <svg viewBox="0 0 90 26" fill="currentColor" className="h-full w-auto max-w-[120px] text-black block">
-              <text x="0" y="22" font-family="'Didot', 'Bodoni MT', serif" font-size="26" font-weight="900" letterSpacing="3">DIOR</text>
+              <text x="0" y="22" fontFamily="'Didot', 'Bodoni MT', serif" fontSize="26" fontWeight="900" letterSpacing="3">DIOR</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Supreme" aria-hidden="true">
             <svg viewBox="0 0 110 24" fill="currentColor" className="h-full w-auto max-w-[130px] text-black block">
-              <text x="0" y="20" font-family="'Futura', 'Arial Black', sans-serif" font-size="22" font-weight="900" font-style="italic" letterSpacing="1">Supreme</text>
+              <text x="0" y="20" fontFamily="'Futura', 'Arial Black', sans-serif" fontSize="22" fontWeight="900" fontStyle="italic" letterSpacing="1">Supreme</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Porsche" aria-hidden="true">
             <svg viewBox="0 0 140 20" fill="currentColor" className="h-full w-auto max-w-[150px] text-black block">
-              <text x="0" y="16" font-family="'Copperplate', 'Helvetica Neue', sans-serif" font-size="16" font-weight="900" letterSpacing="5">PORSCHE</text>
+              <text x="0" y="16" fontFamily="'Copperplate', 'Helvetica Neue', sans-serif" fontSize="16" fontWeight="900" letterSpacing="5">PORSCHE</text>
             </svg>
           </div>
 
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Acne Studios" aria-hidden="true">
             <svg viewBox="0 0 150 20" fill="currentColor" className="h-full w-auto max-w-[150px] text-black block">
-              <text x="0" y="16" font-family="'Helvetica Neue', sans-serif" font-size="15" font-weight="700" letterSpacing="3">ACNE STUDIOS</text>
+              <text x="0" y="16" fontFamily="'Helvetica Neue', sans-serif" fontSize="15" fontWeight="700" letterSpacing="3">ACNE STUDIOS</text>
             </svg>
           </div>
 

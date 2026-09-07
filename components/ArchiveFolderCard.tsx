@@ -21,7 +21,6 @@ export interface FolderStickerData {
       | 'sneaker'
       | 'airplane'
       | 'flame'
-      | 'lotus'
       | 'diamond'
       | 'audio';
   };
@@ -314,8 +313,6 @@ export default function ArchiveFolderCard({
   stickers,
   onClick,
 }: ArchiveFolderProps) {
-  const pointerStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
-
   // Ensure we have at least 4 photos for the fanned stack
   const displayPhotos = [
     photos[0] || 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop',
@@ -324,26 +321,6 @@ export default function ArchiveFolderCard({
     photos[3] || photos[1] || photos[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop',
   ];
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Record starting coordinate & time
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, time: performance.now() };
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (!pointerStartRef.current) return;
-    const deltaX = Math.abs(e.clientX - pointerStartRef.current.x);
-    const deltaY = Math.abs(e.clientY - pointerStartRef.current.y);
-    const elapsed = performance.now() - pointerStartRef.current.time;
-    pointerStartRef.current = null;
-
-    // Genuine click: mouse moved less than 14px and held under 500ms
-    if (deltaX < 14 && deltaY < 14 && elapsed < 500) {
-      e.stopPropagation();
-      e.preventDefault();
-      onClick();
-    }
-  };
-
   return (
     <div
       data-folder-card="true"
@@ -351,8 +328,6 @@ export default function ArchiveFolderCard({
         e.stopPropagation();
         onClick();
       }}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
       className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation pointer-events-auto"
     >
       {/* 3D FOLDER STAGE: Headroom for upward peeking polaroid photo cards */}

@@ -555,29 +555,25 @@ function InfiniteCanvasContent() {
       };
       img.src = url;
     });
-  }, [selectedFile, photoRatios]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFile]);
 
-  // Mobile viewport detection, keydown, and smooth 3D tilt tracking
+  // Lock document scroll on mount (BUG-01 fix: separated from keyboard handler so it doesn't re-run on enlargedIndex change)
   useEffect(() => {
-    // Lock document scroll so dragging canvas does not trigger page bounce/scroll
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (enlargedIndex !== null) {
-          setEnlargedIndex(null);
-        } else {
-          setSelectedFile(null);
-        }
-      }
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
     };
-    window.addEventListener('keydown', handleKeyDown);
+  }, []); // Runs ONCE on mount/unmount only
 
+  // Mobile viewport detection and smooth 3D tilt tracking (separate from overflow lock)
+  useEffect(() => {
     const handleWindowMouseMove = (e: MouseEvent) => {
-      // Damped normalized mouse position (-1 to 1) for subtle 3D space depth
       const x = (e.clientX / window.innerWidth - 0.5) * 2;
       const y = (e.clientY / window.innerHeight - 0.5) * 2;
       setTilt({ x, y });
@@ -597,12 +593,24 @@ function InfiniteCanvasContent() {
     window.addEventListener('resize', checkMobile);
 
     return () => {
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousemove', handleWindowMouseMove);
       window.removeEventListener('resize', checkMobile);
     };
+  }, []); // Runs ONCE on mount/unmount only
+
+  // Escape key handler — depends on enlargedIndex to know what to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (enlargedIndex !== null) {
+          setEnlargedIndex(null);
+        } else {
+          setSelectedFile(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [enlargedIndex]);
 
   // Keyboard navigation for lightbox
@@ -626,13 +634,6 @@ function InfiniteCanvasContent() {
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only capture primary button (mouse left or single touch)
     if (e.button !== 0) return;
-    
-    // Check if clicked inside a folder card
-    const isFolderCard = (e.target as HTMLElement)?.closest?.('[data-folder-card]');
-    if (isFolderCard) {
-      // Let folder card handle its own click
-      return;
-    }
 
     isDraggingRef.current = true;
     hasMovedRef.current = false;
@@ -671,7 +672,7 @@ function InfiniteCanvasContent() {
     }
     setTimeout(() => {
       hasMovedRef.current = false;
-    }, 50);
+    }, 120);
   };
 
   // --- TWO-FINGER PINCH-TO-ZOOM FOR MOBILE TOUCH ---
@@ -788,7 +789,7 @@ function InfiniteCanvasContent() {
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className="group pointer-events-auto inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-sm border border-black/5"
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 sm:px-4 py-2.5 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-accent-red active:scale-95 transition-all shadow-sm border border-black/5"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold">PORTFOLIO</span>
@@ -798,7 +799,7 @@ function InfiniteCanvasContent() {
         <button
           type="button"
           onClick={handleRecenter}
-          className="group pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-[#e60000] active:scale-95 transition-all shadow-sm border border-black/5 cursor-pointer"
+          className="group pointer-events-auto inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-3.5 py-2.5 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[10px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-[#e60000] active:scale-95 transition-all shadow-sm border border-black/5 cursor-pointer"
           title="Reset canvas view to center"
         >
           <span className="text-xs transition-transform duration-300 group-hover:rotate-90">⌖</span>
@@ -816,7 +817,7 @@ function InfiniteCanvasContent() {
           className="absolute top-1/2 left-1/2 will-change-transform transition-transform duration-100 ease-out"
           style={{
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom}) rotateX(${tilt.y * -3.5}deg) rotateY(${tilt.x * 5}deg)`,
-            transformOrigin: '0 0',
+            transformOrigin: '50% 50%',
             transformStyle: 'preserve-3d',
           }}
         >
@@ -845,6 +846,7 @@ function InfiniteCanvasContent() {
               stickers={file.stickers}
               colorTag={file.colorTag}
               onClick={() => {
+                if (hasMovedRef.current) return;
                 setSelectedFile(file);
                 setActiveTab('all');
                 setEnlargedIndex(null);
@@ -913,11 +915,11 @@ function InfiniteCanvasContent() {
                 </div>
 
                 {/* Filter Pills Bar */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pr-4">
                   <button
                     type="button"
                     onClick={() => setActiveTab('all')}
-                    className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                    className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
                       activeTab === 'all'
                         ? 'bg-black text-white shadow-sm'
                         : 'bg-black/5 text-secondary hover:bg-black/10'
@@ -929,7 +931,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('social')}
-                      className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                      className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
                         activeTab === 'social'
                           ? 'bg-black text-white shadow-sm'
                           : 'bg-black/5 text-secondary hover:bg-black/10'
@@ -942,7 +944,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('lookbook')}
-                      className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                      className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
                         activeTab === 'lookbook'
                           ? 'bg-black text-white shadow-sm'
                           : 'bg-black/5 text-secondary hover:bg-black/10'
@@ -955,7 +957,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('banners')}
-                      className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                      className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
                         activeTab === 'banners'
                           ? 'bg-black text-white shadow-sm'
                           : 'bg-black/5 text-secondary hover:bg-black/10'
@@ -969,7 +971,7 @@ function InfiniteCanvasContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedFile(null)}
-                  className="w-10 h-10 rounded-full bg-black/5 hover:bg-black/15 active:scale-95 text-secondary flex items-center justify-center font-mono text-sm transition-all cursor-pointer"
+                  className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hover:bg-black/15 active:scale-95 text-secondary flex items-center justify-center font-mono text-sm transition-all cursor-pointer"
                   title="Close Gallery"
                 >
                   ✕
@@ -1048,7 +1050,9 @@ function InfiniteCanvasContent() {
                   </div>
                 ) : displayedPhotos.length <= 3 ? (
                   /* Balanced Centered Grid for 2-3 Photos */
-                  <div className={`grid grid-cols-1 sm:grid-cols-${displayedPhotos.length} gap-6 max-w-5xl mx-auto`}>
+                  <div className={`grid gap-6 max-w-5xl mx-auto ${
+                    displayedPhotos.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'
+                  }`}>
                     {displayedPhotos.map((photoUrl, idx) => {
                       const rawIndex = rawPhotos.indexOf(photoUrl);
                       const cat = getCategory(photoUrl);

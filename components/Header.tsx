@@ -23,6 +23,7 @@ export default function Header({ visible = true }: HeaderProps) {
     ];
 
     let currentIdx = 0;
+    let innerCycleTimeout: NodeJS.Timeout | null = null;
 
     const getTime = (cityObj: typeof worldCities[0]) => {
       try {
@@ -50,7 +51,7 @@ export default function Header({ visible = true }: HeaderProps) {
 
     const cycleInterval = setInterval(() => {
       setIsFading(true);
-      setTimeout(() => {
+      innerCycleTimeout = setTimeout(() => {
         currentIdx = (currentIdx + 1) % worldCities.length;
         updateDisplay();
         setIsFading(false);
@@ -60,6 +61,7 @@ export default function Header({ visible = true }: HeaderProps) {
     return () => {
       clearInterval(liveInterval);
       clearInterval(cycleInterval);
+      if (innerCycleTimeout) clearTimeout(innerCycleTimeout);
     };
   }, []);
 

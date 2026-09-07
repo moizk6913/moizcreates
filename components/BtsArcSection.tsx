@@ -203,7 +203,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
         if (trackWidth > 0 && rowTwoPosRef.current >= trackWidth) {
           rowTwoPosRef.current -= trackWidth;
         }
-        rowTwoRef.current.style.transform = `translate3d(-${trackWidth - rowTwoPosRef.current}px, 0, 0)`;
+        rowTwoRef.current.style.transform = `translate3d(${rowTwoPosRef.current - trackWidth}px, 0, 0)`;
       }
 
       animId = requestAnimationFrame(loop);
@@ -247,6 +247,21 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
               playsInline
               preload="metadata"
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              onError={(e) => {
+                // If local video file is missing, hide video and show poster fallback via bg image
+                const el = e.currentTarget;
+                if (item.posterUrl) {
+                  const parent = el.parentElement;
+                  if (parent) {
+                    el.style.display = 'none';
+                    const img = document.createElement('img');
+                    img.src = item.posterUrl;
+                    img.alt = item.brand;
+                    img.className = 'w-full h-full object-cover';
+                    parent.insertBefore(img, el.nextSibling);
+                  }
+                }
+              }}
             />
           ) : (
             <img
@@ -303,7 +318,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
   };
 
   return (
-    <section id="work-showcase" className="w-full py-12 sm:py-16 md:py-20 bg-canvas overflow-hidden">
+    <section id="work-showcase" className="w-full py-8 sm:py-12 md:py-14 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks (Zero External Text) */}
       <div className="w-full flex flex-col gap-6 md:gap-8 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with mixed bento widths */}

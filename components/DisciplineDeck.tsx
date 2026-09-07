@@ -249,12 +249,17 @@ export default function DisciplineDeck() {
   }, []);
 
   return (
-    <section id="disciplines" className="w-full py-14 sm:py-18 md:py-22 bg-canvas border-none relative overflow-hidden select-none">
+    <section id="disciplines" className="w-full py-8 sm:py-12 md:py-16 bg-canvas border-none relative overflow-hidden select-none">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
 
         {/* MOBILE VIEW (< 768px): Tactile Horizontal Swipe Deck (Substantial size, crisp readability) */}
         <div className="md:hidden w-full">
-          <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-4 px-2 no-scrollbar touch-pan-x">
+          {/* Mobile Section Label (BUG-18 fix) */}
+          <div className="px-2 pb-3 flex items-center justify-between">
+            <span className="font-mono text-[11px] font-bold text-primary uppercase tracking-widest">Disciplines</span>
+            <span className="font-mono text-[10px] text-muted tracking-wider uppercase">← Swipe →</span>
+          </div>
+          <div className="flex gap-5 overflow-x-auto snap-x py-4 px-2 no-scrollbar">
             {cardsData.map((card) => (
               <Link
                 href={`/canvas?discipline=${card.id}`}
@@ -295,7 +300,7 @@ export default function DisciplineDeck() {
 
           <div className="text-center mt-3">
             <span className="font-mono text-[10px] text-muted tracking-wider uppercase">
-              ← SWIPE DISCIPLINES • TAP TO OPEN ARCHIVE →
+              Tap any card to open archive ↗
             </span>
           </div>
         </div>

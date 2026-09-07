@@ -31,7 +31,7 @@ const initialCloudData: CloudItem[] = [
   { id: 'oxymorons', w: 68, h: 92, x: 0, y: -15, rot: -2, z: 10, depth: 1.3, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
   { id: 'easyhaibro', w: 64, h: 64, x: -3, y: 14, rot: 3, z: 11, depth: 1.2, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
   { id: 'windchasers', w: 88, h: 52, x: 16, y: -15, rot: -5, z: 12, depth: 1.4, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 72, h: 72, x: -17, y: -14, rot: 4, z: 10, depth: 1.3, img: '/assets/logo.png' },
+  { id: 'kaladhar', w: 72, h: 72, x: -17, y: -14, rot: 4, z: 10, depth: 1.3, img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop' },
 
   // Tier 2: Mid Constellation Ring (Medium cards, depth 0.9 - 1.2)
   { id: 'ruchi', w: 56, h: 76, x: -22, y: -6, rot: -4, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
@@ -430,6 +430,9 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
                 alt="Director Still"
                 className="w-full h-full object-cover block border-0 outline-none"
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+                }}
               />
             </div>
           </div>
@@ -460,6 +463,9 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
                 alt="Pop Still"
                 className="w-full h-full object-cover block border-0 outline-none"
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+                }}
               />
               {pop.isVideo && (
                 <span className="absolute bottom-1 right-1 w-[18px] h-[18px] rounded-[6px] bg-[#ff2a2a] text-white flex items-center justify-center text-[8px] pl-[1px] pointer-events-none">

@@ -346,6 +346,7 @@ export default function AdminPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishProgress, setPublishProgress] = useState('');
   const [publishSuccess, setPublishSuccess] = useState<string | null>(null);
+  const [publishedFolderId, setPublishedFolderId] = useState<string | null>(null);
 
   // Asset Filter & Sort State
   const [assetFilter, setAssetFilter] = useState<'all' | 'social' | 'lookbook' | 'banner' | 'square'>('all');
@@ -544,9 +545,11 @@ export default function AdminPage() {
     try {
       await saveCanvasFileAsync(newCanvasFile);
       setIsPublishing(false);
-      setPublishSuccess(
-        `✓ Campaign "${finalTitle}" published successfully with ${photosList.length} assets!`
-      );
+      setPublishedFolderId(finalId);
+      const successMsg = `✓ Campaign "${finalTitle}" published successfully with ${photosList.length} assets!`;
+      setPublishSuccess(successMsg);
+      // Auto-dismiss success banner after 7 seconds so user can click "Open on Canvas"
+      setTimeout(() => setPublishSuccess(null), 7000);
       refreshLiveWork();
     } catch (err) {
       console.error(err);
@@ -660,16 +663,18 @@ export default function AdminPage() {
         className="hidden"
         onChange={(e) => {
           if (e.target.files) processFiles(e.target.files);
+          e.target.value = '';
         }}
       />
       <input
         ref={filesInputRef}
         type="file"
         multiple
-        accept="image/*"
+        accept="image/*,.jpg,.jpeg,.png,.webp,.avif,.gif,.bmp"
         className="hidden"
         onChange={(e) => {
           if (e.target.files) processFiles(e.target.files);
+          e.target.value = '';
         }}
       />
 
@@ -768,11 +773,11 @@ export default function AdminPage() {
               <span className="font-mono text-xs sm:text-sm font-bold">{publishSuccess}</span>
               <div className="flex gap-2">
                 <Link
-                  href="/canvas"
+                  href={publishedFolderId ? `/canvas?folder=${publishedFolderId}` : '/canvas'}
                   target="_blank"
                   className="px-3.5 py-1.5 rounded-[6px] bg-emerald-500 text-black font-mono text-xs font-bold hover:bg-emerald-400 transition-all"
                 >
-                  OPEN ON CANVAS →
+                  OPEN ON CANVAS ↗
                 </Link>
                 <Link
                   href="/"

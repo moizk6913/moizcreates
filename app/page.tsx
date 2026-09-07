@@ -18,11 +18,24 @@ export default function Home() {
   const [isIntroDone, setIsIntroDone] = useState(false);
 
   useEffect(() => {
+    // Check if intro was already played this session (prevents re-locking on back nav)
+    const introDoneThisSession = typeof window !== 'undefined' && sessionStorage.getItem('moiz_intro_done') === 'true';
+
+    if (introDoneThisSession && !isIntroDone) {
+      // Skip the intro re-run — directly mark as done
+      setIsIntroDone(true);
+      return;
+    }
+
     if (!isIntroDone) {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
       window.scrollTo(0, 0);
     } else {
+      // Mark intro as completed for this session
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('moiz_intro_done', 'true');
+      }
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     }
