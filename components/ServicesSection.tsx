@@ -1,33 +1,39 @@
 'use client';
 
-const SERVICES = [
+interface ServiceRow {
+  number: string;
+  title: string;
+  description: string;
+}
+
+const SERVICES: ServiceRow[] = [
   {
     number: '01',
-    title: 'Art Direction',
+    title: 'ART DIRECTION',
     description:
       'Strategic visual thinking guides projects from concept to execution, shaping cohesive narratives built around clarity, emotion, and impact.',
   },
   {
     number: '02',
-    title: 'Brand Identity',
+    title: 'BRAND IDENTITY',
     description:
       'Distinct identities are built from the ground up, with every element working together to create a clear, cohesive, and lasting presence.',
   },
   {
     number: '03',
-    title: 'Editorial Design',
+    title: 'EDITORIAL DESIGN',
     description:
       'Posters, magazines, books, and print systems combine visual impact with clear communication and thoughtfully structured information.',
   },
   {
     number: '04',
-    title: 'Experience Design',
+    title: 'EXPERIENCE DESIGN',
     description:
       'Intuitive digital experiences bring usability, flow, and interaction together through clear, seamless, and purposeful design.',
   },
   {
     number: '05',
-    title: 'Packaging & Print',
+    title: 'PACKAGING DESIGN',
     description:
       'Packaging combines shelf presence with strategic communication, expressing product value through clarity, distinction, and thoughtful detail.',
   },
@@ -35,37 +41,40 @@ const SERVICES = [
 
 export default function ServicesSection() {
   return (
-    <section id="services" className="w-full py-20 sm:py-28 px-4 sm:px-6 md:px-12 bg-canvas border-t border-border-hairline">
-      <div className="max-w-6xl mx-auto space-y-12">
-        {/* Section Header */}
-        <div className="flex items-baseline justify-between border-b border-border-hairline pb-4">
-          <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-primary uppercase tracking-tight">
-            Services
-          </h2>
+    <section id="services" className="w-full py-16 sm:py-24 bg-white border-t border-black/[0.08]">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 md:px-14">
+        {/* Section Label */}
+        <div className="flex items-center justify-between pb-8 sm:pb-12">
+          <span className="font-mono text-xs sm:text-sm text-black tracking-widest uppercase font-bold">
+            SERVICES — SERVICES —
+          </span>
           <span className="font-mono text-xs text-muted uppercase tracking-widest">
-            05 Disciplines
+            05 DISCIPLINES
           </span>
         </div>
 
-        {/* Clean Line Rows (Like Vaishvik Kalva) */}
-        <div className="divide-y divide-border-hairline border-b border-border-hairline">
+        {/* 3-Column Wide Table Rows */}
+        <div className="border-t border-black/[0.08]">
           {SERVICES.map((item) => (
             <div
               key={item.number}
-              className="py-8 sm:py-10 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-start group hover:bg-subtle/40 transition-colors px-2 sm:px-4 rounded-[8px]"
+              className="py-8 sm:py-12 md:py-14 border-b border-black/[0.08] grid grid-cols-1 sm:grid-cols-12 gap-4 sm:gap-6 md:gap-10 items-start transition-colors duration-200 hover:bg-neutral-50/50"
             >
-              <div className="md:col-span-2 font-mono text-sm text-accent-red font-bold tracking-wider">
+              {/* Col 1: Number in Electric Cobalt Blue */}
+              <div className="sm:col-span-2 md:col-span-1 font-mono text-sm sm:text-base text-accent-cobalt font-bold tracking-wider">
                 {item.number}
               </div>
 
-              <div className="md:col-span-4">
-                <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl uppercase tracking-tight text-primary group-hover:text-accent-red transition-colors">
+              {/* Col 2: Title in Electric Cobalt Blue */}
+              <div className="sm:col-span-5 md:col-span-4">
+                <h3 className="font-sans font-black text-base sm:text-lg md:text-xl tracking-wider uppercase text-accent-cobalt leading-tight">
                   {item.title}
                 </h3>
               </div>
 
-              <div className="md:col-span-6">
-                <p className="text-sm sm:text-base text-secondary leading-relaxed font-sans">
+              {/* Col 3: Right-aligned/justified descriptive paragraph */}
+              <div className="sm:col-span-5 md:col-span-7 flex sm:justify-end">
+                <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-sans max-w-xl sm:text-right">
                   {item.description}
                 </p>
               </div>

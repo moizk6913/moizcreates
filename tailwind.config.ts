@@ -16,6 +16,7 @@ const config: Config = {
         muted: '#8c8f98',
         accent: {
           red: '#ff2a2a',
+          cobalt: '#0d09e6',
         },
         border: {
           hairline: '#e8e6e1',

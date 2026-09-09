@@ -3,19 +3,19 @@
 const PHASES = [
   {
     number: '01',
-    title: 'Research',
+    title: 'RESEARCH',
     description:
       'Deep exploration of the client, audience, and project goals establishes clear direction, context, and strategic foundations.',
   },
   {
     number: '02',
-    title: 'Design',
+    title: 'DESIGN',
     description:
       'Ideas evolve through a collaborative process, with continuous refinement, feedback, and client updates shaping the final decision.',
   },
   {
     number: '03',
-    title: 'Deliver',
+    title: 'DELIVER',
     description:
       'Final assets are prepared for print and digital, with launch-ready files, publishing essentials, and ongoing monthly support after handover.',
   },
@@ -23,34 +23,34 @@ const PHASES = [
 
 export default function ProcessSection() {
   return (
-    <section className="w-full py-20 sm:py-28 px-4 sm:px-6 md:px-12 bg-canvas border-t border-border-hairline">
-      <div className="max-w-6xl mx-auto space-y-12">
+    <section className="w-full py-16 sm:py-24 bg-white border-t border-black/[0.08]">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 md:px-14 space-y-12">
         {/* Header */}
-        <div className="flex items-baseline justify-between border-b border-border-hairline pb-4">
-          <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-primary uppercase tracking-tight">
-            Approach
-          </h2>
+        <div className="flex items-center justify-between pb-8 sm:pb-12 border-b border-black/[0.08]">
+          <span className="font-mono text-xs sm:text-sm text-black tracking-widest uppercase font-bold">
+            APPROACH — APPROACH —
+          </span>
           <span className="font-mono text-xs text-muted uppercase tracking-widest">
-            3 Phases
+            03 PHASES
           </span>
         </div>
 
-        {/* 3 Clean Cards (Like Vaishvik Kalva) */}
+        {/* 3 Clean Wide Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {PHASES.map((p) => (
             <div
               key={p.number}
-              className="p-6 sm:p-8 rounded-[12px] bg-subtle/50 border border-border-hairline flex flex-col justify-between space-y-8 hover:border-primary/40 transition-colors"
+              className="p-8 sm:p-10 rounded-[12px] bg-neutral-50/50 border border-black/[0.08] flex flex-col justify-between space-y-10 hover:border-black/25 transition-colors"
             >
-              <div className="font-mono text-sm font-bold text-accent-red">
+              <div className="font-mono text-sm sm:text-base font-bold text-accent-cobalt">
                 {p.number}
               </div>
 
               <div className="space-y-3">
-                <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-primary">
+                <h3 className="font-sans font-black text-xl sm:text-2xl uppercase tracking-wider text-black">
                   {p.title}
                 </h3>
-                <p className="text-sm text-secondary leading-relaxed font-sans">
+                <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-sans">
                   {p.description}
                 </p>
               </div>

@@ -9,6 +9,7 @@ import DisciplineDeck from '@/components/DisciplineDeck';
 import BtsArcSection from '@/components/BtsArcSection';
 import ServicesSection from '@/components/ServicesSection';
 import ProcessSection from '@/components/ProcessSection';
+import TestimonialsSection from '@/components/TestimonialsSection';
 import FaqSection from '@/components/FaqSection';
 import StatementBridge from '@/components/StatementBridge';
 import Contact from '@/components/Contact';
@@ -113,17 +114,20 @@ export default function Home() {
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
 
-      {/* Section 02: Services & Capabilities (01 - 05 Numbered Accordion) */}
+      {/* Section 02: Services (01 - 05 Wide Table) */}
       <ServicesSection />
 
-      {/* Section 02.5: The Directorial Framework (3-Step Methodology) */}
+      {/* Section 02.5: Approach (01 - 03 Phases) */}
       <ProcessSection />
 
-      {/* Section 03: Editorial Manifesto Statement & Seamless Gradient Bridge */}
-      <StatementBridge />
+      {/* Section 02.8: Endorsements & Testimonials (Watermark + Floating Cards) */}
+      <TestimonialsSection />
 
-      {/* Section 03.5: Frequently Asked Questions (01 - 06 Accordion) */}
+      {/* Section 03: Frequently Asked (01 - 06 + Cobalt Ribbon) */}
       <FaqSection />
+
+      {/* Section 03.5: Statement Bridge */}
+      <StatementBridge />
 
       {/* Section 04: Direct Inquiries & Contact with 1-Click Clipboard Feedback */}
       <Contact />
