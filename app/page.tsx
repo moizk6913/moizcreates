@@ -7,6 +7,10 @@ import EditorialManifesto from '@/components/EditorialManifesto';
 import ClientsStrip from '@/components/ClientsStrip';
 import DisciplineDeck from '@/components/DisciplineDeck';
 import BtsArcSection from '@/components/BtsArcSection';
+import ServicesSection from '@/components/ServicesSection';
+import ProcessSection from '@/components/ProcessSection';
+import TestimonialsSection from '@/components/TestimonialsSection';
+import FaqSection from '@/components/FaqSection';
 import StatementBridge from '@/components/StatementBridge';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
@@ -110,10 +114,22 @@ export default function Home() {
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
 
+      {/* Section 02: Services & Capabilities (01 - 05 Numbered Accordion) */}
+      <ServicesSection />
+
+      {/* Section 02.5: The Directorial Framework (3-Step Methodology) */}
+      <ProcessSection />
+
+      {/* Section 02.8: Client Endorsements & Founder Testimonials */}
+      <TestimonialsSection />
+
       {/* Section 03: Editorial Manifesto Statement & Seamless Gradient Bridge */}
       <StatementBridge />
 
-      {/* Section 04: Direct Inquiries & Contact */}
+      {/* Section 03.5: Frequently Asked Questions (01 - 06 Accordion) */}
+      <FaqSection />
+
+      {/* Section 04: Direct Inquiries & Contact with 1-Click Clipboard Feedback */}
       <Contact />
 
       {/* Case Study Modal */}

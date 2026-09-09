@@ -131,7 +131,10 @@ export default function Header({ visible = true }: HeaderProps) {
           {worldTime}
         </div>
 
-        <nav className="flex items-center gap-4 sm:gap-6" aria-label="Main Navigation">
+        <nav className="flex items-center gap-3 sm:gap-6" aria-label="Main Navigation">
+          <Link href="/#services" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
+            SERVICES
+          </Link>
           <Link href="/canvas" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
             ARCHIVE ↗
           </Link>
