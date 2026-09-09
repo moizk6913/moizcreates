@@ -1,7 +1,7 @@
 'use client';
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
+import { DynamicCanvasFile } from '@/lib/contentStore';
 
 interface BentoItem {
   id: string;
@@ -128,11 +128,86 @@ const ROW_TWO_BENTO: BentoItem[] = [
   },
 ];
 
-interface BtsArcSectionProps {
-  onOpenCase?: (id: string) => void;
+function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: BentoItem[]; rowTwo: BentoItem[] } {
+  if (!files || files.length === 0) {
+    return { rowOne: ROW_ONE_BENTO, rowTwo: ROW_TWO_BENTO };
+  }
+
+  // Flatten all photos along with campaign metadata
+  const flatPhotos: Array<{ photo: string; campaign: DynamicCanvasFile; index: number }> = [];
+  files.forEach((file) => {
+    if (file.photos && file.photos.length > 0) {
+      file.photos.forEach((photo, pIdx) => {
+        flatPhotos.push({ photo, campaign: file, index: pIdx });
+      });
+    } else if (file.img) {
+      flatPhotos.push({ photo: file.img, campaign: file, index: 0 });
+    }
+  });
+
+  if (flatPhotos.length === 0) {
+    return { rowOne: ROW_ONE_BENTO, rowTwo: ROW_TWO_BENTO };
+  }
+
+  const aspectConfigs = [
+    { tag: 'CINEMA 16:9', aspectClass: 'aspect-[16/9]', bgAccent: 'bg-[#0f1115]' },
+    { tag: 'REEL 9:16', aspectClass: 'aspect-[9/16]', bgAccent: 'bg-[#181329]' },
+    { tag: 'LOOKBOOK 4:5', aspectClass: 'aspect-[4/5]', bgAccent: 'bg-[#0b2416]' },
+    { tag: 'POST 1:1', aspectClass: 'aspect-square', bgAccent: 'bg-[#141414]' },
+    { tag: 'DIRECTOR 16:10', aspectClass: 'aspect-[16/10]', bgAccent: 'bg-[#111317]' },
+    { tag: 'STREET REEL 9:16', aspectClass: 'aspect-[9/16]', bgAccent: 'bg-[#ff4e00]' },
+    { tag: 'COMMERCIAL 4:5', aspectClass: 'aspect-[4/5]', bgAccent: 'bg-[#966b2d]' },
+  ];
+
+  const targetPerLane = Math.max(5, Math.min(10, Math.ceil(flatPhotos.length / 2)));
+  const rowOne: BentoItem[] = [];
+  const rowTwo: BentoItem[] = [];
+
+  for (let i = 0; i < targetPerLane; i++) {
+    const itemData = flatPhotos[i % flatPhotos.length];
+    const cfg = aspectConfigs[i % aspectConfigs.length];
+    rowOne.push({
+      id: `user-bento-1-${i}`,
+      projectId: itemData.campaign.id,
+      brand: (itemData.campaign.name || 'CAMPAIGN').toUpperCase(),
+      tag: cfg.tag,
+      aspectClass: cfg.aspectClass,
+      bgAccent: cfg.bgAccent,
+      mediaType: 'image',
+      mediaUrl: itemData.photo,
+      posterUrl: itemData.photo,
+    });
+  }
+
+  for (let j = 0; j < targetPerLane; j++) {
+    const itemData = flatPhotos[(j + targetPerLane) % flatPhotos.length];
+    const cfg = aspectConfigs[(j + 2) % aspectConfigs.length];
+    rowTwo.push({
+      id: `user-bento-2-${j}`,
+      projectId: itemData.campaign.id,
+      brand: (itemData.campaign.name || 'CAMPAIGN').toUpperCase(),
+      tag: cfg.tag,
+      aspectClass: cfg.aspectClass,
+      bgAccent: cfg.bgAccent,
+      mediaType: 'image',
+      mediaUrl: itemData.photo,
+      posterUrl: itemData.photo,
+    });
+  }
+
+  return { rowOne, rowTwo };
 }
 
-export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
+interface BtsArcSectionProps {
+  onOpenCase?: (id: string) => void;
+  uploadedFiles?: DynamicCanvasFile[];
+}
+
+export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSectionProps) {
+  const { rowOne, rowTwo } = useMemo(() => {
+    return buildBentoItemsFromUploads(uploadedFiles || []);
+  }, [uploadedFiles]);
+
   const [unmutedId, setUnmutedId] = useState<string | null>(null);
   const [isRowOneHovered, setIsRowOneHovered] = useState(false);
   const [isRowTwoHovered, setIsRowTwoHovered] = useState(false);
@@ -169,7 +244,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
       clearTimeout(timer);
       window.removeEventListener('resize', updateWidths);
     };
-  }, []);
+  }, [rowOne, rowTwo]);
 
   // Smooth infinite continuous sliding animation loop with velocity damping
   useEffect(() => {
@@ -329,7 +404,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
         >
           <div ref={rowOneRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
             {/* Duplicated for seamless infinite marquee */}
-            {Array.from({ length: REPETITIONS }).flatMap(() => ROW_ONE_BENTO).map((item, idx) =>
+            {Array.from({ length: REPETITIONS }).flatMap(() => rowOne).map((item, idx) =>
               renderBentoCard(item, `lane1-${item.id}-${idx}`)
             )}
           </div>
@@ -343,7 +418,7 @@ export default function BtsArcSection({ onOpenCase }: BtsArcSectionProps) {
         >
           <div ref={rowTwoRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
             {/* Duplicated for seamless infinite marquee */}
-            {Array.from({ length: REPETITIONS }).flatMap(() => ROW_TWO_BENTO).map((item, idx) =>
+            {Array.from({ length: REPETITIONS }).flatMap(() => rowTwo).map((item, idx) =>
               renderBentoCard(item, `lane2-${item.id}-${idx}`)
             )}
           </div>

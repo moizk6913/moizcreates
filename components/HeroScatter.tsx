@@ -4,9 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
+import { DynamicCanvasFile } from '@/lib/contentStore';
+
 interface HeroScatterProps {
   onOpenCase: (id: string) => void;
   onShutterFinish?: () => void;
+  userPhotos?: string[];
+  uploadedFiles?: DynamicCanvasFile[];
 }
 
 interface CloudItem {
@@ -118,13 +122,50 @@ const popPresets = [
   { w: 84, h: 54, isVideo: false },
 ];
 
-export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatterProps) {
+export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, uploadedFiles }: HeroScatterProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
   const shutterRef = useRef<HTMLDivElement>(null);
 
-  const [cards] = useState<CloudItem[]>(initialCloudData);
+  const [cards, setCards] = useState<CloudItem[]>(() => {
+    if (userPhotos && userPhotos.length > 0) {
+      return initialCloudData.map((item, idx) => {
+        const userImg = userPhotos[idx % userPhotos.length];
+        const userCampaign =
+          uploadedFiles && uploadedFiles.length > 0
+            ? uploadedFiles[idx % uploadedFiles.length]
+            : null;
+        return {
+          ...item,
+          img: userImg,
+          id: userCampaign ? userCampaign.id : item.id,
+        };
+      });
+    }
+    return initialCloudData;
+  });
+
+  // Keep cards in sync when user uploads or updates work in real time
+  useEffect(() => {
+    if (userPhotos && userPhotos.length > 0) {
+      setCards(
+        initialCloudData.map((item, idx) => {
+          const userImg = userPhotos[idx % userPhotos.length];
+          const userCampaign =
+            uploadedFiles && uploadedFiles.length > 0
+              ? uploadedFiles[idx % uploadedFiles.length]
+              : null;
+          return {
+            ...item,
+            img: userImg,
+            id: userCampaign ? userCampaign.id : item.id,
+          };
+        })
+      );
+    }
+  }, [userPhotos, uploadedFiles]);
+
   const [popCards, setPopCards] = useState<PopCardItem[]>([]);
   const [shutterIndex, setShutterIndex] = useState(0);
   const [shutterActive, setShutterActive] = useState(true);
@@ -231,11 +272,13 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
 
     if (isTouch) return;
 
+    const effectivePool = userPhotos && userPhotos.length > 0 ? userPhotos : popAssetPool;
+
     const popInterval = setInterval(() => {
       topZRef.current += 1;
-      poolIdxRef.current = (poolIdxRef.current + 1) % popAssetPool.length;
+      poolIdxRef.current = (poolIdxRef.current + 1) % effectivePool.length;
       const preset = popPresets[Math.floor(Math.random() * popPresets.length)];
-      const asset = popAssetPool[poolIdxRef.current];
+      const asset = effectivePool[poolIdxRef.current];
 
       // Spread across the full constellation field (-42vw to +42vw, -30vh to +26vh)
       // NEVER bunch in the middle over "MOIZ KHAN"
@@ -251,9 +294,14 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
         }
       }
 
+      const chosenId =
+        uploadedFiles && uploadedFiles.length > 0
+          ? uploadedFiles[Math.floor(Math.random() * uploadedFiles.length)].id
+          : 'easyhaibro';
+
       const newCard: PopCardItem = {
         keyId: Date.now() + Math.random(),
-        id: 'easyhaibro',
+        id: chosenId,
         img: asset,
         w: preset.w,
         h: preset.h,
@@ -275,7 +323,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
     }, 1800);
 
     return () => clearInterval(popInterval);
-  }, [isInteractive]);
+  }, [isInteractive, userPhotos, uploadedFiles]);
 
   // 4. Multi-Plane 3D Parallax on Mouse Move (ACTIVITY STRICTLY ON MOUSE MOVE — ZERO IDLE JIGGLE)
   useEffect(() => {
@@ -431,7 +479,11 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
                 className="w-full h-full object-cover block border-0 outline-none"
                 loading="lazy"
                 onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+                  if (userPhotos && userPhotos.length > 0) {
+                    e.currentTarget.src = userPhotos[0];
+                  } else {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+                  }
                 }}
               />
             </div>
@@ -464,7 +516,11 @@ export default function HeroScatter({ onOpenCase, onShutterFinish }: HeroScatter
                 className="w-full h-full object-cover block border-0 outline-none"
                 loading="lazy"
                 onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+                  if (userPhotos && userPhotos.length > 0) {
+                    e.currentTarget.src = userPhotos[0];
+                  } else {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
+                  }
                 }}
               />
               {pop.isVideo && (

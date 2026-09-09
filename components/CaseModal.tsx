@@ -1,30 +1,34 @@
 'use client';
-
 import { useEffect } from 'react';
+import Link from 'next/link';
+import { DynamicCanvasFile } from '@/lib/contentStore';
 
 interface CaseModalProps {
   projectId: string | null;
   onClose: () => void;
+  uploadedFiles?: DynamicCanvasFile[];
+  userPhotos?: string[];
 }
 
-const projectsData: Record<
-  string,
-  {
-    tag: string;
-    title: string;
-    role: string;
-    team: string;
-    scope: string;
-    market: string;
-    narrative: string;
-    media: Array<{
-      format: '16-9' | '4-5' | '9-16' | 'grid-2';
-      caption: string;
-      image?: string;
-      items?: Array<{ image: string }>;
-    }>;
-  }
-> = {
+export interface CaseMediaItem {
+  format: '16-9' | '4-5' | '9-16' | 'grid-2';
+  caption: string;
+  image?: string;
+  items?: Array<{ image: string }>;
+}
+
+export interface CaseProjectData {
+  tag: string;
+  title: string;
+  role: string;
+  team: string;
+  scope: string;
+  market: string;
+  narrative: string;
+  media: CaseMediaItem[];
+}
+
+const projectsData: Record<string, CaseProjectData> = {
   easyhaibro: {
     tag: 'FEATURED DIRECTION CREDIT',
     title: 'Easy Hai Bro',
@@ -216,7 +220,7 @@ const projectsData: Record<
   },
 };
 
-export default function CaseModal({ projectId, onClose }: CaseModalProps) {
+export default function CaseModal({ projectId, onClose, uploadedFiles, userPhotos }: CaseModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -231,9 +235,146 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
     };
   }, [projectId, onClose]);
 
-  if (!projectId || !projectsData[projectId]) return null;
+  if (!projectId) return null;
 
-  const data = projectsData[projectId];
+  // 1. Try to match custom uploaded campaign by ID, name, or discipline
+  const userProject = uploadedFiles?.find((f) => {
+    if (f.id === projectId) return true;
+    const pidLower = projectId.toLowerCase();
+    const nameLower = (f.name || '').toLowerCase();
+    const discLower = (f.discipline || '').toLowerCase();
+    if (nameLower === pidLower || discLower.includes(pidLower) || pidLower.includes(nameLower)) return true;
+    if (pidLower === 'video-editing' && (discLower.includes('video') || discLower.includes('reel') || discLower.includes('edit'))) return true;
+    if (pidLower === 'art-direction' && (discLower.includes('art') || discLower.includes('direction'))) return true;
+    if (pidLower === 'brand-identity' && (discLower.includes('brand') || discLower.includes('identity'))) return true;
+    if (pidLower === 'cinematography' && (discLower.includes('cinema') || discLower.includes('camera'))) return true;
+    if (pidLower === 'motion-graphics' && (discLower.includes('motion') || discLower.includes('3d'))) return true;
+    if (pidLower === 'color-grading' && (discLower.includes('color') || discLower.includes('grade'))) return true;
+    if (pidLower === 'photography' && (discLower.includes('photo') || discLower.includes('stills'))) return true;
+    return false;
+  });
+
+  let data: CaseProjectData | null = null;
+
+  if (userProject) {
+    const allPhotos =
+      userProject.photos && userProject.photos.length > 0
+        ? userProject.photos
+        : userProject.img
+        ? [userProject.img]
+        : [];
+
+    const mediaList: CaseMediaItem[] = [];
+
+    if (allPhotos.length > 0) {
+      // 1. Hero 16:9 Master
+      mediaList.push({
+        format: '16-9',
+        caption: `${userProject.name} • 16:9 Director Cut Master Frame`,
+        image: allPhotos[0],
+      });
+
+      // 2. Editorial 4:5 Art
+      if (allPhotos.length > 1) {
+        mediaList.push({
+          format: '4-5',
+          caption: `${userProject.name} • 4:5 Editorial Lookbook Art`,
+          image: allPhotos[1],
+        });
+      }
+
+      // 3. Social 9:16 Reel Frame
+      if (allPhotos.length > 2) {
+        mediaList.push({
+          format: '9-16',
+          caption: `${userProject.name} • 9:16 Social Reel Story Spec`,
+          image: allPhotos[2],
+        });
+      }
+
+      // 4. Side-by-side production stills for remaining pictures (handles all 38+ pictures)
+      for (let i = 3; i < allPhotos.length; i += 2) {
+        if (i + 1 < allPhotos.length) {
+          mediaList.push({
+            format: 'grid-2',
+            caption: `${userProject.name} • Campaign Stills ${i + 1} & ${i + 2}`,
+            items: [{ image: allPhotos[i] }, { image: allPhotos[i + 1] }],
+          });
+        } else {
+          mediaList.push({
+            format: '4-5',
+            caption: `${userProject.name} • Deliverable Still ${i + 1}`,
+            image: allPhotos[i],
+          });
+        }
+      }
+    }
+
+    data = {
+      tag: (userProject.discipline || 'CLIENT CAMPAIGN').toUpperCase(),
+      title: userProject.name,
+      role: userProject.role || 'Art Director & Visual Designer',
+      team: 'Direct with Production Crew & Founders',
+      scope:
+        userProject.deliverables && userProject.deliverables.length > 0
+          ? userProject.deliverables.join(' • ')
+          : 'Brand Architecture, Commercial Direction, Social Media Ads',
+      market: userProject.discipline || 'Commercial Campaign',
+      narrative:
+        userProject.desc ||
+        'Comprehensive multi-asset campaign production and visual direction across broadcast and digital channels.',
+      media: mediaList,
+    };
+  } else if (projectsData[projectId]) {
+    const raw = projectsData[projectId];
+    // If user has uploaded photos, replace mock Unsplash photos in fallback projects so no fake photos appear
+    if (userPhotos && userPhotos.length > 0) {
+      let photoCounter = 0;
+      data = {
+        ...raw,
+        media: raw.media.map((m) => {
+          if (m.items) {
+            return {
+              ...m,
+              items: m.items.map(() => {
+                const img = userPhotos[photoCounter % userPhotos.length];
+                photoCounter++;
+                return { image: img };
+              }),
+            };
+          }
+          const img = userPhotos[photoCounter % userPhotos.length];
+          photoCounter++;
+          return {
+            ...m,
+            image: img,
+          };
+        }),
+      };
+    } else {
+      data = raw;
+    }
+  } else if (uploadedFiles && uploadedFiles.length > 0) {
+    // Graceful fallback to first uploaded project if an unmapped ID was clicked
+    const first = uploadedFiles[0];
+    const allPhotos = first.photos && first.photos.length > 0 ? first.photos : first.img ? [first.img] : [];
+    data = {
+      tag: (first.discipline || 'FEATURED WORK').toUpperCase(),
+      title: first.name,
+      role: first.role || 'Art Director',
+      team: 'Direct with Production Crew',
+      scope: first.deliverables?.join(' • ') || 'Creative Direction',
+      market: first.discipline || 'Commercial',
+      narrative: first.desc || 'Comprehensive visual direction.',
+      media: allPhotos.map((p, idx) => ({
+        format: (idx % 3 === 0 ? '16-9' : idx % 3 === 1 ? '4-5' : '9-16') as any,
+        caption: `${first.name} • Frame ${idx + 1}`,
+        image: p,
+      })),
+    };
+  }
+
+  if (!data) return null;
 
   return (
     <div
@@ -288,7 +429,7 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
 
           {/* Media Stack */}
           <div className="flex flex-col gap-8">
-            {data.media.map((m, idx) => (
+            {data.media.map((m: CaseMediaItem, idx: number) => (
               <div key={idx} className="flex flex-col gap-2">
                 {/* 16:9 Landscape Video / Broadcast Frame */}
                 {m.format === '16-9' && m.image && (
@@ -299,7 +440,11 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                       className="w-full h-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1600&auto=format&fit=crop';
+                        if (userPhotos && userPhotos.length > 0) {
+                          e.currentTarget.src = userPhotos[0];
+                        } else {
+                          e.currentTarget.style.opacity = '0.5';
+                        }
                       }}
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -319,7 +464,11 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                       className="w-full h-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1520690214124-2405c5217036?q=80&w=1200&auto=format&fit=crop';
+                        if (userPhotos && userPhotos.length > 0) {
+                          e.currentTarget.src = userPhotos[0];
+                        } else {
+                          e.currentTarget.style.opacity = '0.5';
+                        }
                       }}
                     />
                   </div>
@@ -334,7 +483,11 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                       className="w-full h-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=900&auto=format&fit=crop';
+                        if (userPhotos && userPhotos.length > 0) {
+                          e.currentTarget.src = userPhotos[0];
+                        } else {
+                          e.currentTarget.style.opacity = '0.5';
+                        }
                       }}
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -348,7 +501,7 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                 {/* 1:1 Side by Side Grid */}
                 {m.format === 'grid-2' && m.items && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {m.items.map((it, i) => (
+                    {m.items.map((it: { image: string }, i: number) => (
                       <div key={i} className="aspect-square bg-subtle border border-border-hairline overflow-hidden">
                         <img
                           src={it.image}
@@ -356,7 +509,11 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                           className="w-full h-full object-cover"
                           loading="lazy"
                           onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                            if (userPhotos && userPhotos.length > 0) {
+                              e.currentTarget.src = userPhotos[0];
+                            } else {
+                              e.currentTarget.style.opacity = '0.5';
+                            }
                           }}
                         />
                       </div>
@@ -370,6 +527,29 @@ export default function CaseModal({ projectId, onClose }: CaseModalProps) {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="mt-12 pt-6 border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="font-mono text-xs text-muted tracking-wider uppercase">
+              {data.media.length} {data.media.length === 1 ? 'FRAME' : 'FRAMES'} ARCHIVED • {data.title}
+            </span>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/canvas"
+                onClick={onClose}
+                className="font-mono text-xs px-4 py-2 bg-primary text-canvas font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
+              >
+                Explore Archive Canvas ↗
+              </Link>
+              <button
+                type="button"
+                onClick={onClose}
+                className="font-mono text-xs px-4 py-2 border border-border-medium text-primary hover:bg-subtle transition-colors"
+              >
+                Close Modal
+              </button>
+            </div>
           </div>
         </div>
       </div>

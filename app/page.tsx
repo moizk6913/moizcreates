@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from '@/components/Header';
 import HeroScatter from '@/components/HeroScatter';
 import EditorialManifesto from '@/components/EditorialManifesto';
@@ -10,12 +10,56 @@ import BtsArcSection from '@/components/BtsArcSection';
 import StatementBridge from '@/components/StatementBridge';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
-
 import CustomCursor from '@/components/CustomCursor';
+import {
+  getStoredCanvasFiles,
+  getStoredCanvasFilesAsync,
+  subscribeToCanvasUpdates,
+  DynamicCanvasFile,
+} from '@/lib/contentStore';
 
 export default function Home() {
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [isIntroDone, setIsIntroDone] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<DynamicCanvasFile[]>([]);
+
+  const loadUploads = useCallback(async () => {
+    // 1. Sync load from localStorage for instant initial paint
+    const syncFiles = getStoredCanvasFiles();
+    if (syncFiles && syncFiles.length > 0) {
+      setUploadedFiles(syncFiles);
+    }
+    // 2. Full-fidelity async load from IndexedDB (contains all 38+ pictures)
+    try {
+      const idbFiles = await getStoredCanvasFilesAsync();
+      if (idbFiles && idbFiles.length > 0) {
+        setUploadedFiles(idbFiles);
+      }
+    } catch (err) {
+      console.warn('Could not load async files on home:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUploads();
+    const unsubscribe = subscribeToCanvasUpdates(() => {
+      loadUploads();
+    });
+    return () => unsubscribe();
+  }, [loadUploads]);
+
+  // Flatten all photos uploaded across all campaigns
+  const userPhotos = useMemo(() => {
+    const photos: string[] = [];
+    uploadedFiles.forEach((file) => {
+      if (file.photos && file.photos.length > 0) {
+        photos.push(...file.photos);
+      } else if (file.img) {
+        photos.push(file.img);
+      }
+    });
+    return photos;
+  }, [uploadedFiles]);
 
   useEffect(() => {
     // Check if intro was already played this session (prevents re-locking on back nav)
@@ -57,16 +101,21 @@ export default function Home() {
       <HeroScatter
         onOpenCase={setSelectedCase}
         onShutterFinish={() => setIsIntroDone(true)}
+        userPhotos={userPhotos}
+        uploadedFiles={uploadedFiles}
       />
 
       {/* Section 01.5: Editorial Manifesto Strip */}
-      <EditorialManifesto />
+      <EditorialManifesto userPhotos={userPhotos} />
 
       {/* Section 01.8: Collaborated Companies & Clients B&W Logo Marquee */}
       <ClientsStrip />
 
       {/* Section 01.85: 3D Curved Arc BTS & Direction Reels (Upper from deck) */}
-      <BtsArcSection onOpenCase={setSelectedCase} />
+      <BtsArcSection
+        onOpenCase={setSelectedCase}
+        uploadedFiles={uploadedFiles}
+      />
 
       {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
       <DisciplineDeck />
@@ -77,9 +126,13 @@ export default function Home() {
       {/* Section 04: Direct Inquiries & Contact */}
       <Contact />
 
-
       {/* Case Study Modal */}
-      <CaseModal projectId={selectedCase} onClose={() => setSelectedCase(null)} />
+      <CaseModal
+        projectId={selectedCase}
+        onClose={() => setSelectedCase(null)}
+        uploadedFiles={uploadedFiles}
+        userPhotos={userPhotos}
+      />
     </main>
   );
 }

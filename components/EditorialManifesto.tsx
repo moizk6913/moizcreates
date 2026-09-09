@@ -27,27 +27,39 @@ const shutterPool2 = [
   'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop',
 ];
 
-export default function EditorialManifesto() {
+interface EditorialManifestoProps {
+  userPhotos?: string[];
+}
+
+export default function EditorialManifesto({ userPhotos }: EditorialManifestoProps = {}) {
   const sectionRef = useRef<HTMLElement>(null);
   const img1Ref = useRef<HTMLImageElement>(null);
   const img2Ref = useRef<HTMLImageElement>(null);
 
+  const pool1 = userPhotos && userPhotos.length > 0 ? userPhotos : shutterPool1;
+  const pool2 =
+    userPhotos && userPhotos.length > 1
+      ? [...userPhotos].reverse()
+      : userPhotos && userPhotos.length > 0
+      ? userPhotos
+      : shutterPool2;
+
   // Pill live shutter asset cycling using direct DOM updates (zero React re-renders = silky 60/120fps scroll)
   useEffect(() => {
     let idx1 = 0;
-    let idx2 = 2;
+    let idx2 = Math.min(2, pool2.length - 1);
 
     const interval1 = setInterval(() => {
-      idx1 = (idx1 + 1) % shutterPool1.length;
-      if (img1Ref.current) {
-        img1Ref.current.src = shutterPool1[idx1];
+      idx1 = (idx1 + 1) % pool1.length;
+      if (img1Ref.current && pool1[idx1]) {
+        img1Ref.current.src = pool1[idx1];
       }
     }, 180);
 
     const interval2 = setInterval(() => {
-      idx2 = (idx2 + 1) % shutterPool2.length;
-      if (img2Ref.current) {
-        img2Ref.current.src = shutterPool2[idx2];
+      idx2 = (idx2 + 1) % pool2.length;
+      if (img2Ref.current && pool2[idx2]) {
+        img2Ref.current.src = pool2[idx2];
       }
     }, 220);
 
@@ -55,7 +67,7 @@ export default function EditorialManifesto() {
       clearInterval(interval1);
       clearInterval(interval2);
     };
-  }, []);
+  }, [pool1, pool2]);
 
   // Word-by-word scroll animation (reveals down, exits upwards on scroll back up)
   // Fulfills: "jab koi nechai animation or upper jai to animation out like ek ek word krke aai uuper jai to ek ek word krke upper jai sath box bhi esai hi shape is the part of the text"
@@ -133,7 +145,7 @@ export default function EditorialManifesto() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={img1Ref}
-                  src={shutterPool1[0]}
+                  src={pool1[0]}
                   alt="Campaign Shutter Clip"
                   className="w-full h-full object-cover rounded-[10px] pointer-events-none"
                 />
@@ -157,7 +169,7 @@ export default function EditorialManifesto() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={img2Ref}
-                  src={shutterPool2[0]}
+                  src={pool2[0]}
                   alt="Production Shutter Clip"
                   className="w-full h-full object-cover rounded-[10px] pointer-events-none"
                 />
