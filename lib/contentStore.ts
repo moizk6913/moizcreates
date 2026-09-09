@@ -92,6 +92,56 @@ export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> 
   return getStoredCanvasFiles();
 }
 
+export const CANVAS_UPDATE_EVENT = 'moiz_canvas_updated';
+
+export function notifyCanvasUpdated(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent(CANVAS_UPDATE_EVENT));
+  } catch {}
+  try {
+    if ('BroadcastChannel' in window) {
+      const channel = new BroadcastChannel('moiz_portfolio_channel');
+      channel.postMessage({ type: CANVAS_UPDATE_EVENT, timestamp: Date.now() });
+      channel.close();
+    }
+  } catch {}
+}
+
+export function subscribeToCanvasUpdates(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  const handleCustom = () => callback();
+  window.addEventListener(CANVAS_UPDATE_EVENT, handleCustom);
+
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === STORAGE_KEYS.CANVAS_FILES) {
+      callback();
+    }
+  };
+  window.addEventListener('storage', handleStorage);
+
+  let channel: BroadcastChannel | null = null;
+  if ('BroadcastChannel' in window) {
+    try {
+      channel = new BroadcastChannel('moiz_portfolio_channel');
+      channel.onmessage = (event) => {
+        if (event.data?.type === CANVAS_UPDATE_EVENT) {
+          callback();
+        }
+      };
+    } catch {}
+  }
+
+  return () => {
+    window.removeEventListener(CANVAS_UPDATE_EVENT, handleCustom);
+    window.removeEventListener('storage', handleStorage);
+    if (channel) {
+      channel.close();
+    }
+  };
+}
+
 export async function saveCanvasFileAsync(file: DynamicCanvasFile): Promise<void> {
   if (typeof window === 'undefined') return;
   // 1. Save full-fidelity file (all 38+ photos) to IndexedDB
@@ -113,6 +163,9 @@ export async function saveCanvasFileAsync(file: DynamicCanvasFile): Promise<void
   } catch (err) {
     console.warn('localStorage quota reached, relying on IndexedDB:', err);
   }
+
+  // 3. Notify all tabs & components to re-render in real time
+  notifyCanvasUpdated();
 }
 
 export function saveCanvasFile(file: DynamicCanvasFile): void {
@@ -131,6 +184,7 @@ export function deleteCanvasFile(id: string): void {
   } catch (err) {
     console.error('Failed to delete canvas file from localStorage', err);
   }
+  notifyCanvasUpdated();
 }
 
 export function deleteBlogPost(slug: string): void {

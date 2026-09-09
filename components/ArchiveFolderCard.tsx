@@ -37,6 +37,7 @@ export interface ArchiveFolderProps {
   photoCount: number;
   stickers?: FolderStickerData;
   colorTag?: string;
+  isComingSoon?: boolean;
   onClick: () => void;
 }
 
@@ -311,14 +312,17 @@ export default function ArchiveFolderCard({
   photos = [],
   photoCount = 42,
   stickers,
+  isComingSoon,
   onClick,
 }: ArchiveFolderProps) {
-  // Ensure we have at least 4 photos for the fanned stack
+  const isSoon = isComingSoon || photoCount === 0;
+
+  // Ensure we have at least 4 photos for the fanned stack (or Coming Soon graphic placeholders)
   const displayPhotos = [
-    photos[0] || 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop',
-    photos[1] || photos[0] || 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop',
-    photos[2] || photos[0] || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
-    photos[3] || photos[1] || photos[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop',
+    photos[0] || '',
+    photos[1] || photos[0] || '',
+    photos[2] || photos[0] || '',
+    photos[3] || photos[1] || photos[0] || '',
   ];
 
   return (
@@ -344,62 +348,78 @@ export default function ArchiveFolderCard({
           
           {/* Card 1: Far Left (-16deg resting, peeking up -> -24deg hover bloom, peeking up even higher) */}
           <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform -rotate-[16deg] -translate-x-[42px] -translate-y-[68px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[58px] group-hover:-translate-y-[96px] group-hover:scale-105 z-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayPhotos[0]}
-              alt="Archive photo 1"
-              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
-              loading="lazy"
-              draggable={false}
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop';
-              }}
-            />
+            {isSoon || !displayPhotos[0] ? (
+              <div className="w-full h-full bg-[#161618] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">ARCHIVE</span>
+                <span className="font-display font-black text-[10px] text-accent-red tracking-wider uppercase">01</span>
+              </div>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={displayPhotos[0]}
+                alt="Archive photo 1"
+                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                loading="lazy"
+                draggable={false}
+              />
+            )}
           </div>
 
           {/* Card 2: Center Left (-5deg resting, peeking up -> -8deg hover bloom, peeking up even higher) */}
           <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[15px] -translate-y-[84px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[20px] group-hover:-translate-y-[115px] group-hover:scale-110 z-20">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayPhotos[1]}
-              alt="Archive photo 2"
-              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
-              loading="lazy"
-              draggable={false}
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop';
-              }}
-            />
+            {isSoon || !displayPhotos[1] ? (
+              <div className="w-full h-full bg-[#1b1b1f] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">STUDIO</span>
+                <span className="font-display font-black text-[10px] text-white tracking-wider uppercase">SOON</span>
+              </div>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={displayPhotos[1]}
+                alt="Archive photo 2"
+                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                loading="lazy"
+                draggable={false}
+              />
+            )}
           </div>
 
           {/* Card 3: Center Right (+6deg resting, peeking up -> +8deg hover bloom, peeking up even higher) */}
           <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[15px] -translate-y-[80px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[20px] group-hover:-translate-y-[110px] group-hover:scale-110 z-20">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayPhotos[2]}
-              alt="Archive photo 3"
-              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
-              loading="lazy"
-              draggable={false}
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop';
-              }}
-            />
+            {isSoon || !displayPhotos[2] ? (
+              <div className="w-full h-full bg-[#1b1b1f] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">IN PROD</span>
+                <span className="font-display font-black text-[10px] text-white tracking-wider uppercase">2026</span>
+              </div>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={displayPhotos[2]}
+                alt="Archive photo 3"
+                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                loading="lazy"
+                draggable={false}
+              />
+            )}
           </div>
 
           {/* Card 4: Far Right (+18deg resting, peeking up -> +24deg hover bloom, peeking up even higher) */}
           <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform rotate-[18deg] translate-x-[42px] -translate-y-[66px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[58px] group-hover:-translate-y-[94px] group-hover:scale-105 z-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayPhotos[3]}
-              alt="Archive photo 4"
-              className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
-              loading="lazy"
-              draggable={false}
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop';
-              }}
-            />
+            {isSoon || !displayPhotos[3] ? (
+              <div className="w-full h-full bg-[#161618] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">DIRECT</span>
+                <span className="font-display font-black text-[10px] text-accent-red tracking-wider uppercase">CUT</span>
+              </div>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={displayPhotos[3]}
+                alt="Archive photo 4"
+                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                loading="lazy"
+                draggable={false}
+              />
+            )}
           </div>
 
         </div>
@@ -416,15 +436,15 @@ export default function ArchiveFolderCard({
             {/* Stamp 1: Perforated Postage Stamp (Left) */}
             <div className="transform -rotate-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-105">
               <PostageStamp
-                flag={stickers?.stamp?.flag || '🇮🇹'}
-                countryCode={stickers?.stamp?.countryCode || 'IT'}
+                flag={isSoon ? '⚡' : stickers?.stamp?.flag || '🇮🇹'}
+                countryCode={isSoon ? 'SOON' : stickers?.stamp?.countryCode || 'IT'}
                 bgColor={stickers?.stamp?.bgColor || '#ffffff'}
               />
             </div>
 
             {/* Sticker 2: Die-Cut Glossy Sticker with White Vinyl Border (Right) */}
             <div className="transform rotate-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 pt-1 pr-1">
-              <DieCutSticker type={stickers?.sticker?.type || 'lemon'} />
+              <DieCutSticker type={isSoon ? 'film' : stickers?.sticker?.type || 'lemon'} />
             </div>
 
           </div>
@@ -445,10 +465,16 @@ export default function ArchiveFolderCard({
           {name}
         </h3>
         
-        {/* Soft Count Pill Badge ("68 photos", "88 photos", etc. - 10px radius) */}
-        <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wide text-secondary/80 bg-black/[0.05] group-hover:bg-black/[0.08] px-3 py-0.5 rounded-[10px] transition-colors">
-          {photoCount} photos
-        </span>
+        {/* Soft Count Pill Badge */}
+        {isSoon ? (
+          <span className="font-mono text-[9px] sm:text-[10px] font-bold tracking-wider text-accent-red bg-accent-red/10 border border-accent-red/20 px-2.5 py-0.5 rounded-[10px] transition-colors uppercase">
+            Coming Soon • In Production
+          </span>
+        ) : (
+          <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wide text-secondary/80 bg-black/[0.05] group-hover:bg-black/[0.08] px-3 py-0.5 rounded-[10px] transition-colors">
+            {photoCount} photos
+          </span>
+        )}
       </div>
 
     </div>

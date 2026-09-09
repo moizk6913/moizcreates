@@ -170,163 +170,73 @@ export interface AdminWorkItem {
 
 const BUILTIN_WORK_ITEMS: AdminWorkItem[] = [
   {
-    id: 'windchasers',
-    name: 'Windchasers Aviation Academy',
-    discipline: 'Art Direction • Lookbook',
+    id: 'art-direction',
+    name: 'Art Direction',
+    discipline: 'Art Direction • Concept Architecture',
     year: '2026',
     role: 'Lead Art Director',
-    img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop',
-    photoCount: 83,
+    img: '',
+    photoCount: 0,
     isCustom: false,
   },
   {
-    id: 'easyhaibro',
-    name: 'Easy Hai Bro',
-    discipline: 'Brand Identity • Strategy',
+    id: 'brand-identity',
+    name: 'Brand Identity',
+    discipline: 'Brand Identity • Visual Systems',
     year: '2026',
     role: 'Creative Director',
-    img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop',
-    photoCount: 68,
+    img: '',
+    photoCount: 0,
     isCustom: false,
   },
   {
-    id: 'kaladhar',
-    name: 'Kaladhar Heritage Bridal',
-    discipline: 'Lighting Direction • Styling',
-    year: '2025',
-    role: 'Director of Visuals',
-    img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop',
-    photoCount: 62,
-    isCustom: false,
-  },
-  {
-    id: 'ruchi',
-    name: 'Ruchi Fried Chicken',
-    discipline: 'Commercial Shoot • Food Art',
-    year: '2025',
-    role: 'Art Director',
-    img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop',
-    photoCount: 45,
-    isCustom: false,
-  },
-  {
-    id: 'oxymorons',
-    name: 'Oxymorons Collective',
-    discipline: 'Visual Identity • Architecture',
-    year: '2025',
-    role: 'Brand Architect',
-    img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
-    photoCount: 74,
-    isCustom: false,
-  },
-  {
-    id: 'balenciaga-tokyo',
-    name: 'Neo-Tokyo Runway Concept',
-    discipline: 'Cinematography • Stage Direction',
+    id: 'cinematography',
+    name: 'Cinematography',
+    discipline: 'Cinematography • Shoot Direction',
     year: '2026',
-    role: 'Art Director',
-    img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop',
-    photoCount: 92,
-    isCustom: false,
-  },
-  {
-    id: 'vogue-arabia',
-    name: 'Vogue Monolith Editorial',
-    discipline: 'Fashion Editorial • Stills',
-    year: '2025',
-    role: 'Creative Director',
-    img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
-    photoCount: 64,
-    isCustom: false,
-  },
-  {
-    id: 'porsche-sound',
-    name: 'Porsche 911 Soundscape',
-    discipline: 'Video Editing • Sound Design',
-    year: '2026',
-    role: 'Editor & Colorist',
-    img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop',
-    photoCount: 88,
-    isCustom: false,
-  },
-  {
-    id: 'prada-wireframe',
-    name: 'Prada Structural Deconstruct',
-    discipline: 'Motion Graphics • 3D',
-    year: '2025',
-    role: 'Motion Director',
-    img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop',
-    photoCount: 56,
-    isCustom: false,
-  },
-  {
-    id: 'nike-kinetic',
-    name: 'Nike Hyperspeed Broadcast',
-    discipline: 'Motion Graphics • Title Rhythm',
-    year: '2026',
-    role: 'Art Director',
-    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop',
-    photoCount: 112,
-    isCustom: false,
-  },
-  {
-    id: 'chanel-macro',
-    name: 'Chanel Haute Horlogerie',
-    discipline: 'Photography • Viewfinder',
-    year: '2025',
-    role: 'Lead Photographer',
-    img: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=600&auto=format&fit=crop',
-    photoCount: 48,
-    isCustom: false,
-  },
-  {
-    id: 'acne-analogue',
-    name: 'Acne Studios Stockholm Archive',
-    discipline: 'Colour Grading • 35mm',
-    year: '2025',
-    role: 'Colorist & Stills',
-    img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop',
-    photoCount: 79,
-    isCustom: false,
-  },
-  {
-    id: 'apple-emblem',
-    name: 'Studio Monolith Emblem',
-    discipline: 'Brand System • Swiss Deck',
-    year: '2026',
-    role: 'Design Lead',
-    img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop',
-    photoCount: 52,
-    isCustom: false,
-  },
-  {
-    id: 'dior-tungsten',
-    name: 'Dior Midnight Nocturne',
-    discipline: 'Cinematography • Film Grade',
-    year: '2025',
     role: 'Director of Photography',
-    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop',
-    photoCount: 84,
+    img: '',
+    photoCount: 0,
     isCustom: false,
   },
   {
-    id: 'supreme-underground',
-    name: 'Underground Type Distort',
-    discipline: 'Motion Graphics • Experimental',
+    id: 'motion-graphics',
+    name: 'Motion Graphics',
+    discipline: 'Motion Graphics • 2D / 3D',
     year: '2026',
-    role: 'Motion Designer',
-    img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop',
-    photoCount: 136,
+    role: 'Motion Director',
+    img: '',
+    photoCount: 0,
     isCustom: false,
   },
   {
-    id: 'saint-laurent-cut',
-    name: 'Saint Laurent Winter Cut',
-    discipline: 'Video Editing • Director Cut',
-    year: '2025',
+    id: 'video-editing',
+    name: 'Video Editing',
+    discipline: 'Video Editing • Commercial & Social Reels (9:16)',
+    year: '2026',
     role: 'Lead Video Editor',
-    img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop',
-    photoCount: 67,
+    img: '',
+    photoCount: 0,
+    isCustom: false,
+  },
+  {
+    id: 'color-grading',
+    name: 'Colour Grading',
+    discipline: 'Colour Grading • Film Stock Emulation',
+    year: '2026',
+    role: 'Colorist & Finisher',
+    img: '',
+    photoCount: 0,
+    isCustom: false,
+  },
+  {
+    id: 'photography',
+    name: 'Photography',
+    discipline: 'Photography • Stills & Editorial Lookbook',
+    year: '2026',
+    role: 'Lead Photographer',
+    img: '',
+    photoCount: 0,
     isCustom: false,
   },
 ];
@@ -1070,15 +980,41 @@ export default function AdminPage() {
               {/* Discipline */}
               <div>
                 <label className="block font-mono text-[10px] uppercase tracking-wider text-neutral-400 mb-1.5">
-                  Discipline / Category
+                  Discipline / Target Deck Folder *
                 </label>
                 <input
                   type="text"
                   value={discipline}
                   onChange={(e) => setDiscipline(e.target.value)}
-                  placeholder="e.g. Social Media Ads • Editorial Lookbook • Print"
+                  placeholder="e.g. Video Editing, Social Media Ads, Art Direction"
                   className="w-full px-4 py-2.5 bg-black/50 border border-white/15 rounded-[8px] font-mono text-sm text-white focus:outline-none focus:border-white transition-all"
                 />
+                {/* 1-Click Deck Match Buttons */}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {[
+                    'Video Editing',
+                    'Art Direction',
+                    'Brand Identity',
+                    'Motion Graphics',
+                    'Cinematography',
+                    'Colour Grading',
+                    'Photography',
+                    'Social Media Ads',
+                  ].map((disc) => (
+                    <button
+                      type="button"
+                      key={disc}
+                      onClick={() => setDiscipline(disc)}
+                      className={`font-mono text-[9px] px-2.5 py-1 rounded-[6px] transition-all cursor-pointer ${
+                        discipline.toLowerCase().includes(disc.toLowerCase())
+                          ? 'bg-white text-black font-bold'
+                          : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {disc}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Year & Role */}

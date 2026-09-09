@@ -4,10 +4,10 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import CustomCursor from '@/components/CustomCursor';
-import { getStoredCanvasFiles, getStoredCanvasFilesAsync } from '@/lib/contentStore';
+import { getStoredCanvasFiles, getStoredCanvasFilesAsync, subscribeToCanvasUpdates } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData } from '@/components/ArchiveFolderCard';
 
-interface ArchiveFile {
+export interface ArchiveFile {
   id: string;
   code: string;
   name: string;
@@ -25,451 +25,262 @@ interface ArchiveFile {
   photos?: string[];
   photoCount?: number;
   stickers?: FolderStickerData;
+  isComingSoon?: boolean;
 }
 
-const ARCHIVE_FILES: ArchiveFile[] = [
+const DEFAULT_DISCIPLINE_FOLDERS: ArchiveFile[] = [
   {
-    id: 'windchasers',
-    code: 'FILE_01.DIR',
-    name: 'Windchasers Aviation Academy',
-    discipline: 'Art Direction • Lookbook',
+    id: 'art-direction',
+    code: '01 / CONCEPT',
+    name: 'Art Direction',
+    discipline: 'Art Direction • Concept Architecture',
     year: '2026',
     role: 'Lead Art Director',
-    x: -280,
-    y: -210,
+    x: -320,
+    y: -190,
     rot: -2,
-    img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1520690214124-2405c5217036?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 83,
+    img: '',
+    aspect: 'aspect-[16/10]',
+    colorTag: 'bg-[#ff3300]',
+    desc: 'Concept architecture, high-impact creative direction, and commercial worldbuilding. Full campaign assets and pitch deliverables currently in production.',
+    deliverables: ['Creative Direction', 'Shoot Concepts', 'Visual Architecture', 'Brand Worldbuilding'],
+    photos: [],
+    photoCount: 0,
     stickers: {
       stamp: { flag: '🇦🇪', countryCode: 'DXB', bgColor: '#ffffff' },
-      sticker: { type: 'airplane', name: 'Aviation Wings' },
+      sticker: { type: 'airplane', name: 'Directorial' },
     },
-    aspect: 'aspect-[16/10]',
-    colorTag: 'bg-[#ff3300]',
-    desc: 'High-altitude commercial lookbook and flight deck shoot direction capturing the technical precision of modern aviation trainees.',
-    deliverables: ['Lookbook Concept', 'Location Scouting', 'Flight Deck Lighting', 'Broadcast Master'],
+    isComingSoon: true,
   },
   {
-    id: 'easyhaibro',
-    code: 'FILE_02.ID',
-    name: 'Easy Hai Bro',
-    discipline: 'Brand Identity • Strategy',
+    id: 'brand-identity',
+    code: '02 / IDENTITY',
+    name: 'Brand Identity',
+    discipline: 'Brand Identity • Visual Systems',
     year: '2026',
     role: 'Creative Director',
-    x: 250,
-    y: -260,
+    x: 280,
+    y: -220,
     rot: 3,
-    img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 68,
+    img: '',
+    aspect: 'aspect-[4/5]',
+    colorTag: 'bg-[#ede8df]',
+    desc: 'Visual architecture, kinetic identity decks, and comprehensive brand guidelines. Full identity systems currently in production.',
+    deliverables: ['Visual Identity', 'Typography Systems', 'Guidelines Deck', 'Packaging Design'],
+    photos: [],
+    photoCount: 0,
     stickers: {
       stamp: { flag: '🇯🇵', countryCode: 'TYO', bgColor: '#ffffff' },
-      sticker: { type: 'torii', name: 'Tokyo Shrine' },
+      sticker: { type: 'torii', name: 'Identity Deck' },
     },
-    aspect: 'aspect-[4/5]',
-    colorTag: 'bg-[#ff3300]',
-    desc: 'Complete brand worldbuilding, punchy lifestyle shoot direction, and kinetic style system for a Gen-Z retail phenomenon.',
-    deliverables: ['Visual Identity', 'Typography System', 'Commercial Campaign', 'Packaging Design'],
+    isComingSoon: true,
   },
   {
-    id: 'kaladhar',
-    code: 'FILE_03.LUX',
-    name: 'Kaladhar Heritage Bridal',
-    discipline: 'Lighting Direction • Styling',
-    year: '2025',
-    role: 'Director of Visuals',
-    x: -580,
-    y: 90,
+    id: 'cinematography',
+    code: '03 / CINEMA',
+    name: 'Cinematography',
+    discipline: 'Cinematography • Shoot Direction',
+    year: '2026',
+    role: 'Director of Photography',
+    x: -520,
+    y: 80,
     rot: 4,
-    img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 62,
+    img: '',
+    aspect: 'aspect-[16/9]',
+    colorTag: 'bg-[#0055ff]',
+    desc: 'High-contrast commercial lighting direction, frame composition, and on-set technical direction. Director reels currently in production.',
+    deliverables: ['On-Set Direction', 'Lighting Setups', 'Camera Movement', 'Master Reels'],
+    photos: [],
+    photoCount: 0,
     stickers: {
-      stamp: { flag: '🇮🇹', countryCode: 'MIL', bgColor: '#ffffff' },
-      sticker: { type: 'lemon', name: 'Italian Lemon' },
+      stamp: { flag: '🇫🇷', countryCode: 'PAR', bgColor: '#ffffff' },
+      sticker: { type: 'camera', name: '35mm Stills' },
     },
-    aspect: 'aspect-[4/5]',
-    colorTag: 'bg-[#f59e0b]',
-    desc: 'Regal bridal campaign capturing museum-grade handloom textiles through warm cinematic tungsten chiaroscuro.',
-    deliverables: ['Set Design', 'Chiaroscuro Lighting', 'Model Staging', 'Editorial Lookbook'],
+    isComingSoon: true,
   },
   {
-    id: 'ruchi',
-    code: 'FILE_04.COM',
-    name: 'Ruchi Fried Chicken',
-    discipline: 'Commercial Shoot • Food Art',
-    year: '2025',
-    role: 'Art Director',
-    x: 170,
-    y: 230,
-    rot: -3,
-    img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 45,
-    stickers: {
-      stamp: { flag: '🇺🇸', countryCode: 'NYC', bgColor: '#ffffff' },
-      sticker: { type: 'flame', name: 'Kinetic Heat' },
-    },
-    aspect: 'aspect-[16/10]',
+    id: 'motion-graphics',
+    code: '04 / KINETIC',
+    name: 'Motion Graphics',
+    discipline: 'Motion Graphics • 2D / 3D',
+    year: '2026',
+    role: 'Motion Director',
+    x: 0,
+    y: 0,
+    rot: 0,
+    img: '',
+    aspect: 'aspect-[16/9]',
     colorTag: 'bg-[#00e575]',
-    desc: 'High-speed culinary shoot direction combining vibrant color contrast with tactile macro slow-motion textures.',
-    deliverables: ['Food Styling Direction', 'Tabletop Macro Stills', 'Color Grading', 'Social Motion Assets'],
-  },
-  {
-    id: 'oxymorons',
-    code: 'FILE_05.EXP',
-    name: 'Oxymorons Collective',
-    discipline: 'Visual Identity • Architecture',
-    year: '2025',
-    role: 'Brand Architect',
-    x: 560,
-    y: 50,
-    rot: -2,
-    img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 74,
+    desc: 'Distorted typography, kinetic title sequences, and frame-by-frame rhythmic pacing. Experimental 3D reels currently in production.',
+    deliverables: ['Kinetic Titles', '3D Motion', 'Broadcast Packages', 'Social Loops'],
+    photos: [],
+    photoCount: 0,
     stickers: {
       stamp: { flag: '🇨🇭', countryCode: 'ZRH', bgColor: '#ffffff' },
-      sticker: { type: 'diamond', name: 'Precision Gem' },
+      sticker: { type: 'diamond', name: 'Motion Deck' },
     },
-    aspect: 'aspect-[16/11]',
-    colorTag: 'bg-[#0055ff]',
-    desc: 'Brutalist Swiss identity system built on architectural grid structures and monochromatic typographic contrast.',
-    deliverables: ['Grid Framework', 'Custom Glyphs', 'Brand Book', 'Digital Architecture'],
+    isComingSoon: true,
   },
   {
-    id: 'balenciaga-tokyo',
-    code: 'FILE_06.FWD',
-    name: 'Neo-Tokyo Runway Concept',
-    discipline: 'Cinematography • Stage Direction',
+    id: 'video-editing',
+    code: '05 / EDITORIAL',
+    name: 'Video Editing',
+    discipline: 'Video Editing • Commercial & Social Reels (9:16)',
     year: '2026',
-    role: 'Art Director',
-    x: -760,
-    y: -310,
-    rot: 2,
-    img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 92,
-    stickers: {
-      stamp: { flag: '🇯🇵', countryCode: 'JPN', bgColor: '#ffffff' },
-      sticker: { type: 'torii', name: 'Neo Tokyo' },
-    },
-    aspect: 'aspect-[3/4]',
+    role: 'Lead Video Editor',
+    x: 500,
+    y: 90,
+    rot: -3,
+    img: '',
+    aspect: 'aspect-[9/16]',
     colorTag: 'bg-[#141414]',
-    desc: 'Experimental cyber-dystopian runway showcase utilizing monolithic neon fixtures and wide-angle anamorphic lenses.',
-    deliverables: ['Stage Architecture', 'Anamorphic Framing', 'Runway Master Film', 'Lighting Design'],
-  },
-  {
-    id: 'vogue-arabia',
-    code: 'FILE_07.EDT',
-    name: 'Vogue Monolith Editorial',
-    discipline: 'Fashion Editorial • Stills',
-    year: '2025',
-    role: 'Creative Director',
-    x: -130,
-    y: 480,
-    rot: 1.5,
-    img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 64,
-    stickers: {
-      stamp: { flag: '🇫🇷', countryCode: 'PAR', bgColor: '#ffffff' },
-      sticker: { type: 'eiffel', name: 'Paris Couture' },
-    },
-    aspect: 'aspect-[4/5]',
-    colorTag: 'bg-[#ff3300]',
-    desc: 'High-contrast studio shoot exploring sculptural silhouettes, stark light falloff, and contemporary couture drape.',
-    deliverables: ['Editorial Curation', 'Model Direction', 'Analog Grain Grade', 'Cover Layout'],
-  },
-  {
-    id: 'porsche-sound',
-    code: 'FILE_08.FLM',
-    name: 'Porsche 911 Soundscape',
-    discipline: 'Video Editing • Sound Design',
-    year: '2026',
-    role: 'Editor & Colorist',
-    x: 680,
-    y: -380,
-    rot: -2.5,
-    img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 88,
-    stickers: {
-      stamp: { flag: '🇩🇪', countryCode: 'STR', bgColor: '#ffffff' },
-      sticker: { type: 'car', name: 'Porsche GT3' },
-    },
-    aspect: 'aspect-[16/9]',
-    colorTag: 'bg-[#f59e0b]',
-    desc: 'Visceral automotive director cut sync-edited to raw exhaust acoustics and precision German asphalt telemetry.',
-    deliverables: ['Director Cut 16:9', 'Exhaust Sound Design', 'Film Stock Emulation', 'Social Cutdowns'],
-  },
-  {
-    id: 'prada-wireframe',
-    code: 'FILE_09.KNT',
-    name: 'Prada Structural Deconstruct',
-    discipline: 'Motion Graphics • 3D',
-    year: '2025',
-    role: 'Motion Director',
-    x: -420,
-    y: -580,
-    rot: -3.5,
-    img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 56,
-    stickers: {
-      stamp: { flag: '🇮🇹', countryCode: 'ITA', bgColor: '#ffffff' },
-      sticker: { type: 'lemon', name: 'Italian Fashion' },
-    },
-    aspect: 'aspect-[1/1]',
-    colorTag: 'bg-[#0055ff]',
-    desc: 'Kinetic 3D wireframe exploration decomposing luxury leather goods into floating geometric architectural lines.',
-    deliverables: ['3D Wireframes', 'Rhythm Title Sequences', 'Loop Animations', 'Interactive Display'],
-  },
-  {
-    id: 'nike-kinetic',
-    code: 'FILE_10.SPO',
-    name: 'Nike Hyperspeed Broadcast',
-    discipline: 'Motion Graphics • Title Rhythm',
-    year: '2026',
-    role: 'Art Director',
-    x: 400,
-    y: 540,
-    rot: 3,
-    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 112,
-    stickers: {
-      stamp: { flag: '🇺🇸', countryCode: 'PDX', bgColor: '#ffffff' },
-      sticker: { type: 'sneaker', name: 'Velocity Sneaker' },
-    },
-    aspect: 'aspect-[16/9]',
-    colorTag: 'bg-[#ff3300]',
-    desc: 'Distorted typography, frame-by-frame rhythm cuts, and high-frequency audio visualizers for athletic performance gear.',
-    deliverables: ['Title Sequences', 'Broadcast Motion Kit', 'Sound Sync', '9:16 Vertical Masters'],
-  },
-  {
-    id: 'chanel-macro',
-    code: 'FILE_11.WAT',
-    name: 'Chanel Haute Horlogerie',
-    discipline: 'Photography • Viewfinder',
-    year: '2025',
-    role: 'Lead Photographer',
-    x: -840,
-    y: 210,
-    rot: -4,
-    img: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 48,
-    stickers: {
-      stamp: { flag: '🇨🇭', countryCode: 'GVA', bgColor: '#ffffff' },
-      sticker: { type: 'diamond', name: 'Sapphire Jewel' },
-    },
-    aspect: 'aspect-[4/5]',
-    colorTag: 'bg-[#141414]',
-    desc: 'Ultra-macro tourbillon watch photography highlighting polished titanium gears, sapphire crystals, and reflection control.',
-    deliverables: ['Macro Studio Lighting', 'Reflection Baffles', 'Focus Stacking Retouch', 'Print Catalog'],
-  },
-  {
-    id: 'acne-analogue',
-    code: 'FILE_12.GRN',
-    name: 'Acne Studios Stockholm Archive',
-    discipline: 'Colour Grading • 35mm',
-    year: '2025',
-    role: 'Colorist & Stills',
-    x: -320,
-    y: 710,
-    rot: 2,
-    img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 79,
-    stickers: {
-      stamp: { flag: '🇳🇱', countryCode: 'AMS', bgColor: '#ffffff' },
-      sticker: { type: 'tulip', name: 'Dutch Tulip' },
-    },
-    aspect: 'aspect-[3/4]',
-    colorTag: 'bg-[#ede8df]',
-    desc: 'Nordic daylight lookbook shot on expired 35mm film stock, scanned at 8K and balanced for rich earthy pastel palettes.',
-    deliverables: ['Film Scanning & Dust Clean', 'Kodak 5219 Emulation', 'Lookbook Binding', 'Web Campaign'],
-  },
-  {
-    id: 'apple-emblem',
-    code: 'FILE_13.SYS',
-    name: 'Studio Monolith Emblem',
-    discipline: 'Brand System • Swiss Deck',
-    year: '2026',
-    role: 'Design Lead',
-    x: 820,
-    y: 170,
-    rot: -2,
-    img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 52,
-    stickers: {
-      stamp: { flag: '🇺🇸', countryCode: 'SFO', bgColor: '#ffffff' },
-      sticker: { type: 'camera', name: 'Analog Rangefinder' },
-    },
-    aspect: 'aspect-[1/1]',
-    colorTag: 'bg-[#00e575]',
-    desc: 'Kinetic design deck and identity handbook articulating grid rhythm, variable typography metrics, and brand motion rules.',
-    deliverables: ['Brand Guidelines Book', 'Motion Principles', 'Component Library', 'Investor Deck'],
-  },
-  {
-    id: 'dior-tungsten',
-    code: 'FILE_14.TNG',
-    name: 'Dior Midnight Nocturne',
-    discipline: 'Cinematography • Film Grade',
-    year: '2025',
-    role: 'Director of Photography',
-    x: 110,
-    y: -650,
-    rot: 3.5,
-    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 84,
-    stickers: {
-      stamp: { flag: '🇫🇷', countryCode: 'FR', bgColor: '#ffffff' },
-      sticker: { type: 'eiffel', name: 'Nocturne Paris' },
-    },
-    aspect: 'aspect-[16/10]',
-    colorTag: 'bg-[#f59e0b]',
-    desc: 'Nocturnal perfume campaign directed under high-power tungsten fixtures with anamorphic oval bokeh and atmospheric haze.',
-    deliverables: ['Anamorphic Package', 'Haze Atmospheric Control', 'Commercial Film Master', 'Print Billboards'],
-  },
-  {
-    id: 'supreme-underground',
-    code: 'FILE_15.TYP',
-    name: 'Underground Type Distort',
-    discipline: 'Motion Graphics • Experimental',
-    year: '2026',
-    role: 'Motion Designer',
-    x: -620,
-    y: -720,
-    rot: 1.8,
-    img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 136,
+    desc: 'High-paced vertical social reels (9:16), director cuts, and 16:9 commercial broadcast masters. Timeline cuts currently in post-production.',
+    deliverables: ['9:16 Social Ads', 'Director Cuts', 'Sound Rescoring', 'Multi-Format Masters'],
+    photos: [],
+    photoCount: 0,
     stickers: {
       stamp: { flag: '🇬🇧', countryCode: 'LDN', bgColor: '#ffffff' },
-      sticker: { type: 'flame', name: 'Raw Heat' },
+      sticker: { type: 'film', name: 'Editorial' },
     },
-    aspect: 'aspect-[16/11]',
-    colorTag: 'bg-[#ff3300]',
-    desc: 'Subversive typographic kinetic posters exploring analog CRT screen glitches, photocopier streaks, and raw grain.',
-    deliverables: ['Kinetic Posters', 'CRT Distortion Loops', 'Vinyl Record Sleeve', 'Sticker Packs'],
+    isComingSoon: true,
   },
   {
-    id: 'saint-laurent-cut',
-    code: 'FILE_16.EDT',
-    name: 'Saint Laurent Winter Cut',
-    discipline: 'Video Editing • Director Cut',
-    year: '2025',
-    role: 'Lead Video Editor',
-    x: 750,
-    y: 630,
-    rot: -3,
-    img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=1000&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-    ],
-    photoCount: 67,
+    id: 'color-grading',
+    code: '06 / GRADE',
+    name: 'Colour Grading',
+    discipline: 'Colour Grading • Film Stock Emulation',
+    year: '2026',
+    role: 'Colorist & Finisher',
+    x: -260,
+    y: 260,
+    rot: -2,
+    img: '',
+    aspect: 'aspect-[16/9]',
+    colorTag: 'bg-[#f59e0b]',
+    desc: 'Tungsten warmth, analogue 35mm film stock emulation, and saturated commercial pop. Color grading passes currently in mastering.',
+    deliverables: ['Film Emulation', 'Tungsten Grading', 'Commercial Finish', 'Look LUTs'],
+    photos: [],
+    photoCount: 0,
     stickers: {
-      stamp: { flag: '🇫🇷', countryCode: 'PAR', bgColor: '#ffffff' },
-      sticker: { type: 'film', name: '35mm Negative' },
+      stamp: { flag: '🇩🇪', countryCode: 'STR', bgColor: '#ffffff' },
+      sticker: { type: 'flame', name: 'Tungsten' },
     },
-    aspect: 'aspect-[3/4]',
-    colorTag: 'bg-[#141414]',
-    desc: 'Rapid-fire Parisian winter fashion director cut pairing stark black-and-white silhouettes with brutalist industrial beats.',
-    deliverables: ['Director Cut 4K', 'Sound Rescoring', 'Multi-Aspect Ratios', 'Color Negative Pass'],
+    isComingSoon: true,
+  },
+  {
+    id: 'photography',
+    code: '07 / VISION',
+    name: 'Photography',
+    discipline: 'Photography • Stills & Editorial Lookbook',
+    year: '2026',
+    role: 'Lead Photographer',
+    x: 260,
+    y: 250,
+    rot: 3,
+    img: '',
+    aspect: 'aspect-[4/5]',
+    colorTag: 'bg-[#eeeae1]',
+    desc: 'Fashion editorial, model staging, analogue grain, and lighting precision. High-resolution lookbook stills currently in curation.',
+    deliverables: ['Editorial Stills', 'Model Staging', 'Analogue Grain', 'Lookbook Spreads'],
+    photos: [],
+    photoCount: 0,
+    stickers: {
+      stamp: { flag: '🇮🇹', countryCode: 'MIL', bgColor: '#ffffff' },
+      sticker: { type: 'lemon', name: 'Lookbook' },
+    },
+    isComingSoon: true,
   },
 ];
 
+function mergeDisciplinesWithUploads(uploadedFiles: any[]): ArchiveFile[] {
+  if (!uploadedFiles || uploadedFiles.length === 0) {
+    return DEFAULT_DISCIPLINE_FOLDERS;
+  }
+
+  const merged: ArchiveFile[] = DEFAULT_DISCIPLINE_FOLDERS.map((d) => ({ ...d }));
+  const claimedUploadIds = new Set<string>();
+
+  // 1. Check if uploaded files match any of the 7 core disciplines
+  merged.forEach((folder, idx) => {
+    const match = uploadedFiles.find((upload) => {
+      if (claimedUploadIds.has(upload.id)) return false;
+      const norm = (upload.discipline || '').toLowerCase();
+      const nameNorm = (upload.name || '').toLowerCase();
+      const fid = folder.id.toLowerCase().replace(/-/g, ' ');
+
+      if (norm.includes(fid) || nameNorm.includes(fid)) return true;
+      if (folder.id === 'video-editing' && (norm.includes('video') || norm.includes('social ads') || norm.includes('reel') || norm.includes('edit'))) return true;
+      if (folder.id === 'art-direction' && (norm.includes('art') || norm.includes('direction') || norm.includes('campaign') || norm.includes('concept'))) return true;
+      if (folder.id === 'brand-identity' && (norm.includes('brand') || norm.includes('identity') || norm.includes('logo'))) return true;
+      if (folder.id === 'cinematography' && (norm.includes('cinema') || norm.includes('camera') || norm.includes('shoot'))) return true;
+      if (folder.id === 'motion-graphics' && (norm.includes('motion') || norm.includes('3d') || norm.includes('kinetic') || norm.includes('animation'))) return true;
+      if (folder.id === 'color-grading' && (norm.includes('color') || norm.includes('grade') || norm.includes('grading'))) return true;
+      if (folder.id === 'photography' && (norm.includes('photo') || norm.includes('stills') || norm.includes('lookbook'))) return true;
+      return false;
+    });
+
+    if (match) {
+      claimedUploadIds.add(match.id);
+      merged[idx] = {
+        id: match.id,
+        code: folder.code,
+        name: match.name,
+        discipline: match.discipline || folder.discipline,
+        year: match.year || '2026',
+        role: match.role || folder.role,
+        x: folder.x,
+        y: folder.y,
+        rot: folder.rot,
+        img: match.img || (match.photos && match.photos[0]) || '',
+        aspect: match.aspect || folder.aspect,
+        colorTag: match.colorTag || folder.colorTag,
+        desc: match.desc || folder.desc,
+        deliverables: match.deliverables && match.deliverables.length > 0 ? match.deliverables : folder.deliverables,
+        photos: match.photos && match.photos.length > 0 ? match.photos : [match.img],
+        photoCount: match.photoCount || (match.photos ? match.photos.length : 1),
+        stickers: match.stickers || folder.stickers,
+        isComingSoon: false,
+      };
+    }
+  });
+
+  // 2. Any additional custom uploaded files that were not matched to the 7 core slots
+  uploadedFiles.forEach((upload, extraIdx) => {
+    if (!claimedUploadIds.has(upload.id)) {
+      merged.push({
+        id: upload.id,
+        code: upload.code || `FILE_${String(extraIdx + 8).padStart(2, '0')}.DIR`,
+        name: upload.name,
+        discipline: upload.discipline || 'Custom Directorial Campaign',
+        year: upload.year || '2026',
+        role: upload.role || 'Lead Director',
+        x: upload.x || 620 + ((extraIdx % 3) * 220),
+        y: upload.y || -180 + (Math.floor(extraIdx / 3) * 240),
+        rot: upload.rot || 0,
+        img: upload.img || (upload.photos && upload.photos[0]) || '',
+        aspect: upload.aspect || 'aspect-[4/5]',
+        colorTag: upload.colorTag || 'bg-[#18181b]',
+        desc: upload.desc || 'Directorial campaign assets.',
+        deliverables: upload.deliverables || ['Campaign Assets'],
+        photos: upload.photos || [upload.img],
+        photoCount: upload.photoCount || (upload.photos ? upload.photos.length : 1),
+        stickers: upload.stickers,
+        isComingSoon: false,
+      });
+    }
+  });
+
+  return merged;
+}
+
 const DISCIPLINE_FILE_MAP: Record<string, string> = {
-  'motion-graphics': 'prada-wireframe',
-  'brand-identity': 'easyhaibro',
-  'art-direction': 'windchasers',
-  'cinematography': 'balenciaga-tokyo',
-  'video-editing': 'porsche-sound',
-  'color-grading': 'acne-analogue',
-  'photography': 'chanel-macro',
+  'art-direction': 'art-direction',
+  'brand-identity': 'brand-identity',
+  'cinematography': 'cinematography',
+  'motion-graphics': 'motion-graphics',
+  'video-editing': 'video-editing',
+  'color-grading': 'color-grading',
+  'photography': 'photography',
 };
 
 function InfiniteCanvasContent() {
@@ -478,7 +289,7 @@ function InfiniteCanvasContent() {
   const folderParam = searchParams.get('folder');
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [allFiles, setAllFiles] = useState<ArchiveFile[]>(ARCHIVE_FILES);
+  const [allFiles, setAllFiles] = useState<ArchiveFile[]>(DEFAULT_DISCIPLINE_FOLDERS);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [selectedFile, setSelectedFile] = useState<ArchiveFile | null>(null);
@@ -486,24 +297,39 @@ function InfiniteCanvasContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
+  const refreshCanvasFiles = useCallback(() => {
     // 1. Instant sync hydration from localStorage cache
     const cached = getStoredCanvasFiles();
     if (cached && cached.length > 0) {
-      setAllFiles([...cached, ...ARCHIVE_FILES]);
+      setAllFiles(mergeDisciplinesWithUploads(cached));
+    } else {
+      setAllFiles(DEFAULT_DISCIPLINE_FOLDERS);
     }
 
     // 2. Async hydration from IndexedDB for complete 38+ photo arrays
     getStoredCanvasFilesAsync()
       .then((fullFiles) => {
         if (fullFiles && fullFiles.length > 0) {
-          setAllFiles([...fullFiles, ...ARCHIVE_FILES]);
+          setAllFiles(mergeDisciplinesWithUploads(fullFiles));
         }
       })
       .catch((err) => {
         console.warn('Async canvas files hydration failed:', err);
       });
   }, []);
+
+  useEffect(() => {
+    refreshCanvasFiles();
+
+    // 3. Automatically update canvas when work is published or deleted in admin (live cross-tab)
+    const unsubscribe = subscribeToCanvasUpdates(() => {
+      refreshCanvasFiles();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [refreshCanvasFiles]);
 
   // Deep Link Auto-Navigation: Pans and automatically opens discipline or folder if passed in URL
   useEffect(() => {
@@ -841,10 +667,11 @@ function InfiniteCanvasContent() {
               discipline={file.discipline}
               year={file.year}
               role={file.role}
-              photos={file.photos && file.photos.length > 0 ? file.photos : [file.img]}
-              photoCount={file.photoCount || (file.photos ? file.photos.length : 68)}
+              photos={file.photos && file.photos.length > 0 ? file.photos : (file.img ? [file.img] : [])}
+              photoCount={file.photoCount || (file.photos ? file.photos.length : 0)}
               stickers={file.stickers}
               colorTag={file.colorTag}
+              isComingSoon={file.isComingSoon}
               onClick={() => {
                 if (hasMovedRef.current) return;
                 setSelectedFile(file);
@@ -908,65 +735,73 @@ function InfiniteCanvasContent() {
                     <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-primary uppercase leading-tight">
                       {selectedFile.name}
                     </h2>
-                    <span className="font-mono text-xs px-3 py-1 rounded-full bg-black/5 text-secondary font-bold">
-                      {rawPhotos.length} ASSETS
-                    </span>
+                    {selectedFile.isComingSoon || rawPhotos.length === 0 ? (
+                      <span className="font-mono text-xs px-3 py-1 rounded-full bg-accent-red/10 text-accent-red font-bold uppercase tracking-wider">
+                        COMING SOON
+                      </span>
+                    ) : (
+                      <span className="font-mono text-xs px-3 py-1 rounded-full bg-black/5 text-secondary font-bold">
+                        {rawPhotos.length} ASSETS
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Filter Pills Bar */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pr-4">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('all')}
-                    className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                      activeTab === 'all'
-                        ? 'bg-black text-white shadow-sm'
-                        : 'bg-black/5 text-secondary hover:bg-black/10'
-                    }`}
-                  >
-                    All ({rawPhotos.length})
-                  </button>
-                  {socialCount > 0 && (
+                {/* Filter Pills Bar (Only show if there are photos) */}
+                {!selectedFile.isComingSoon && rawPhotos.length > 0 && (
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pr-4">
                     <button
                       type="button"
-                      onClick={() => setActiveTab('social')}
+                      onClick={() => setActiveTab('all')}
                       className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                        activeTab === 'social'
+                        activeTab === 'all'
                           ? 'bg-black text-white shadow-sm'
                           : 'bg-black/5 text-secondary hover:bg-black/10'
                       }`}
                     >
-                      📱 9:16 Social Ads ({socialCount})
+                      All ({rawPhotos.length})
                     </button>
-                  )}
-                  {lookbookCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('lookbook')}
-                      className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                        activeTab === 'lookbook'
-                          ? 'bg-black text-white shadow-sm'
-                          : 'bg-black/5 text-secondary hover:bg-black/10'
-                      }`}
-                    >
-                      📖 4:5 Lookbook ({lookbookCount})
-                    </button>
-                  )}
-                  {bannerCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('banners')}
-                      className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                        activeTab === 'banners'
-                          ? 'bg-black text-white shadow-sm'
-                          : 'bg-black/5 text-secondary hover:bg-black/10'
-                      }`}
-                    >
-                      🖥️ 16:9 Banners ({bannerCount})
-                    </button>
-                  )}
-                </div>
+                    {socialCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('social')}
+                        className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                          activeTab === 'social'
+                            ? 'bg-black text-white shadow-sm'
+                            : 'bg-black/5 text-secondary hover:bg-black/10'
+                        }`}
+                      >
+                        📱 9:16 Social Ads ({socialCount})
+                      </button>
+                    )}
+                    {lookbookCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('lookbook')}
+                        className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                          activeTab === 'lookbook'
+                            ? 'bg-black text-white shadow-sm'
+                            : 'bg-black/5 text-secondary hover:bg-black/10'
+                        }`}
+                      >
+                        📖 4:5 Lookbook ({lookbookCount})
+                      </button>
+                    )}
+                    {bannerCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('banners')}
+                        className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                          activeTab === 'banners'
+                            ? 'bg-black text-white shadow-sm'
+                            : 'bg-black/5 text-secondary hover:bg-black/10'
+                        }`}
+                      >
+                        🖥️ 16:9 Banners ({bannerCount})
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 <button
                   type="button"
@@ -978,8 +813,59 @@ function InfiniteCanvasContent() {
                 </button>
               </div>
 
-              {/* Adaptive Luxury Editorial Gallery (Zero Padding Holes, Zero Clutter) */}
-              <div className="flex-1 p-5 sm:p-8 md:p-10 overflow-y-auto space-y-10">
+              {/* Modal Body: Coming Soon Showcase OR Photo Gallery */}
+              {selectedFile.isComingSoon || rawPhotos.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-14 text-center max-w-2xl mx-auto space-y-6 overflow-y-auto">
+                  <div className="w-20 h-20 rounded-2xl bg-black/5 border border-black/10 flex items-center justify-center text-4xl shadow-inner">
+                    📁
+                  </div>
+                  <div className="space-y-2">
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-accent-red bg-accent-red/10 border border-accent-red/25 px-3 py-1 rounded-full">
+                      DIRECTORIAL ARCHIVE IN PRODUCTION
+                    </span>
+                    <h3 className="font-display font-black text-3xl sm:text-5xl text-primary uppercase tracking-tight pt-3">
+                      {selectedFile.name}
+                    </h3>
+                    <p className="font-mono text-xs sm:text-sm text-secondary tracking-wider uppercase font-semibold">
+                      {selectedFile.discipline} • {selectedFile.role}
+                    </p>
+                  </div>
+                  <p className="font-sans text-sm sm:text-base text-secondary/90 leading-relaxed max-w-lg">
+                    {selectedFile.desc}
+                  </p>
+                  {selectedFile.deliverables && selectedFile.deliverables.length > 0 && (
+                    <div className="w-full pt-6 border-t border-black/5">
+                      <span className="font-mono text-[10px] text-muted tracking-widest uppercase block mb-3 font-bold">
+                        PLANNED DELIVERABLES &amp; RELEASES
+                      </span>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {selectedFile.deliverables.map((deliv, i) => (
+                          <span key={i} className="font-mono text-xs px-3.5 py-1.5 rounded-lg bg-black/5 text-primary border border-black/5 font-medium">
+                            {deliv}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="pt-4 flex flex-wrap justify-center gap-3">
+                    <Link
+                      href="/admin"
+                      className="px-6 py-3 rounded-xl bg-primary text-white hover:bg-accent-red font-mono text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-2 shadow-sm active:scale-95"
+                    >
+                      <span>⚡</span> Upload Work in Studio Desk ↗
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="px-5 py-3 rounded-xl bg-black/5 hover:bg-black/10 text-primary font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      Back to Canvas
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Adaptive Luxury Editorial Gallery (Zero Padding Holes, Zero Clutter) */
+                <div className="flex-1 p-5 sm:p-8 md:p-10 overflow-y-auto space-y-10">
                 {displayedPhotos.length === 0 ? (
                   <div className="py-20 text-center space-y-4 max-w-md mx-auto">
                     <div className="w-12 h-12 rounded-full bg-black/5 mx-auto flex items-center justify-center font-mono text-lg text-secondary">
@@ -1175,6 +1061,7 @@ function InfiniteCanvasContent() {
                 )}
 
               </div>
+            )}
             </div>
           </div>
         );
