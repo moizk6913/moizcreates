@@ -35,6 +35,11 @@ File Name: ${fileName || 'Asset'}
 Brief/Concept: ${sourceName}
 Detected Aspect Ratio: ${preferredAspect}
 
+Intelligent Presentation Rule:
+- If assets are print media, A4 pages, brochures, or lookbook layouts -> set layout: "book" (Double-Page Editorial Magazine Spread).
+- If assets are 9:16 vertical ads, reels, or mobile stories -> set layout: "social" (Mobile Social Ads Bento).
+- If mixed assets or multi-channel commercial campaign -> set layout: "bento" (360° Luxury Bento Grid).
+
 Output ONLY a raw valid JSON object (no markdown code fences, no extra text) with these exact keys:
 {
   "code": "FILE_17.DIR",
@@ -43,6 +48,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
   "year": "2026",
   "role": "Lead Art Director",
   "aspect": "${preferredAspect}",
+  "layout": "book",
   "colorTag": "bg-[#ff3300]",
   "desc": "2-sentence high-impact directorial description highlighting technical lighting, composition, and visual tone.",
   "deliverables": ["Deliverable 1", "Deliverable 2", "Deliverable 3", "Deliverable 4"]
@@ -69,7 +75,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
             if (text) {
               const parsed = JSON.parse(text);
               if (preferredAspect) parsed.aspect = preferredAspect;
-              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-3.6-flash' });
+              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-2.0-flash' });
             }
           }
         } catch (apiErr) {
@@ -80,7 +86,9 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
       // Intelligent Fallback Director Engine
       const cleanBrief = sourceName.trim();
       const codeNum = Math.floor(Math.random() * 80 + 17);
-      const isFashion = /fashion|model|bridal|luxury|wear|cloth|vogue|runway/i.test(cleanBrief);
+      const isPrint = /print|a4|book|spread|lookbook|editorial|magazine|brochure|paper/i.test(cleanBrief);
+      const isSocial = /social|ad|reel|story|meta|instagram|tiktok|feed/i.test(cleanBrief);
+      const isFashion = /fashion|model|bridal|luxury|wear|cloth|vogue|runway|kaldhar|kaladhar/i.test(cleanBrief);
       const isTech = /aviation|flight|plane|speed|tech|auto|car|kinetic/i.test(cleanBrief);
       const isIdentity = /brand|identity|logo|type|swiss|poster|system/i.test(cleanBrief);
 
@@ -89,14 +97,32 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
       let colorTag = 'bg-[#ff3300]';
       let aspect = preferredAspect || 'aspect-[16/10]';
       let role = 'Lead Art Director';
+      let layout = 'bento';
+      let deliverables = ['Creative Treatment', 'On-Set Lighting Scheme', 'Aspect Ratio Decks', 'Broadcast Master Grade'];
 
-      if (isFashion) {
-        discipline = 'Lighting Direction • Editorial Styling';
+      if (isPrint) {
+        discipline = 'Editorial Print & Lookbook Direction';
+        codeSuffix = 'PRN';
+        colorTag = 'bg-[#121212]';
+        role = 'Art Director & Editorial Designer';
+        layout = 'book';
+        deliverables = ['A4 Print Editorial Lookbook', 'Double-Page Magazine Spreads', 'Directorial Master Plates', 'Tactile Print Production'];
+      } else if (isSocial) {
+        discipline = 'Social Media Ads & Campaign Graphics';
+        codeSuffix = 'SOC';
+        colorTag = 'bg-[#0055ff]';
+        role = 'Art Director & Visual Designer';
+        layout = 'social';
+        deliverables = ['9:16 Vertical Story Ads', 'High-Velocity Motion Reels', 'Instagram Carousel Suites', 'Paid Media Visual Direction'];
+      } else if (isFashion) {
+        discipline = 'Editorial Direction • High Fashion & Bridal';
         codeSuffix = 'LUX';
         colorTag = 'bg-[#f59e0b]';
         role = 'Director of Visuals';
+        layout = 'bento';
+        deliverables = ['Haute Couture Lookbook', 'Social Media Motion Teasers', 'Hero Billboard Artboards', 'On-Set Lighting Design'];
       } else if (isTech) {
-        discipline = 'Art Direction • Lookbook';
+        discipline = 'Art Direction • Kinetic Lookbook';
         codeSuffix = 'DIR';
         colorTag = 'bg-[#0055ff]';
       } else if (isIdentity) {
@@ -119,9 +145,12 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
         year: '2026',
         role,
         aspect,
+        layout,
         colorTag,
-        desc: 'Tactile on-set visual direction capturing high-contrast textures, deliberate chiaroscuro practicals, and uncompromising technical composition. Built direct with founders and cinematographers.',
-        deliverables: ['Creative Treatment', 'On-Set Lighting Scheme', 'Aspect Ratio Decks', 'Broadcast Master Grade'],
+        desc: isPrint
+          ? `Tactile editorial print and lookbook architecture directed for ${cleanedTitle}. Formatted into deliberate double-page spreads, high-contrast chiaroscuro lighting, and Swiss modernist typography.`
+          : 'Tactile on-set visual direction capturing high-contrast textures, deliberate chiaroscuro practicals, and uncompromising technical composition. Built direct with founders and cinematographers.',
+        deliverables,
       };
 
       return NextResponse.json({ success: true, data: generated, engine: 'studio-director-engine' });

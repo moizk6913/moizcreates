@@ -1,7 +1,7 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { DynamicCanvasFile } from '@/lib/contentStore';
+import { DynamicCanvasFile, deleteCanvasFile } from '@/lib/contentStore';
 
 interface CaseModalProps {
   projectId: string | null;
@@ -221,6 +221,13 @@ const projectsData: Record<string, CaseProjectData> = {
 };
 
 export default function CaseModal({ projectId, onClose, uploadedFiles, userPhotos }: CaseModalProps) {
+  const [viewMode, setViewMode] = useState<'bento' | 'book' | 'feed'>('bento');
+  const [bookSpreadIdx, setBookSpreadIdx] = useState(0);
+  const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    setBookSpreadIdx(0);
+  }, [projectId]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -398,30 +405,109 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
 
   if (!data) return null;
 
+  const allPhotos: string[] =
+    userProject?.photos && userProject.photos.length > 0
+      ? userProject.photos
+      : userProject?.img
+      ? [userProject.img]
+      : data.media
+          .map((m: CaseMediaItem) => m.image || m.items?.[0]?.image)
+          .filter((img): img is string => Boolean(img));
+
+  const totalSpreads = Math.max(1, Math.ceil(allPhotos.length / 2));
+  const safeSpreadIdx = Math.min(bookSpreadIdx, totalSpreads - 1);
+  const leftPagePhoto = allPhotos[safeSpreadIdx * 2];
+  const rightPagePhoto = allPhotos[safeSpreadIdx * 2 + 1];
+
   return (
     <div
       data-lenis-prevent
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-8 overscroll-contain"
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-8 overscroll-contain"
       role="dialog"
       aria-modal="true"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl h-[92dvh] sm:h-auto sm:max-h-[88vh] bg-canvas border border-border-hairline shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col rounded-[10px]"
+        className="relative w-full max-w-5xl h-[92dvh] sm:h-auto sm:max-h-[90vh] bg-canvas border border-border-hairline shadow-[0_30px_90px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col rounded-[12px]"
       >
-        {/* Top Bar */}
-        <div className="sticky top-0 z-10 flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 bg-canvas border-b border-border-hairline">
-          <span className="font-mono text-[11px] sm:text-xs text-muted tracking-wider">PROJECT / CASE STUDY</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="font-mono text-xs text-primary border border-border-medium px-4 py-1.5 hover:bg-primary hover:text-white transition-colors cursor-pointer"
-          >
-            ✕ Close
-          </button>
+        {/* Top Bar with Layout Selector & Delete Option */}
+        <div className="sticky top-0 z-20 flex flex-wrap justify-between items-center px-4 sm:px-6 py-3 bg-canvas/95 backdrop-blur-md border-b border-border-hairline gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[11px] sm:text-xs text-muted tracking-wider">PROJECT</span>
+            {userProject && (
+              <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 font-bold uppercase">
+                Custom Upload
+              </span>
+            )}
+          </div>
+
+          {/* Presentation Switcher: Bento Grid vs Magazine Book vs Stream */}
+          {allPhotos.length > 1 && (
+            <div className="flex items-center bg-subtle p-0.5 rounded-[8px] border border-border-hairline text-[11px] font-mono">
+              <button
+                type="button"
+                onClick={() => setViewMode('bento')}
+                className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                  viewMode === 'bento'
+                    ? 'bg-primary text-canvas shadow-xs'
+                    : 'text-muted hover:text-primary'
+                }`}
+              >
+                🍱 Bento Grid
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('book')}
+                className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                  viewMode === 'book'
+                    ? 'bg-primary text-canvas shadow-xs'
+                    : 'text-muted hover:text-primary'
+                }`}
+              >
+                📖 Lookbook Book
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('feed')}
+                className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer font-bold ${
+                  viewMode === 'feed'
+                    ? 'bg-primary text-canvas shadow-xs'
+                    : 'text-muted hover:text-primary'
+                }`}
+              >
+                ☷ Stream
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            {userProject && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`Are you sure you want to completely delete "${data.title}"? This cannot be undone.`)) {
+                    deleteCanvasFile(userProject.id);
+                    onClose();
+                  }
+                }}
+                className="font-mono text-xs px-3 py-1.5 rounded-[6px] border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center gap-1 font-bold"
+                title="Completely delete this campaign"
+              >
+                <span>🗑️</span>
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="font-mono text-xs text-primary border border-border-medium px-4 py-1.5 hover:bg-primary hover:text-white transition-colors cursor-pointer rounded-[6px]"
+            >
+              ✕ Close
+            </button>
+          </div>
         </div>
 
         {/* Scroll Content */}
@@ -429,8 +515,8 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
           {/* Header */}
           <div className="mb-8">
             <span className="font-mono text-xs text-accent-red tracking-wider block mb-2">{data.tag}</span>
-            <h2 className="text-2xl md:text-3xl font-bold text-primary tracking-tight mb-3">{data.title}</h2>
-            <p className="text-sm md:text-base text-secondary leading-relaxed max-w-2xl mb-6">{data.narrative}</p>
+            <h2 className="text-2xl md:text-4xl font-bold text-primary tracking-tight mb-3 font-display uppercase">{data.title}</h2>
+            <p className="text-sm md:text-base text-secondary leading-relaxed max-w-3xl mb-6">{data.narrative}</p>
 
             {/* Credit Table */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-border-hairline">
@@ -453,136 +539,383 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             </div>
           </div>
 
-          {/* Media Stack */}
-          <div className="flex flex-col gap-8">
-            {data.media.map((m: CaseMediaItem, idx: number) => {
-              const isActualVideo = !userProject && (m.caption.toLowerCase().includes('video') || m.caption.toLowerCase().includes('broadcast'));
-              return (
-                <div key={idx} className="flex flex-col gap-2">
-                  {/* 16:9 Landscape Video / Broadcast Frame */}
-                  {m.format === '16-9' && m.image && (
-                    <div className="relative w-full aspect-[16/9] bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
-                      <img
-                        src={m.image}
-                        alt={m.caption}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          if (userPhotos && userPhotos.length > 0) {
-                            e.currentTarget.src = userPhotos[0];
-                          } else {
-                            e.currentTarget.style.opacity = '0.5';
-                          }
-                        }}
-                      />
-                      {isActualVideo && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <span className="w-11 h-11 rounded-full bg-accent-red text-white flex items-center justify-center text-sm pl-0.5 shadow-lg">
-                            ▶
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 4:5 Portrait Poster */}
-                  {m.format === '4-5' && m.image && (
-                    <div className="relative w-full max-w-lg mx-auto aspect-[4/5] bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
-                      <img
-                        src={m.image}
-                        alt={m.caption}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          if (userPhotos && userPhotos.length > 0) {
-                            e.currentTarget.src = userPhotos[0];
-                          } else {
-                            e.currentTarget.style.opacity = '0.5';
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* 9:16 Vertical Reel */}
-                  {m.format === '9-16' && m.image && (
-                    <div className="relative w-full max-w-[280px] mx-auto aspect-[9/16] max-h-[500px] bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
-                      <img
-                        src={m.image}
-                        alt={m.caption}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          if (userPhotos && userPhotos.length > 0) {
-                            e.currentTarget.src = userPhotos[0];
-                          } else {
-                            e.currentTarget.style.opacity = '0.5';
-                          }
-                        }}
-                      />
-                      {isActualVideo && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <span className="w-9 h-9 rounded-full bg-accent-red text-white flex items-center justify-center text-xs pl-0.5 shadow-lg">
-                            ▶
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 1:1 Side by Side Grid */}
-                  {m.format === 'grid-2' && m.items && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {m.items.map((it: { image: string }, i: number) => (
-                        <div key={i} className="aspect-square bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
-                          <img
-                            src={it.image}
-                            alt="Setup"
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              if (userPhotos && userPhotos.length > 0) {
-                                e.currentTarget.src = userPhotos[0];
-                              } else {
-                                e.currentTarget.style.opacity = '0.5';
-                              }
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center font-mono text-[11px] text-muted pt-1">
-                    <span>{m.caption}</span>
-                    <span className="text-accent-red uppercase tracking-wider">{m.format} SPEC</span>
+          {/* VIEW MODE 1: BENTO GRID PRESENTATION */}
+          {viewMode === 'bento' && (
+            <div className="flex flex-col gap-6 animate-fadeIn">
+              {/* Bento Row 1: Hero Plate (8 cols) + Paired Feature (4 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                <div
+                  onClick={() => allPhotos[0] && setEnlargedPhoto(allPhotos[0])}
+                  className="lg:col-span-8 relative aspect-[16/10] bg-subtle border border-border-hairline rounded-[10px] overflow-hidden group cursor-pointer shadow-sm"
+                >
+                  <img
+                    src={allPhotos[0] || data.media[0]?.image}
+                    alt="Hero Key Visual"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-black/80 backdrop-blur-md text-white font-mono text-[9px] uppercase tracking-wider">
+                    HERO KEY VISUAL
+                  </div>
+                  <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded bg-black/80 backdrop-blur-md text-white font-mono text-[9px] opacity-0 group-hover:opacity-100 transition-opacity">
+                    CLICK TO EXPAND ↗
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Bottom Actions */}
+                <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-4">
+                  {allPhotos[1] && (
+                    <div
+                      onClick={() => setEnlargedPhoto(allPhotos[1])}
+                      className="flex-1 relative aspect-[4/5] sm:aspect-auto sm:h-full bg-subtle border border-border-hairline rounded-[10px] overflow-hidden group cursor-pointer shadow-sm"
+                    >
+                      <img
+                        src={allPhotos[1]}
+                        alt="Editorial Frame"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-black/80 backdrop-blur-md text-white font-mono text-[9px] uppercase tracking-wider">
+                        EDITORIAL LOOKBOOK
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bento Row 2: 9:16 Mobile Social Story Grid */}
+              {allPhotos.length > 2 && (
+                <div className="space-y-3 pt-4 border-t border-border-hairline">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[10px] text-muted tracking-wider uppercase">
+                      9:16 SOCIAL ADS &amp; MOBILE STORY ARCHITECTURE
+                    </span>
+                    <span className="font-mono text-[10px] text-accent-red font-bold uppercase">
+                      VERTICAL SPEC
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {allPhotos.slice(2, 6).map((photo, i) => (
+                      <div
+                        key={i}
+                        onClick={() => setEnlargedPhoto(photo)}
+                        className="relative aspect-[9/16] bg-subtle border border-border-hairline rounded-[10px] overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-all"
+                      >
+                        <img
+                          src={photo}
+                          alt={`Story 0${i + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute bottom-2 left-2 right-2 px-2 py-1 rounded bg-black/80 backdrop-blur-md text-white font-mono text-[8px] flex justify-between">
+                          <span>STORY 0{i + 1}</span>
+                          <span className="text-neutral-400">1080×1920</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bento Row 3: Remaining Campaign Portfolio Stills */}
+              {allPhotos.length > 6 && (
+                <div className="space-y-3 pt-4 border-t border-border-hairline">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[10px] text-muted tracking-wider uppercase">
+                      CAMPAIGN STILLS ARCHIVE ({allPhotos.length - 6} FRAMES)
+                    </span>
+                    <span className="font-mono text-[10px] text-muted uppercase">CLICK TO ENLARGE</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {allPhotos.slice(6).map((photo, i) => (
+                      <div
+                        key={i}
+                        onClick={() => setEnlargedPhoto(photo)}
+                        className="relative aspect-[4/5] bg-subtle border border-border-hairline rounded-[8px] overflow-hidden cursor-pointer group hover:border-primary transition-all"
+                      >
+                        <img
+                          src={photo}
+                          alt={`Frame ${i + 7}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <span className="absolute bottom-1.5 left-1.5 font-mono text-[8px] px-1.5 py-0.5 rounded bg-black/75 text-white/90">
+                          FRAME {i + 7}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* VIEW MODE 2: EDITORIAL MAGAZINE / LOOKBOOK DOUBLE-PAGE SPREAD */}
+          {viewMode === 'book' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Book Spread Header Controls */}
+              <div className="flex flex-wrap justify-between items-center gap-3 bg-subtle p-3 rounded-[8px] border border-border-hairline">
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span className="font-bold text-primary">📖 LOOKBOOK SPREAD</span>
+                  <span className="text-muted">• SPREAD {safeSpreadIdx + 1} OF {totalSpreads}</span>
+                </div>
+
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <button
+                    type="button"
+                    disabled={safeSpreadIdx === 0}
+                    onClick={() => setBookSpreadIdx((prev) => Math.max(0, prev - 1))}
+                    className="px-3 py-1 rounded bg-canvas border border-border-medium hover:bg-primary hover:text-white disabled:opacity-40 disabled:hover:bg-canvas disabled:hover:text-primary transition-colors cursor-pointer"
+                  >
+                    ← PREV SPREAD
+                  </button>
+                  <button
+                    type="button"
+                    disabled={safeSpreadIdx >= totalSpreads - 1}
+                    onClick={() => setBookSpreadIdx((prev) => Math.min(totalSpreads - 1, prev + 1))}
+                    className="px-3 py-1 rounded bg-canvas border border-border-medium hover:bg-primary hover:text-white disabled:opacity-40 disabled:hover:bg-canvas disabled:hover:text-primary transition-colors cursor-pointer"
+                  >
+                    NEXT SPREAD →
+                  </button>
+                </div>
+              </div>
+
+              {/* The Open Magazine Double-Page Spread */}
+              <div className="relative w-full bg-[#fcfaf5] text-neutral-900 border border-neutral-300 rounded-[12px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] overflow-hidden p-4 sm:p-8">
+                {/* Center Book Spine Crease Shadow */}
+                <div className="hidden md:block absolute top-0 bottom-0 left-1/2 w-[24px] -ml-[12px] bg-gradient-to-r from-black/5 via-black/20 to-black/5 pointer-events-none z-10" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-stretch">
+                  {/* Left Page (Verso) */}
+                  <div className="flex flex-col justify-between space-y-4 md:border-r md:border-neutral-200 md:pr-6">
+                    <div className="flex justify-between items-center font-mono text-[10px] text-neutral-500 uppercase tracking-widest border-b border-neutral-200 pb-2">
+                      <span>MOIZ KHAN STUDIO</span>
+                      <span>LOOKBOOK VOL. 2026</span>
+                    </div>
+
+                    <div
+                      onClick={() => leftPagePhoto && setEnlargedPhoto(leftPagePhoto)}
+                      className="relative aspect-[1/1.35] sm:aspect-[1/1.4] bg-neutral-100 rounded-[4px] overflow-hidden shadow-xs border border-neutral-200 cursor-pointer group"
+                    >
+                      {leftPagePhoto ? (
+                        <img
+                          src={leftPagePhoto}
+                          alt="Left Page Plate"
+                          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-mono text-xs text-neutral-400">
+                          END OF LOOKBOOK
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center font-mono text-[10px] text-neutral-500 pt-1 border-t border-neutral-200">
+                      <span>PLATE 0{safeSpreadIdx * 2 + 1}</span>
+                      <span>TACTILE A4 PRINT</span>
+                    </div>
+                  </div>
+
+                  {/* Right Page (Recto) */}
+                  <div className="flex flex-col justify-between space-y-4 md:pl-6">
+                    <div className="flex justify-between items-center font-mono text-[10px] text-neutral-500 uppercase tracking-widest border-b border-neutral-200 pb-2">
+                      <span>{data.title}</span>
+                      <span>EDITORIAL ARCHIVE</span>
+                    </div>
+
+                    <div
+                      onClick={() => rightPagePhoto && setEnlargedPhoto(rightPagePhoto)}
+                      className="relative aspect-[1/1.35] sm:aspect-[1/1.4] bg-neutral-100 rounded-[4px] overflow-hidden shadow-xs border border-neutral-200 cursor-pointer group"
+                    >
+                      {rightPagePhoto ? (
+                        <img
+                          src={rightPagePhoto}
+                          alt="Right Page Plate"
+                          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full p-6 flex flex-col justify-center space-y-3 bg-neutral-50 font-serif">
+                          <h4 className="text-xl font-bold tracking-tight text-neutral-900">{data.title}</h4>
+                          <p className="text-xs text-neutral-600 leading-relaxed font-sans">{data.narrative}</p>
+                          <div className="pt-4 border-t border-neutral-200 font-mono text-[10px] text-neutral-500">
+                            DIRECTED BY MOIZ KHAN • DUBAI / WORLDWIDE
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center font-mono text-[10px] text-neutral-500 pt-1 border-t border-neutral-200">
+                      <span>PLATE 0{safeSpreadIdx * 2 + 2}</span>
+                      <span>PAGE {safeSpreadIdx * 2 + 2}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Spread Navigator Pills */}
+              <div className="flex gap-2 overflow-x-auto py-2 no-scrollbar">
+                {Array.from({ length: totalSpreads }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setBookSpreadIdx(idx)}
+                    className={`px-3 py-1.5 rounded-[6px] font-mono text-xs font-bold transition-all cursor-pointer ${
+                      safeSpreadIdx === idx
+                        ? 'bg-primary text-canvas shadow-xs'
+                        : 'bg-subtle text-muted hover:text-primary'
+                    }`}
+                  >
+                    Spread {idx + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* VIEW MODE 3: CLASSIC LINEAR STREAM */}
+          {viewMode === 'feed' && (
+            <div className="flex flex-col gap-8 animate-fadeIn">
+              {data.media.map((m: CaseMediaItem, idx: number) => {
+                const isActualVideo = !userProject && (m.caption.toLowerCase().includes('video') || m.caption.toLowerCase().includes('broadcast'));
+                return (
+                  <div key={idx} className="flex flex-col gap-2">
+                    {m.format === '16-9' && m.image && (
+                      <div
+                        onClick={() => m.image && setEnlargedPhoto(m.image)}
+                        className="relative w-full aspect-[16/9] bg-subtle border border-border-hairline overflow-hidden rounded-[8px] cursor-pointer"
+                      >
+                        <img
+                          src={m.image}
+                          alt={m.caption}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            if (userPhotos && userPhotos.length > 0) {
+                              e.currentTarget.src = userPhotos[0];
+                            } else {
+                              e.currentTarget.style.opacity = '0.5';
+                            }
+                          }}
+                        />
+                        {isActualVideo && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <span className="w-11 h-11 rounded-full bg-accent-red text-white flex items-center justify-center text-sm pl-0.5 shadow-lg">
+                              ▶
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {m.format === '4-5' && m.image && (
+                      <div
+                        onClick={() => m.image && setEnlargedPhoto(m.image)}
+                        className="relative w-full max-w-lg mx-auto aspect-[4/5] bg-subtle border border-border-hairline overflow-hidden rounded-[8px] cursor-pointer"
+                      >
+                        <img
+                          src={m.image}
+                          alt={m.caption}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            if (userPhotos && userPhotos.length > 0) {
+                              e.currentTarget.src = userPhotos[0];
+                            } else {
+                              e.currentTarget.style.opacity = '0.5';
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {m.format === '9-16' && m.image && (
+                      <div
+                        onClick={() => m.image && setEnlargedPhoto(m.image)}
+                        className="relative w-full max-w-[280px] mx-auto aspect-[9/16] max-h-[500px] bg-subtle border border-border-hairline overflow-hidden rounded-[8px] cursor-pointer"
+                      >
+                        <img
+                          src={m.image}
+                          alt={m.caption}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            if (userPhotos && userPhotos.length > 0) {
+                              e.currentTarget.src = userPhotos[0];
+                            } else {
+                              e.currentTarget.style.opacity = '0.5';
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {m.format === 'grid-2' && m.items && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {m.items.map((it: { image: string }, i: number) => (
+                          <div
+                            key={i}
+                            onClick={() => setEnlargedPhoto(it.image)}
+                            className="aspect-square bg-subtle border border-border-hairline overflow-hidden rounded-[8px] cursor-pointer"
+                          >
+                            <img
+                              src={it.image}
+                              alt="Setup"
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                if (userPhotos && userPhotos.length > 0) {
+                                  e.currentTarget.src = userPhotos[0];
+                                } else {
+                                  e.currentTarget.style.opacity = '0.5';
+                                }
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center font-mono text-[11px] text-muted pt-1">
+                      <span>{m.caption}</span>
+                      <span className="text-accent-red uppercase tracking-wider">{m.format} SPEC</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Bottom Actions with Complete Delete Option */}
           <div className="mt-12 pt-6 border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="font-mono text-xs text-muted tracking-wider uppercase">
-              {data.media.length} {data.media.length === 1 ? 'FRAME' : 'FRAMES'} ARCHIVED • {data.title}
+              {allPhotos.length} {allPhotos.length === 1 ? 'FRAME' : 'FRAMES'} ARCHIVED • {data.title}
             </span>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {userProject && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Are you sure you want to completely delete "${data.title}" from your portfolio and archive? This cannot be undone.`)) {
+                      deleteCanvasFile(userProject.id);
+                      onClose();
+                    }
+                  }}
+                  className="font-mono text-xs px-4 py-2 border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer font-bold rounded-[4px] flex items-center gap-1.5"
+                >
+                  <span>🗑️</span>
+                  <span>Delete Entire Campaign</span>
+                </button>
+              )}
               <Link
                 href="/canvas"
                 onClick={onClose}
-                className="font-mono text-xs px-4 py-2 bg-primary text-canvas font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
+                className="font-mono text-xs px-4 py-2 bg-primary text-canvas font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity rounded-[4px]"
               >
                 Explore Archive Canvas ↗
               </Link>
               <button
                 type="button"
                 onClick={onClose}
-                className="font-mono text-xs px-4 py-2 border border-border-medium text-primary hover:bg-subtle transition-colors"
+                className="font-mono text-xs px-4 py-2 border border-border-medium text-primary hover:bg-subtle transition-colors rounded-[4px]"
               >
                 Close Modal
               </button>
@@ -590,6 +923,29 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
           </div>
         </div>
       </div>
+
+      {/* Lightbox Pop-up for Clicking Any Image */}
+      {enlargedPhoto && (
+        <div
+          onClick={() => setEnlargedPhoto(null)}
+          className="fixed inset-0 z-[10001] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div className="relative max-w-5xl max-h-[92vh] flex flex-col items-center">
+            <button
+              type="button"
+              onClick={() => setEnlargedPhoto(null)}
+              className="absolute -top-10 right-0 text-white font-mono text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded"
+            >
+              ✕ Close Preview
+            </button>
+            <img
+              src={enlargedPhoto}
+              alt="Enlarged Plate"
+              className="max-w-full max-h-[85vh] object-contain rounded-[8px] shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

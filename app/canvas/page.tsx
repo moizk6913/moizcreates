@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import CustomCursor from '@/components/CustomCursor';
-import { getStoredCanvasFiles, getStoredCanvasFilesAsync, subscribeToCanvasUpdates } from '@/lib/contentStore';
+import { getStoredCanvasFiles, getStoredCanvasFilesAsync, subscribeToCanvasUpdates, deleteCanvasFile } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData } from '@/components/ArchiveFolderCard';
 
 export interface ArchiveFile {
@@ -293,6 +293,7 @@ function InfiniteCanvasContent() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [selectedFile, setSelectedFile] = useState<ArchiveFile | null>(null);
+  const [customFolderIds, setCustomFolderIds] = useState<Set<string>>(new Set());
   const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -302,8 +303,10 @@ function InfiniteCanvasContent() {
     const cached = getStoredCanvasFiles();
     if (cached && cached.length > 0) {
       setAllFiles(mergeDisciplinesWithUploads(cached));
+      setCustomFolderIds(new Set(cached.map((c) => c.id)));
     } else {
       setAllFiles(DEFAULT_DISCIPLINE_FOLDERS);
+      setCustomFolderIds(new Set());
     }
 
     // 2. Async hydration from IndexedDB for complete 38+ photo arrays
@@ -311,6 +314,7 @@ function InfiniteCanvasContent() {
       .then((fullFiles) => {
         if (fullFiles && fullFiles.length > 0) {
           setAllFiles(mergeDisciplinesWithUploads(fullFiles));
+          setCustomFolderIds(new Set(fullFiles.map((f) => f.id)));
         }
       })
       .catch((err) => {
@@ -811,14 +815,33 @@ function InfiniteCanvasContent() {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedFile(null)}
-                  className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hover:bg-black/15 active:scale-95 text-secondary flex items-center justify-center font-mono text-sm transition-all cursor-pointer"
-                  title="Close Gallery"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  {customFolderIds.has(selectedFile.id) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Are you sure you want to completely delete "${selectedFile.name}" from your portfolio? This cannot be undone.`)) {
+                          deleteCanvasFile(selectedFile.id);
+                          setSelectedFile(null);
+                          refreshCanvasFiles();
+                        }
+                      }}
+                      className="px-3.5 py-1.5 rounded-full font-mono text-xs font-bold text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                      title="Completely delete this campaign"
+                    >
+                      <span>🗑️</span>
+                      <span className="hidden sm:inline">Delete Campaign</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFile(null)}
+                    className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hover:bg-black/15 active:scale-95 text-secondary flex items-center justify-center font-mono text-sm transition-all cursor-pointer"
+                    title="Close Gallery"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {/* Modal Body: Coming Soon Showcase OR Photo Gallery */}
@@ -1068,6 +1091,37 @@ function InfiniteCanvasContent() {
                   </div>
                 )}
 
+                {/* Bottom Actions Bar */}
+                <div className="mt-8 pt-6 border-t border-black/10 flex flex-wrap justify-between items-center gap-4 max-w-4xl mx-auto">
+                  <span className="font-mono text-xs text-secondary tracking-wider uppercase">
+                    {rawPhotos.length} {rawPhotos.length === 1 ? 'Asset' : 'Assets'} Available • {selectedFile.name}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {customFolderIds.has(selectedFile.id) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to completely delete "${selectedFile.name}" from your portfolio? This cannot be undone.`)) {
+                            deleteCanvasFile(selectedFile.id);
+                            setSelectedFile(null);
+                            refreshCanvasFiles();
+                          }
+                        }}
+                        className="font-mono text-xs px-4 py-2 rounded-lg border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer font-bold flex items-center gap-1.5"
+                      >
+                        <span>🗑️</span>
+                        <span>Delete Campaign</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="font-mono text-xs px-5 py-2 rounded-lg bg-black text-white hover:bg-neutral-800 transition-all font-bold uppercase cursor-pointer"
+                    >
+                      Close Gallery
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
             </div>

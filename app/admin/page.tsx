@@ -1487,9 +1487,11 @@ export default function AdminPage() {
                           type="button"
                           disabled={deletingId === item.id}
                           onClick={() => handleDeleteCampaign(item.id)}
-                          className="text-red-400 hover:text-red-300 hover:underline cursor-pointer disabled:opacity-50"
+                          className="px-3 py-1.5 rounded-[4px] bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all cursor-pointer font-bold font-mono text-xs flex items-center gap-1.5 disabled:opacity-50"
+                          title="Completely delete this campaign"
                         >
-                          {deletingId === item.id ? 'Deleting...' : 'Delete Campaign [✕]'}
+                          <span>🗑️</span>
+                          <span>{deletingId === item.id ? 'Deleting...' : 'Delete Campaign'}</span>
                         </button>
                       ) : (
                         <span className="text-[10px] text-neutral-500 uppercase tracking-wider">
