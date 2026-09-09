@@ -77,7 +77,10 @@ export default function Header({ visible = true }: HeaderProps) {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    };
   }, [router]);
 
   const handleLogoClick = (e: React.MouseEvent) => {

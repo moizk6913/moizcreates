@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const DEFAULT_GEMINI_KEY = 'AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 function parseInlineImage(dataUriOrBase64: string): { mimeType: string; data: string } | null {
   if (!dataUriOrBase64) return null;
@@ -20,7 +19,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey, imageData } = body;
 
-    const apiKey = geminiKey || process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
+    const apiKey = geminiKey || process.env.GEMINI_API_KEY || '';
 
     // Action 1: Smart Multimodal Asset & Campaign Analyzer
     if (action === 'analyze_upload') {

@@ -547,7 +547,7 @@ export default function AdminPage() {
           </form>
 
           <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-[10px] font-mono text-white/40">
-            <span>DEFAULT: 7741</span>
+            <span>SECURE STUDIO DESK</span>
             <Link href="/" className="hover:text-white transition-colors">
               ← Return to Portfolio
             </Link>

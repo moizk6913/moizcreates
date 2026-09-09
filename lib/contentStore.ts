@@ -103,7 +103,11 @@ export function notifyCanvasUpdated(): void {
     if ('BroadcastChannel' in window) {
       const channel = new BroadcastChannel('moiz_portfolio_channel');
       channel.postMessage({ type: CANVAS_UPDATE_EVENT, timestamp: Date.now() });
-      channel.close();
+      setTimeout(() => {
+        try {
+          channel.close();
+        } catch {}
+      }, 150);
     }
   } catch {}
 }
@@ -202,7 +206,7 @@ export function deleteBlogPost(slug: string): void {
 
 export function getStoredApiKey(): string {
   if (typeof window === 'undefined') return '';
-  return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || 'AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4';
+  return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || '';
 }
 
 export function saveApiKey(key: string): void {

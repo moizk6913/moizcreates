@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -36,13 +36,14 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
   const img1Ref = useRef<HTMLImageElement>(null);
   const img2Ref = useRef<HTMLImageElement>(null);
 
-  const pool1 = userPhotos && userPhotos.length > 0 ? userPhotos : shutterPool1;
-  const pool2 =
+  const pool1 = useMemo(() => userPhotos && userPhotos.length > 0 ? userPhotos : shutterPool1, [userPhotos]);
+  const pool2 = useMemo(() =>
     userPhotos && userPhotos.length > 1
       ? [...userPhotos].reverse()
       : userPhotos && userPhotos.length > 0
       ? userPhotos
-      : shutterPool2;
+      : shutterPool2
+  , [userPhotos]);
 
   // Pill live shutter asset cycling using direct DOM updates (zero React re-renders = silky 60/120fps scroll)
   useEffect(() => {
@@ -124,7 +125,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
         <h2 className="font-display font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.92] tracking-[-0.02em] text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">
           {/* Line 1 */}
-          <span className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-3 overflow-hidden py-0.5">
+          <span className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-3 overflow-hidden py-1 sm:py-0.5">
             <span className="manifesto-token inline-flex items-center will-change-transform">
               I
             </span>
@@ -157,7 +158,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
           </span>
 
           {/* Line 2 */}
-          <span className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-3 overflow-hidden py-0.5">
+          <span className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-3 overflow-hidden py-1 sm:py-0.5">
             <span className="manifesto-token inline-flex items-center will-change-transform">
               ALREADY
             </span>

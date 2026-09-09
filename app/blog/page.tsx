@@ -25,7 +25,7 @@ export default function BlogIndexPage() {
   const remainingPosts = filteredPosts.slice(1);
 
   return (
-    <main className="min-h-screen bg-canvas text-primary select-none selection:bg-accent-red selection:text-white">
+    <main className="min-h-screen bg-canvas text-primary selection:bg-accent-red selection:text-white">
       <CustomCursor />
 
       {/* Standalone Editorial Header with Prominent Backlink to Main Portfolio */}

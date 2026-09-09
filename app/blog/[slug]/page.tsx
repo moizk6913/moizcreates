@@ -52,7 +52,7 @@ export default function BlogPostReaderPage() {
   }
 
   return (
-    <main className="min-h-screen bg-canvas text-primary select-none selection:bg-accent-red selection:text-white pb-24">
+    <main className="min-h-screen bg-canvas text-primary selection:bg-accent-red selection:text-white pb-24">
       <CustomCursor />
 
       {/* Reader Sticky Header */}

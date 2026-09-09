@@ -47,6 +47,18 @@ export async function getAllCanvasFilesIDB(): Promise<DynamicCanvasFile[]> {
       request.onerror = () => {
         reject(request.error);
       };
+
+      transaction.oncomplete = () => {
+        db.close();
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+      transaction.onabort = () => {
+        db.close();
+        resolve([]);
+      };
     });
   } catch (err) {
     console.warn('Could not read from IndexedDB, falling back:', err);
@@ -64,6 +76,18 @@ export async function saveCanvasFileIDB(file: DynamicCanvasFile): Promise<void> 
 
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
+
+      transaction.oncomplete = () => {
+        db.close();
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+      transaction.onabort = () => {
+        db.close();
+        reject(new Error('IndexedDB transaction aborted.'));
+      };
     });
   } catch (err) {
     console.error('Failed to save to IndexedDB:', err);
@@ -81,6 +105,18 @@ export async function deleteCanvasFileIDB(id: string): Promise<void> {
 
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
+
+      transaction.oncomplete = () => {
+        db.close();
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+      transaction.onabort = () => {
+        db.close();
+        resolve();
+      };
     });
   } catch (err) {
     console.error('Failed to delete from IndexedDB:', err);

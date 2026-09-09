@@ -331,9 +331,14 @@ function InfiniteCanvasContent() {
     };
   }, [refreshCanvasFiles]);
 
+  const hasAutoNavigatedRef = useRef<string | null>(null);
+
   // Deep Link Auto-Navigation: Pans and automatically opens discipline or folder if passed in URL
   useEffect(() => {
     if (!disciplineParam && !folderParam) return;
+    const targetKey = `${disciplineParam || ''}_${folderParam || ''}`;
+    if (hasAutoNavigatedRef.current === targetKey) return;
+
     const targetId = folderParam || (disciplineParam ? DISCIPLINE_FILE_MAP[disciplineParam] || disciplineParam : null);
     if (!targetId) return;
 
@@ -343,6 +348,7 @@ function InfiniteCanvasContent() {
     );
 
     if (match) {
+      hasAutoNavigatedRef.current = targetKey;
       setPan({ x: -match.x, y: -match.y });
       setSelectedFile(match);
       setActiveTab('all');
@@ -713,12 +719,14 @@ function InfiniteCanvasContent() {
 
         return (
           <div
+            data-lenis-prevent
             onClick={() => setSelectedFile(null)}
-            className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-5 md:p-8 animate-fadeIn"
+            className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-5 md:p-8 animate-fadeIn overscroll-contain"
           >
             <div
+              data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[96vw] xl:max-w-[1550px] h-[94vh] bg-[#faf9f6] rounded-[18px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.35)] border border-black/10 flex flex-col"
+              className="relative w-full max-w-[96vw] xl:max-w-[1550px] h-[94dvh] sm:h-[92vh] bg-[#faf9f6] rounded-[18px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.35)] border border-black/10 flex flex-col overscroll-contain"
             >
               {/* Luxury Gallery Header */}
               <div className="px-5 py-4 sm:px-8 sm:py-5 bg-white/95 backdrop-blur-md border-b border-black/[0.06] flex flex-wrap justify-between items-center gap-4 z-20 flex-shrink-0">

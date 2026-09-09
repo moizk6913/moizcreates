@@ -28,7 +28,7 @@ export default function Contact() {
         <div className="pt-2">
           <a
             href="mailto:moiz@moizcreates.com"
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-primary hover:text-[#e60000] transition-colors duration-300 block"
+            className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-primary hover:text-[#e60000] transition-colors duration-300 block break-all"
           >
             moiz@moizcreates.com
           </a>

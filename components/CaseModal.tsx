@@ -225,13 +225,35 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
+
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target || !target.closest('.modal-scroll-content')) {
+        e.preventDefault();
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target || !target.closest('.modal-scroll-content')) {
+        e.preventDefault();
+      }
+    };
+
     if (projectId) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener('wheel', handleWheel, { passive: false });
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
     }
+
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchmove', handleTouchMove);
     };
   }, [projectId, onClose]);
 
@@ -378,28 +400,32 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
 
   return (
     <div
-      onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xl flex items-center justify-center p-4 md:p-8"
+      data-lenis-prevent
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-8 overscroll-contain"
       role="dialog"
       aria-modal="true"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl max-h-[90vh] bg-canvas border border-border-hairline shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col"
+        className="relative w-full max-w-4xl h-[92dvh] sm:h-auto sm:max-h-[88vh] bg-canvas border border-border-hairline shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col rounded-[10px]"
       >
         {/* Top Bar */}
-        <div className="sticky top-0 z-10 flex justify-between items-center px-6 py-4 bg-canvas border-b border-border-hairline">
-          <span className="font-mono text-xs text-muted tracking-wider">PROJECT / CASE STUDY</span>
+        <div className="sticky top-0 z-10 flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 bg-canvas border-b border-border-hairline">
+          <span className="font-mono text-[11px] sm:text-xs text-muted tracking-wider">PROJECT / CASE STUDY</span>
           <button
+            type="button"
             onClick={onClose}
-            className="font-mono text-xs text-primary border border-border-medium px-3 py-1 hover:bg-primary hover:text-white transition-colors"
+            className="font-mono text-xs text-primary border border-border-medium px-4 py-1.5 hover:bg-primary hover:text-white transition-colors cursor-pointer"
           >
             ✕ Close
           </button>
         </div>
 
         {/* Scroll Content */}
-        <div className="p-6 md:p-10 overflow-y-auto">
+        <div data-lenis-prevent className="modal-scroll-content p-4 sm:p-6 md:p-10 overflow-y-auto overscroll-contain">
           {/* Header */}
           <div className="mb-8">
             <span className="font-mono text-xs text-accent-red tracking-wider block mb-2">{data.tag}</span>
@@ -407,7 +433,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             <p className="text-sm md:text-base text-secondary leading-relaxed max-w-2xl mb-6">{data.narrative}</p>
 
             {/* Credit Table */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-border-hairline">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-border-hairline">
               <div>
                 <span className="font-mono text-[10px] text-muted tracking-wider block mb-1">ROLE</span>
                 <span className="text-xs md:text-sm font-semibold text-primary">{data.role}</span>
@@ -429,104 +455,115 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
 
           {/* Media Stack */}
           <div className="flex flex-col gap-8">
-            {data.media.map((m: CaseMediaItem, idx: number) => (
-              <div key={idx} className="flex flex-col gap-2">
-                {/* 16:9 Landscape Video / Broadcast Frame */}
-                {m.format === '16-9' && m.image && (
-                  <div className="relative w-full aspect-[16/9] bg-subtle border border-border-hairline overflow-hidden">
-                    <img
-                      src={m.image}
-                      alt={m.caption}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        if (userPhotos && userPhotos.length > 0) {
-                          e.currentTarget.src = userPhotos[0];
-                        } else {
-                          e.currentTarget.style.opacity = '0.5';
-                        }
-                      }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <span className="w-11 h-11 rounded-full bg-accent-red text-white flex items-center justify-center text-sm pl-0.5">
-                        ▶
-                      </span>
+            {data.media.map((m: CaseMediaItem, idx: number) => {
+              const isActualVideo = !userProject && (m.caption.toLowerCase().includes('video') || m.caption.toLowerCase().includes('broadcast'));
+              return (
+                <div key={idx} className="flex flex-col gap-2">
+                  {/* 16:9 Landscape Video / Broadcast Frame */}
+                  {m.format === '16-9' && m.image && (
+                    <div className="relative w-full aspect-[16/9] bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
+                      <img
+                        src={m.image}
+                        alt={m.caption}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          if (userPhotos && userPhotos.length > 0) {
+                            e.currentTarget.src = userPhotos[0];
+                          } else {
+                            e.currentTarget.style.opacity = '0.5';
+                          }
+                        }}
+                      />
+                      {isActualVideo && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <span className="w-11 h-11 rounded-full bg-accent-red text-white flex items-center justify-center text-sm pl-0.5 shadow-lg">
+                            ▶
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* 4:5 Portrait Poster */}
-                {m.format === '4-5' && m.image && (
-                  <div className="relative w-full max-w-lg mx-auto aspect-[4/5] bg-subtle border border-border-hairline overflow-hidden">
-                    <img
-                      src={m.image}
-                      alt={m.caption}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        if (userPhotos && userPhotos.length > 0) {
-                          e.currentTarget.src = userPhotos[0];
-                        } else {
-                          e.currentTarget.style.opacity = '0.5';
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* 9:16 Vertical Reel */}
-                {m.format === '9-16' && m.image && (
-                  <div className="relative w-full max-w-[280px] mx-auto aspect-[9/16] max-h-[500px] bg-subtle border border-border-hairline overflow-hidden">
-                    <img
-                      src={m.image}
-                      alt={m.caption}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        if (userPhotos && userPhotos.length > 0) {
-                          e.currentTarget.src = userPhotos[0];
-                        } else {
-                          e.currentTarget.style.opacity = '0.5';
-                        }
-                      }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <span className="w-9 h-9 rounded-full bg-accent-red text-white flex items-center justify-center text-xs pl-0.5">
-                        ▶
-                      </span>
+                  {/* 4:5 Portrait Poster */}
+                  {m.format === '4-5' && m.image && (
+                    <div className="relative w-full max-w-lg mx-auto aspect-[4/5] bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
+                      <img
+                        src={m.image}
+                        alt={m.caption}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          if (userPhotos && userPhotos.length > 0) {
+                            e.currentTarget.src = userPhotos[0];
+                          } else {
+                            e.currentTarget.style.opacity = '0.5';
+                          }
+                        }}
+                      />
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* 1:1 Side by Side Grid */}
-                {m.format === 'grid-2' && m.items && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {m.items.map((it: { image: string }, i: number) => (
-                      <div key={i} className="aspect-square bg-subtle border border-border-hairline overflow-hidden">
-                        <img
-                          src={it.image}
-                          alt="Setup"
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          onError={(e) => {
-                            if (userPhotos && userPhotos.length > 0) {
-                              e.currentTarget.src = userPhotos[0];
-                            } else {
-                              e.currentTarget.style.opacity = '0.5';
-                            }
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  {/* 9:16 Vertical Reel */}
+                  {m.format === '9-16' && m.image && (
+                    <div className="relative w-full max-w-[280px] mx-auto aspect-[9/16] max-h-[500px] bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
+                      <img
+                        src={m.image}
+                        alt={m.caption}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          if (userPhotos && userPhotos.length > 0) {
+                            e.currentTarget.src = userPhotos[0];
+                          } else {
+                            e.currentTarget.style.opacity = '0.5';
+                          }
+                        }}
+                      />
+                      {isActualVideo && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <span className="w-9 h-9 rounded-full bg-accent-red text-white flex items-center justify-center text-xs pl-0.5 shadow-lg">
+                            ▶
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                <div className="flex justify-between items-center font-mono text-[11px] text-muted pt-1">
-                  <span>{m.caption}</span>
-                  <span className="text-accent-red uppercase tracking-wider">{m.format} SPEC</span>
+                  {/* 1:1 Side by Side Grid */}
+                  {m.format === 'grid-2' && m.items && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {m.items.map((it: { image: string }, i: number) => (
+                        <div key={i} className="aspect-square bg-subtle border border-border-hairline overflow-hidden rounded-[8px]">
+                          <img
+                            src={it.image}
+                            alt="Setup"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              if (userPhotos && userPhotos.length > 0) {
+                                e.currentTarget.src = userPhotos[0];
+                              } else {
+                                e.currentTarget.style.opacity = '0.5';
+                              }
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center font-mono text-[11px] text-muted pt-1">
+                    <span>{m.caption}</span>
+                    <span className="text-accent-red uppercase tracking-wider">{m.format} SPEC</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Bottom Actions */}

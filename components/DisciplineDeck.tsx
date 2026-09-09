@@ -237,7 +237,9 @@ export default function DisciplineDeck() {
   useEffect(() => {
     function updateScale() {
       if (typeof window === 'undefined') return;
-      if (window.innerWidth < 1100) {
+      if (window.innerWidth < 950) {
+        setScaleFactor(0.72);
+      } else if (window.innerWidth < 1150) {
         setScaleFactor(0.85);
       } else {
         setScaleFactor(1);
@@ -259,12 +261,12 @@ export default function DisciplineDeck() {
             <span className="font-mono text-[11px] font-bold text-primary uppercase tracking-widest">Disciplines</span>
             <span className="font-mono text-[10px] text-muted tracking-wider uppercase">← Swipe →</span>
           </div>
-          <div className="flex gap-5 overflow-x-auto snap-x py-4 px-2 no-scrollbar">
+          <div className="flex gap-5 overflow-x-auto snap-x py-4 px-4 scroll-pl-4 no-scrollbar">
             {cardsData.map((card) => (
               <Link
                 href={`/canvas?discipline=${card.id}`}
                 key={card.id}
-                className="w-[275px] sm:w-[310px] h-[410px] sm:h-[450px] flex-shrink-0 snap-center rounded-[10px] select-none block active:scale-95 transition-transform duration-200 border-0 shadow-none"
+                className="w-[275px] sm:w-[310px] h-[410px] sm:h-[450px] flex-shrink-0 snap-center rounded-[10px] select-none block transition-transform duration-200 border-0 shadow-none"
               >
                 <div className={`w-full h-full rounded-[10px] p-6 flex flex-col justify-between overflow-hidden relative shadow-none border-0 ${card.bgClass} ${card.textClass}`}>
                   {/* Top Graphic Pattern */}

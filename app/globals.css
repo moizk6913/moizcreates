@@ -151,9 +151,13 @@ body {
   will-change: transform;
 }
 
-/* Custom Cursor Desktop Styles */
+/* Custom Cursor Desktop Styles (Only active when custom cursor is mounted) */
 @media (hover: hover) and (pointer: fine) {
-  body, a, button, [role="button"], [data-cursor] {
+  html.has-custom-cursor body,
+  html.has-custom-cursor a,
+  html.has-custom-cursor button,
+  html.has-custom-cursor [role="button"],
+  html.has-custom-cursor [data-cursor] {
     cursor: none !important;
   }
 }

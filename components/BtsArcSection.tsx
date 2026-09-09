@@ -211,6 +211,8 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   const [unmutedId, setUnmutedId] = useState<string | null>(null);
   const [isRowOneHovered, setIsRowOneHovered] = useState(false);
   const [isRowTwoHovered, setIsRowTwoHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [failedVideos, setFailedVideos] = useState<Record<string, boolean>>({});
 
   const rowOneRef = useRef<HTMLDivElement>(null);
   const rowTwoRef = useRef<HTMLDivElement>(null);
@@ -229,6 +231,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   // Measure track single-set unit widths once and update on resize
   useEffect(() => {
     const updateWidths = () => {
+      setIsMobile(typeof window !== 'undefined' && (window.innerWidth < 768 || window.matchMedia('(pointer: coarse) and (hover: none)').matches));
       if (rowOneRef.current) {
         rowOneWidthRef.current = rowOneRef.current.scrollWidth / REPETITIONS;
       }
@@ -278,7 +281,9 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         if (trackWidth > 0 && rowTwoPosRef.current >= trackWidth) {
           rowTwoPosRef.current -= trackWidth;
         }
-        rowTwoRef.current.style.transform = `translate3d(${rowTwoPosRef.current - trackWidth}px, 0, 0)`;
+        if (trackWidth > 0) {
+          rowTwoRef.current.style.transform = `translate3d(${rowTwoPosRef.current - trackWidth}px, 0, 0)`;
+        }
       }
 
       animId = requestAnimationFrame(loop);
@@ -301,6 +306,8 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
   // Helper to render a Bento card
   const renderBentoCard = (item: BentoItem, uniqueKey: string) => {
+    const isVideoAllowed = item.mediaType === 'video' && !isMobile && !failedVideos[item.id];
+
     return (
       <div
         key={uniqueKey}
@@ -311,8 +318,8 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         <div
           className={`relative w-full h-full rounded-[10px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/10 transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
         >
-          {/* Media: Looping Video or Photography */}
-          {item.mediaType === 'video' ? (
+          {/* Media: Looping Video on Desktop or High-Speed Photography on Mobile */}
+          {isVideoAllowed ? (
             <video
               src={item.mediaUrl}
               poster={item.posterUrl}
@@ -322,28 +329,22 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
               playsInline
               preload="metadata"
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              onError={(e) => {
-                // If local video file is missing, hide video and show poster fallback via bg image
-                const el = e.currentTarget;
-                if (item.posterUrl) {
-                  const parent = el.parentElement;
-                  if (parent) {
-                    el.style.display = 'none';
-                    const img = document.createElement('img');
-                    img.src = item.posterUrl;
-                    img.alt = item.brand;
-                    img.className = 'w-full h-full object-cover';
-                    parent.insertBefore(img, el.nextSibling);
-                  }
-                }
+              onError={() => {
+                setFailedVideos((prev) => ({ ...prev, [item.id]: true }));
               }}
             />
           ) : (
             <img
-              src={item.mediaUrl}
+              src={item.posterUrl || item.mediaUrl}
               alt={item.brand}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                if (item.posterUrl && e.currentTarget.src !== item.posterUrl) {
+                  e.currentTarget.src = item.posterUrl;
+                }
+              }}
             />
           )}
 
@@ -399,10 +400,10 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         {/* Lane 1: Slides Left - Fixed uniform height with mixed bento widths */}
         <div
           className="w-full h-[260px] sm:h-[320px] md:h-[380px] overflow-hidden"
-          onMouseEnter={() => setIsRowOneHovered(true)}
+          onMouseEnter={() => { if (window.matchMedia('(hover: hover)').matches) setIsRowOneHovered(true); }}
           onMouseLeave={() => setIsRowOneHovered(false)}
         >
-          <div ref={rowOneRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
+          <div ref={rowOneRef} className="flex gap-3 sm:gap-5 md:gap-7 h-full w-max will-change-transform">
             {/* Duplicated for seamless infinite marquee */}
             {Array.from({ length: REPETITIONS }).flatMap(() => rowOne).map((item, idx) =>
               renderBentoCard(item, `lane1-${item.id}-${idx}`)
@@ -413,10 +414,10 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         {/* Lane 2: Slides Right - Fixed uniform height with mixed bento widths */}
         <div
           className="w-full h-[260px] sm:h-[320px] md:h-[380px] overflow-hidden"
-          onMouseEnter={() => setIsRowTwoHovered(true)}
+          onMouseEnter={() => { if (window.matchMedia('(hover: hover)').matches) setIsRowTwoHovered(true); }}
           onMouseLeave={() => setIsRowTwoHovered(false)}
         >
-          <div ref={rowTwoRef} className="flex gap-5 md:gap-7 h-full w-max will-change-transform">
+          <div ref={rowTwoRef} className="flex gap-3 sm:gap-5 md:gap-7 h-full w-max will-change-transform">
             {/* Duplicated for seamless infinite marquee */}
             {Array.from({ length: REPETITIONS }).flatMap(() => rowTwo).map((item, idx) =>
               renderBentoCard(item, `lane2-${item.id}-${idx}`)

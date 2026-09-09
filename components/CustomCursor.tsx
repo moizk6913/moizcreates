@@ -19,15 +19,18 @@ export default function CustomCursor() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
-    // Detect touch device
-    if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) {
+    // Detect touch-only device (pointer: coarse without fine pointer)
+    const isCoarseOnly = window.matchMedia('(pointer: coarse) and (hover: none)').matches;
+    if (isCoarseOnly) {
       setIsTouchDevice(true);
       return;
     }
 
+    document.documentElement.classList.add('has-custom-cursor');
+
     const onMouseMove = (e: MouseEvent) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
-      if (!isVisible) setIsVisible(true);
+      setIsVisible((prev) => (prev ? prev : true));
     };
 
     const onMouseDown = () => setIsClicking(true);
@@ -45,12 +48,12 @@ export default function CustomCursor() {
         const val = cursorTarget.getAttribute('data-cursor');
         if (val === 'view') {
           setVariant('view');
-          setCustomText(cursorTarget.getAttribute('data-cursor-text') || 'VIEW ↗');
+          setCustomText(cursorTarget.getAttribute('data-cursor-text') || 'VIEW');
           return;
         }
         if (val === 'shuffle') {
           setVariant('shuffle');
-          setCustomText(cursorTarget.getAttribute('data-cursor-text') || 'SHUFFLE ⟳');
+          setCustomText(cursorTarget.getAttribute('data-cursor-text') || 'POP');
           return;
         }
         if (val === 'drag') {
@@ -60,9 +63,13 @@ export default function CustomCursor() {
         }
       }
 
-      // Check standard interactive elements
-      const interactive = target.closest('a, button, [role="button"], input, textarea, select');
-      if (interactive) {
+      if (
+        target.tagName === 'A' ||
+        target.tagName === 'BUTTON' ||
+        target.closest('a') ||
+        target.closest('button') ||
+        target.closest('[role="button"]')
+      ) {
         setVariant('link');
         setCustomText('');
         return;
@@ -79,23 +86,17 @@ export default function CustomCursor() {
     document.addEventListener('mouseenter', onMouseEnter);
     document.addEventListener('mouseover', handleElementHover, { passive: true });
 
-    // Smooth LERP Animation Loop
     let animId: number;
-    const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
-
     const animate = () => {
-      // Dot follows immediately with high responsiveness
-      dotPos.current.x = lerp(dotPos.current.x, mousePos.current.x, 0.75);
-      dotPos.current.y = lerp(dotPos.current.y, mousePos.current.y, 0.75);
+      dotPos.current.x += (mousePos.current.x - dotPos.current.x) * 0.45;
+      dotPos.current.y += (mousePos.current.y - dotPos.current.y) * 0.45;
 
-      // Ring follows with fluid smooth damping (no CSS transition conflict)
-      ringPos.current.x = lerp(ringPos.current.x, mousePos.current.x, 0.28);
-      ringPos.current.y = lerp(ringPos.current.y, mousePos.current.y, 0.28);
+      ringPos.current.x += (mousePos.current.x - ringPos.current.x) * 0.16;
+      ringPos.current.y += (mousePos.current.y - ringPos.current.y) * 0.16;
 
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${dotPos.current.x}px, ${dotPos.current.y}px, 0)`;
       }
-
       if (ringRef.current) {
         ringRef.current.style.transform = `translate3d(${ringPos.current.x}px, ${ringPos.current.y}px, 0)`;
       }
@@ -106,6 +107,7 @@ export default function CustomCursor() {
     animId = requestAnimationFrame(animate);
 
     return () => {
+      document.documentElement.classList.remove('has-custom-cursor');
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
@@ -114,7 +116,7 @@ export default function CustomCursor() {
       document.removeEventListener('mouseover', handleElementHover);
       cancelAnimationFrame(animId);
     };
-  }, [isVisible]);
+  }, []);
 
   if (isTouchDevice) return null;
 
@@ -141,6 +143,8 @@ export default function CustomCursor() {
     ringStyle += ' scale-90';
     dotStyle += ' scale-125';
   }
+
+  if (isTouchDevice) return null;
 
   return (
     <div

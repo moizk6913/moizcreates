@@ -52,6 +52,21 @@ export default function StatementBridge() {
             },
           });
         },
+        onEnterBack: () => {
+          gsap.killTweensOf(lines);
+          gsap.fromTo(
+            lines,
+            { yPercent: -125, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.1,
+              duration: 0.75,
+              ease: 'power3.out',
+              overwrite: true,
+            }
+          );
+        },
       });
     },
     { scope: sectionRef }
@@ -72,27 +87,27 @@ export default function StatementBridge() {
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center">
         <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[1.12] text-primary flex flex-col items-center justify-center gap-1 sm:gap-2">
           
-          <span className="overflow-hidden block py-0.5">
+          <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
               I WAS GOING TO WRITE SOMETHING IMPRESSIVE HERE.
             </span>
           </span>
 
-          <span className="overflow-hidden block py-0.5">
+          <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
               THEN I REMEMBERED YOU&apos;VE ALREADY SCROLLED THIS FAR.
             </span>
           </span>
 
-          <span className="overflow-hidden block py-0.5">
+          <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
               SO I GUESS THE WORK DID ITS JOB.
             </span>
           </span>
 
-          <span className="overflow-hidden block py-0.5">
+          <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
-              GOOD. <Link href="/about" className="text-[#e60000] hover:underline cursor-pointer transition-colors">LET&apos;S TALK.</Link>
+              GOOD. <Link href="/#contact" className="text-[#e60000] hover:underline cursor-pointer transition-colors">LET&apos;S TALK.</Link>
             </span>
           </span>
 

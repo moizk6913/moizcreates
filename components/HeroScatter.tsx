@@ -168,14 +168,35 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
 
   const [popCards, setPopCards] = useState<PopCardItem[]>([]);
   const [shutterIndex, setShutterIndex] = useState(0);
-  const [shutterActive, setShutterActive] = useState(true);
-  const [isInteractive, setIsInteractive] = useState(false);
+  const [shutterActive, setShutterActive] = useState(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('moiz_intro_done') === 'true') {
+      return false;
+    }
+    return true;
+  });
+  const [isInteractive, setIsInteractive] = useState(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('moiz_intro_done') === 'true') {
+      return true;
+    }
+    return false;
+  });
 
   const topZRef = useRef(35);
   const poolIdxRef = useRef(0);
+  const shutterRanRef = useRef(false);
 
   // 1. Shutter rapid cycling during the first 1s with airtight scroll lock
   useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('moiz_intro_done') === 'true') {
+      setShutterActive(false);
+      setIsInteractive(true);
+      onShutterFinish?.();
+      return;
+    }
+
+    if (shutterRanRef.current) return;
+    shutterRanRef.current = true;
+
     // Lock scroll on both html and body so no scrollbar appears and user cannot scroll down
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -197,6 +218,10 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
     const timer = setTimeout(() => {
       clearInterval(cycleInterval);
       setShutterActive(false);
+      setIsInteractive(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('moiz_intro_done', 'true');
+      }
       onShutterFinish?.();
       document.body.style.overflow = prevBodyOverflow;
       document.documentElement.style.overflow = prevHtmlOverflow;
@@ -212,7 +237,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
       window.removeEventListener('wheel', blockScroll);
       window.removeEventListener('touchmove', blockScroll);
     };
-  }, [cards.length, onShutterFinish]);
+  }, []);
 
   // 2. Shatter Explosion Entrance (bursts from center scale 0 into full constellation)
   useGSAP(
@@ -263,12 +288,10 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
   useEffect(() => {
     if (!isInteractive) return;
 
-    // Avoid running re-render loops on mobile touch devices to preserve buttery 60/120fps
+    // Avoid running re-render loops on mobile touch-only devices to preserve buttery 60/120fps
     const isTouch =
       typeof window !== 'undefined' &&
-      ('ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia('(pointer: coarse)').matches);
+      window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 
     if (isTouch) return;
 
@@ -330,9 +353,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
     // Touch devices use physical touch momentum and have no mouse coordinates
     const isTouch =
       typeof window !== 'undefined' &&
-      ('ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia('(pointer: coarse)').matches);
+      window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 
     if (isTouch) return;
 
@@ -479,6 +500,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
                 className="w-full h-full object-cover block border-0 outline-none"
                 loading="lazy"
                 onError={(e) => {
+                  e.currentTarget.onerror = null;
                   if (userPhotos && userPhotos.length > 0) {
                     e.currentTarget.src = userPhotos[0];
                   } else {
@@ -516,6 +538,7 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
                 className="w-full h-full object-cover block border-0 outline-none"
                 loading="lazy"
                 onError={(e) => {
+                  e.currentTarget.onerror = null;
                   if (userPhotos && userPhotos.length > 0) {
                     e.currentTarget.src = userPhotos[0];
                   } else {

@@ -61,6 +61,10 @@ export default function Home() {
     return photos;
   }, [uploadedFiles]);
 
+  const handleShutterFinish = useCallback(() => {
+    setIsIntroDone(true);
+  }, []);
+
   useEffect(() => {
     // Check if intro was already played this session (prevents re-locking on back nav)
     const introDoneThisSession = typeof window !== 'undefined' && sessionStorage.getItem('moiz_intro_done') === 'true';
@@ -80,14 +84,18 @@ export default function Home() {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('moiz_intro_done', 'true');
       }
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      if (!selectedCase) {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      }
     }
     return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      if (!selectedCase) {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      }
     };
-  }, [isIntroDone]);
+  }, [isIntroDone, selectedCase]);
 
   return (
     <main className="relative min-h-screen bg-canvas">
@@ -100,7 +108,7 @@ export default function Home() {
       {/* Section 01: Hero Center Shutter & Tight Overlapping Cluster */}
       <HeroScatter
         onOpenCase={setSelectedCase}
-        onShutterFinish={() => setIsIntroDone(true)}
+        onShutterFinish={handleShutterFinish}
         userPhotos={userPhotos}
         uploadedFiles={uploadedFiles}
       />

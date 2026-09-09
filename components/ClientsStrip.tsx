@@ -5,7 +5,7 @@ export default function ClientsStrip() {
     <section id="clients" className="w-full py-6 sm:py-8 md:py-10 bg-canvas overflow-hidden border-none relative select-none">
       {/* Marquee Wrapper with soft edge masks (zero lines) */}
       <div className="w-full overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <div className="flex items-center w-max gap-14 sm:gap-20 md:gap-24 animate-marquee-left hover:[animation-play-state:paused]">
+        <div className="flex items-center w-max gap-14 sm:gap-20 md:gap-24 animate-marquee-left">
           {/* Set 1 of B&W Logos */}
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Nike">
             <svg viewBox="0 0 96 36" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">
