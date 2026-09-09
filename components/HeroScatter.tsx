@@ -197,20 +197,6 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
     if (shutterRanRef.current) return;
     shutterRanRef.current = true;
 
-    // Lock scroll on both html and body so no scrollbar appears and user cannot scroll down
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    window.scrollTo(0, 0);
-
-    const blockScroll = (e: Event) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener('wheel', blockScroll, { passive: false });
-    window.addEventListener('touchmove', blockScroll, { passive: false });
-
     const cycleInterval = setInterval(() => {
       setShutterIndex((prev) => (prev + 1) % cards.length);
     }, 70);
@@ -223,19 +209,11 @@ export default function HeroScatter({ onOpenCase, onShutterFinish, userPhotos, u
         sessionStorage.setItem('moiz_intro_done', 'true');
       }
       onShutterFinish?.();
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-      window.removeEventListener('wheel', blockScroll);
-      window.removeEventListener('touchmove', blockScroll);
-    }, 1000);
+    }, 600);
 
     return () => {
       clearInterval(cycleInterval);
       clearTimeout(timer);
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-      window.removeEventListener('wheel', blockScroll);
-      window.removeEventListener('touchmove', blockScroll);
     };
   }, []);
 
