@@ -9,7 +9,6 @@ import DisciplineDeck from '@/components/DisciplineDeck';
 import BtsArcSection from '@/components/BtsArcSection';
 import ServicesSection from '@/components/ServicesSection';
 import ProcessSection from '@/components/ProcessSection';
-import TestimonialsSection from '@/components/TestimonialsSection';
 import FaqSection from '@/components/FaqSection';
 import StatementBridge from '@/components/StatementBridge';
 import Contact from '@/components/Contact';
@@ -119,9 +118,6 @@ export default function Home() {
 
       {/* Section 02.5: The Directorial Framework (3-Step Methodology) */}
       <ProcessSection />
-
-      {/* Section 02.8: Client Endorsements & Founder Testimonials */}
-      <TestimonialsSection />
 
       {/* Section 03: Editorial Manifesto Statement & Seamless Gradient Bridge */}
       <StatementBridge />
