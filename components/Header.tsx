@@ -10,65 +10,12 @@ interface HeaderProps {
 }
 
 export default function Header({ visible = true }: HeaderProps) {
-  const [worldTime, setWorldTime] = useState('DUBAI 12:00 PM GST');
-  const [isFading, setIsFading] = useState(false);
-
-  useEffect(() => {
-    const worldCities = [
-      { city: 'DUBAI', zone: 'Asia/Dubai', code: 'GST' },
-      { city: 'NEW YORK', zone: 'America/New_York', code: 'EDT' },
-      { city: 'LONDON', zone: 'Europe/London', code: 'BST' },
-      { city: 'MUMBAI', zone: 'Asia/Kolkata', code: 'IST' },
-      { city: 'TOKYO', zone: 'Asia/Tokyo', code: 'JST' },
-    ];
-
-    let currentIdx = 0;
-    let innerCycleTimeout: NodeJS.Timeout | null = null;
-
-    const getTime = (cityObj: typeof worldCities[0]) => {
-      try {
-        const now = new Date();
-        const options: Intl.DateTimeFormatOptions = {
-          timeZone: cityObj.zone,
-          hour: 'numeric',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-        };
-        const str = new Intl.DateTimeFormat('en-US', options).format(now);
-        return `${cityObj.city} ${str} ${cityObj.code}`;
-      } catch {
-        return `${cityObj.city} 12:00 PM ${cityObj.code}`;
-      }
-    };
-
-    const updateDisplay = () => {
-      setWorldTime(getTime(worldCities[currentIdx]));
-    };
-
-    updateDisplay();
-    const liveInterval = setInterval(updateDisplay, 1000);
-
-    const cycleInterval = setInterval(() => {
-      setIsFading(true);
-      innerCycleTimeout = setTimeout(() => {
-        currentIdx = (currentIdx + 1) % worldCities.length;
-        updateDisplay();
-        setIsFading(false);
-      }, 250);
-    }, 3000);
-
-    return () => {
-      clearInterval(liveInterval);
-      clearInterval(cycleInterval);
-      if (innerCycleTimeout) clearTimeout(innerCycleTimeout);
-    };
-  }, []);
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const logoClicksRef = useRef<number>(0);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Secret keyboard shortcut: Ctrl+Shift+A -> /admin
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
@@ -83,6 +30,7 @@ export default function Header({ visible = true }: HeaderProps) {
     };
   }, [router]);
 
+  // Triple-click logo secretly opens Studio Desk (/admin)
   const handleLogoClick = (e: React.MouseEvent) => {
     logoClicksRef.current += 1;
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
@@ -96,56 +44,128 @@ export default function Header({ visible = true }: HeaderProps) {
 
     clickTimerRef.current = setTimeout(() => {
       logoClicksRef.current = 0;
-    }, 1000);
+    }, 900);
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 px-4 py-4 sm:px-6 sm:py-6 md:px-12 flex justify-between items-center pointer-events-none transition-opacity duration-700 ease-out ${
-        visible ? 'opacity-100' : 'opacity-0'
-      }`}
-    >
-      {/* Geometric Logo (Click 3 times quickly to open Studio Desk secretly) */}
-      <Link
-        href="#top"
-        onClick={handleLogoClick}
-        className="pointer-events-auto transition-transform hover:scale-105"
-        aria-label="Home"
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 md:px-14 py-5 sm:py-6 flex items-center justify-between pointer-events-none transition-all duration-700 ease-out bg-white/75 backdrop-blur-md border-none ${
+          visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        }`}
       >
-        <Image
-          src="/assets/logo.png"
-          alt="Art Director Logo"
-          width={24}
-          height={24}
-          className="h-5 sm:h-6 w-auto object-contain"
-          priority
-        />
-      </Link>
-
-      <div className="flex items-center gap-4 sm:gap-8 pointer-events-auto">
-        <div 
-          className={`hidden sm:block font-mono text-xs text-muted tracking-wider transition-opacity duration-300 ${
-            isFading ? 'opacity-30' : 'opacity-100'
-          }`}
-        >
-          {worldTime}
+        {/* LEFT NAV LINKS (Desktop: WORK, PLAYGROUND) */}
+        <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-start">
+          <Link
+            href="/#work"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+          >
+            WORK
+          </Link>
+          <Link
+            href="/canvas"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+          >
+            PLAYGROUND
+          </Link>
         </div>
 
-        <nav className="flex items-center gap-3 sm:gap-6" aria-label="Main Navigation">
-          <Link href="/#services" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
-            SERVICES
+        {/* DEAD-CENTER BRAND MONOGRAM LOGO */}
+        <div className="pointer-events-auto flex justify-center items-center">
+          <Link
+            href="#top"
+            onClick={handleLogoClick}
+            className="transition-transform duration-300 hover:scale-110 group block"
+            aria-label="Moiz Khan Home"
+            title="Moiz Khan • Art Director"
+          >
+            <Image
+              src="/assets/logo.png"
+              alt="Moiz Khan Logo"
+              width={28}
+              height={28}
+              className="h-6 sm:h-7 w-auto object-contain transition-all group-hover:brightness-125"
+              priority
+            />
           </Link>
-          <Link href="/canvas" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
-            ARCHIVE ↗
+        </div>
+
+        {/* RIGHT NAV LINKS (Desktop: ARCHIVE, ABOUT, CONTACT) */}
+        <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-end">
+          <Link
+            href="/canvas"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+          >
+            ARCHIVE
           </Link>
-          <Link href="/about" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-accent-red transition-colors">
-            ABOUT ↗
+          <Link
+            href="/about"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+          >
+            ABOUT
           </Link>
-          <Link href="/#contact" className="font-mono text-[11px] sm:text-xs tracking-widest text-secondary hover:text-primary transition-colors">
+          <Link
+            href="/#contact"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+          >
             CONTACT
           </Link>
-        </nav>
-      </div>
-    </header>
+        </div>
+
+        {/* MOBILE HAMBURGER BUTTON (Mobile / Tablet only) */}
+        <div className="md:hidden pointer-events-auto flex items-center">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-10 h-10 rounded-full flex flex-col items-center justify-center gap-1.5 bg-black text-white cursor-pointer"
+            aria-label="Toggle navigation menu"
+          >
+            <span
+              className={`w-4 h-0.5 bg-white transition-transform ${
+                mobileMenuOpen ? 'rotate-45 translate-y-1' : ''
+              }`}
+            />
+            <span
+              className={`w-4 h-0.5 bg-white transition-transform ${
+                mobileMenuOpen ? '-rotate-45 -translate-y-1' : ''
+              }`}
+            />
+          </button>
+        </div>
+      </header>
+
+      {/* MOBILE FULLSCREEN / SLIDE-DOWN DRAWER */}
+      {mobileMenuOpen && (
+        <div
+          data-lenis-prevent
+          className="fixed inset-0 z-40 bg-white flex flex-col justify-between p-8 pt-28 animate-fadeIn md:hidden"
+        >
+          <nav className="flex flex-col gap-6">
+            {[
+              { label: 'WORK', href: '/#work' },
+              { label: 'PLAYGROUND', href: '/canvas' },
+              { label: 'ARCHIVE', href: '/canvas' },
+              { label: 'ABOUT', href: '/about' },
+              { label: 'CONTACT', href: '/#contact' },
+            ].map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-display font-black text-3xl sm:text-4xl text-black hover:text-[#e60000] uppercase tracking-wider transition-colors flex items-center justify-between"
+              >
+                <span>{link.label}</span>
+                <span className="text-xs font-mono text-neutral-400">→</span>
+              </Link>
+            ))}
+          </nav>
+
+          <div className="pt-8  flex flex-col gap-2 font-mono text-xs text-neutral-500">
+            <span>MOIZ KHAN • ART DIRECTOR</span>
+            <span className="text-[#e60000]">HIREMOIZ.WORKS@GMAIL.COM</span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

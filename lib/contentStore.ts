@@ -206,7 +206,14 @@ export function deleteBlogPost(slug: string): void {
 
 export function getStoredApiKey(): string {
   if (typeof window === 'undefined') return '';
-  return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || '';
+  const key = localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || '';
+  if (key.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4')) {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.GEMINI_KEY);
+    } catch {}
+    return '';
+  }
+  return key;
 }
 
 export function saveApiKey(key: string): void {

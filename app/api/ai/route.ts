@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 
 function parseInlineImage(dataUriOrBase64: string): { mimeType: string; data: string } | null {
   if (!dataUriOrBase64) return null;
@@ -19,7 +19,46 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey, imageData } = body;
 
-    const apiKey = geminiKey || process.env.GEMINI_API_KEY || '';
+    const rawKey = geminiKey || process.env.GEMINI_API_KEY || '';
+    const isRevokedKey = rawKey.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4');
+    const apiKey = isRevokedKey ? (geminiKey && !geminiKey.includes('AIzaSyCic') ? geminiKey : '') : rawKey;
+
+    // Action 0: Real-time API Key Verifier & Ping
+    if (action === 'verify_key') {
+      if (!apiKey) {
+        return NextResponse.json({ success: false, reason: 'No API key provided or key was revoked.' });
+      }
+
+      for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest']) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-goog-api-key': apiKey,
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: 'ping' }] }],
+            }),
+          });
+          if (res.ok) {
+            return NextResponse.json({ success: true, verified: true, model: modelName });
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            if (res.status === 400 && errData?.error?.message?.toLowerCase().includes('api key')) {
+              return NextResponse.json({ success: false, error: errData?.error?.message || 'Invalid API key' });
+            }
+            if (res.status === 401 || res.status === 403) {
+              return NextResponse.json({ success: false, error: errData?.error?.message || 'Google rejected key.' });
+            }
+            continue;
+          }
+        } catch (fetchErr: any) {
+          return NextResponse.json({ success: false, error: fetchErr.message });
+        }
+      }
+      return NextResponse.json({ success: false, reason: 'Models unavailable for this key.' });
+    }
 
     // Action 1: Smart Multimodal Asset & Campaign Analyzer
     if (action === 'analyze_upload') {
@@ -62,7 +101,10 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
 
           const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'X-goog-api-key': apiKey,
+            },
             body: JSON.stringify({
               contents: [{ parts }],
               generationConfig: { responseMimeType: 'application/json' },
@@ -193,7 +235,10 @@ Return ONLY raw JSON with:
 
           const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'X-goog-api-key': apiKey,
+            },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
               generationConfig: { responseMimeType: 'application/json' },
@@ -245,9 +290,11 @@ Return ONLY raw JSON with:
     // Action 3: Conversational Human Creative Co-Pilot with Multimodal Vision
     if (action === 'chat') {
       const history = messages || [];
-      const lastUserMsg = history[history.length - 1]?.content || 'Hello';
+      const lastUserMsg = (history[history.length - 1]?.content || 'Hello').trim();
+      const lower = lastUserMsg.toLowerCase();
       const fileNamesList: string[] = body.fileNames || [];
       const extraImages: string[] = body.additionalImages || [];
+      const customCampaigns: Array<{ name: string; discipline: string; deliverables?: number }> = body.campaigns || [];
 
       if (apiKey) {
         try {
@@ -307,37 +354,209 @@ Tone & Style:
             contents.push({ role: 'user', parts });
           }
 
-          const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemInstruction }] },
-              contents,
-            }),
-          });
+          const candidateModels = [
+            'gemini-3.6-flash',
+            'gemini-flash-latest',
+          ];
 
-          if (res.ok) {
-            const data = await res.json();
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (reply) {
-              return NextResponse.json({ success: true, reply, engine: 'gemini-3.6-flash' });
+          for (const modelName of candidateModels) {
+            try {
+              const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-goog-api-key': apiKey,
+                },
+                body: JSON.stringify({
+                  systemInstruction: { parts: [{ text: systemInstruction }] },
+                  contents,
+                }),
+              });
+
+              if (res.ok) {
+                const data = await res.json();
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (reply) {
+                  return NextResponse.json({ success: true, reply, engine: modelName });
+                }
+              } else {
+                const errData = await res.json().catch(() => ({}));
+                console.warn(`[Gemini API] ${modelName} returned status ${res.status}:`, errData?.error?.message || errData);
+                if (res.status === 400 && errData?.error?.message?.toLowerCase().includes('api key')) break;
+                if (res.status === 401 || res.status === 403) break;
+                continue;
+              }
+            } catch (fetchErr) {
+              console.warn(`[Gemini API] Error fetching ${modelName}:`, fetchErr);
             }
-          } else {
-            const errData = await res.json();
-            console.error('Gemini API error:', errData);
           }
         } catch (apiErr) {
           console.error('Gemini chat failed, using fallback', apiErr);
         }
       }
 
-      // Directorial Heuristic Assistant Response
-      let reply = `Hey Moiz! Analyzing your project standards:\n\n• **Directorial Focus**: Maintain tactile contrast, deliberate shadow placement, and Swiss grid restraint.\n• **Deliverable Breakdown**: Multi-format campaigns should be separated into dedicated containers: 16:9 for cinema & lookbooks, 4:5 for editorial decks, 9:16 for velocity mobile reels, and 21:9 for panoramic e-commerce hero banners.\n\nQuick question: Do you want to package this as an integrated 360° campaign with deliverable tabs, or deploy individual cards directly to the Infinite Canvas?`;
+      // Directorial Heuristic Assistant Response (Aware of Moiz's actual projects & standards)
+      let reply = `Hey Moiz! I'm here at your studio desk. Drop your lookbook plates, 16:9 widescreen banners, or reels right here, or ask me what projects we have active.`;
 
-      if (/lighting|camera|set|shoot/i.test(lastUserMsg)) {
-        reply = `For on-set lighting and direction, here is what works best:\n\n1. **Key Lighting**: Skim continuous warm tungsten (2K-3K) across primary textures to avoid flat digital reflection.\n2. **Fill Control**: Use negative black solids on the shadow side to maintain dramatic chiaroscuro falloff.\n3. **Optics**: 35mm / 50mm Anamorphic primes for gentle barrel curvature and organic lens breathing.\n\nShall we draft a technical breakdown article for the Journal?`;
-      } else if (/upload|tag|file|manage|kaladhar/i.test(lastUserMsg)) {
-        reply = `I'm ready to organize your campaign assets. Drop the artwork or image preview here and I'll analyze every format (print lookbooks, 9:16 stories, e-commerce banners) and ask you how you'd like them featured!`;
+      if (
+        lower.includes('what you have') ||
+        lower.includes('what do you have') ||
+        lower.includes('what do we have') ||
+        lower.includes('what is uploaded') ||
+        lower.includes('what campaigns') ||
+        lower.includes('list') ||
+        lower.includes('show campaign') ||
+        lower.includes('show project') ||
+        lower.includes('current project')
+      ) {
+        reply =
+          `Right now in your studio, you have **4 live campaigns** ready on your portfolio:\n\n` +
+          `• **Kaldhar Bridal**: 88 deliverables — 16:9 master widescreen banner first, 4:5 editorial lookbook plates (Frames 80–88), and the asymmetric bento spread at the end.\n` +
+          `• **Easy Hai Bro**: Streetwear visual identity — 16:9 commercial cut, 4:5 key art, and 9:16 vertical motion reel.\n` +
+          `• **Porsche Carrera Telemetry**: Automotive film — 16:9 widescreen tracking master and cockpit stills.\n` +
+          `• **Windchasers Aviation**: Brand lookbook and dual-pilot flight deck motion.`;
+
+        if (customCampaigns.length > 0) {
+          reply +=
+            `\n\nPlus **${customCampaigns.length} custom campaign(s)** in your library:\n` +
+            customCampaigns.map((c) => `• **${c.name}**: ${c.discipline} (${c.deliverables || 1} deliverables)`).join('\n');
+        }
+
+        reply += `\n\nWhat would you like to do? We can add new deliverables to Kaldhar, adjust uncropped containers, or drop new files here to publish a fresh project!`;
+      } else if (
+        lower.includes('crop') ||
+        lower.includes('size') ||
+        lower.includes('cut') ||
+        lower.includes('dimension') ||
+        lower.includes('1920') ||
+        lower.includes('aspect') ||
+        lower.includes('uncrop')
+      ) {
+        reply =
+          `Here is our uncropped visual architecture so your work is displayed with zero distortion:\n\n` +
+          `• **1920×1080 (16:9)**: Master widescreen key art. Used for hero banners and cinematic film stills.\n` +
+          `• **A4 / 4:5 (Portrait)**: Full-page editorial lookbook plates. Rendered with Apple continuous squircle corners.\n` +
+          `• **9:16 (Vertical)**: Dedicated mobile velocity format for social reels and campaign motion.\n` +
+          `• **Asymmetric Bento End Spread**: Automatically locks a 16:9 wide card (~65%) and a 4:5 portrait card (~35%) to the exact same flush height so there are no awkward cuts or blank white gaps.\n\n` +
+          `Drop any mix of these into this chat and I will arrange them into uncropped containers automatically!`;
+      } else if (
+        lower.includes('kaldhar') ||
+        lower.includes('kaladhar') ||
+        lower.includes('bridal')
+      ) {
+        reply =
+          `**Kaldhar Bridal** is set up with 88 total archived deliverables:\n\n` +
+          `• **Lead Hero**: 16:9 master widescreen banner.\n` +
+          `• **Deliverables Grid**: 4-column responsive gallery displaying Frames 80 through 88 with high-res lightbox view.\n` +
+          `• **Signature Bento End Spread**: Flush 16:9 + 4:5 cards locked to the exact same height, with your editorial narrative on the left and logo on the right.\n` +
+          `• **Commercial Motion**: Integrated commercial video reel.\n\n` +
+          `If you want to add or swap any deliverables, simply drop the images or video here!`;
+      } else if (
+        lower.includes('how to upload') ||
+        lower.includes('how do i') ||
+        lower.includes('upload') ||
+        lower.includes('backend') ||
+        lower.includes('simple') ||
+        lower.includes('help')
+      ) {
+        reply =
+          `I made the backend upload workflow super simple for you:\n\n` +
+          `1. **Attach Files**: Click the 📎 paperclip button or drag & drop your campaign visuals/videos into this chat.\n` +
+          `2. **Set Name**: Type the campaign title (e.g. 'Kaldhar Bridal Lookbook').\n` +
+          `3. **One-Click Publish**: Review the uncropped preview and hit the **🚀 Publish** button to go live instantly.\n\n` +
+          `Or switch to the **⚡ Quick Upload** tab above if you prefer a direct form!`;
+      } else if (
+        lower.includes('delete') ||
+        lower.includes('remove') ||
+        lower.includes('clear')
+      ) {
+        reply =
+          `To manage or delete campaigns:\n\n` +
+          `• Switch to the **📂 Manage Campaigns** tab above.\n` +
+          `• Click the red **🗑️ Delete** button on any campaign to remove it immediately from your portfolio.\n` +
+          `• You can also delete custom campaigns directly from the Case Study modal on the live site!`;
+      } else if (
+        lower.includes('deploy') ||
+        lower.includes('status') ||
+        lower.includes('live') ||
+        lower.includes('production')
+      ) {
+        reply =
+          `Your portfolio is fully compiled and active on localhost!\n\n` +
+          `• **All 10 Routes**: Ready for production deployment.\n` +
+          `• **No Harsh Lines**: Strictly following your clean 'no line' design rule.\n` +
+          `• **Palette**: Pure Red (#e60000), Black, and White (zero blue).\n` +
+          `• **Apple Squircle Curvature**: Applied to all modal cards, buttons, and bento containers.`;
+      } else if (
+        lower.includes('cool') ||
+        lower.includes('look cool') ||
+        lower.includes('advice') ||
+        lower.includes('improve') ||
+        lower.includes('better') ||
+        lower.includes('make website') ||
+        lower.includes('make it')
+      ) {
+        reply =
+          `Here are 4 directorial moves that make your portfolio look world-class:\n\n` +
+          `• **Widescreen Key Visual Lead**: Always open campaigns with a full 1920×1080 cinematic banner. It establishes visual authority before showing editorial plates.\n` +
+          `• **Signature Asymmetric Bento Spread**: Concluding with the 65% wide card + 35% portrait lookbook frame locked to the exact same flush height gives a bespoke, high-fashion agency feel.\n` +
+          `• **Editorial Micro-Typography**: Crisp monospace frame markers (\`FRAME 80\`, \`88 FRAMES ARCHIVED\`) combined with bold Swiss titles reinforce precision craftsmanship.\n` +
+          `• **Line-Free Contrast**: Keep the interface completely free of divider lines. Let deep blacks, subtle surface shifts, and vivid Red (#e60000) guide the eye naturally.`;
+      } else if (
+        /^(yo|hey|hi|hello|sup|whatsapp|whatapp|whatappp)/i.test(lower) ||
+        lower.includes('how are you') ||
+        lower.includes('how are u') ||
+        lower.includes('hows it going') ||
+        lower.includes('whats up') ||
+        lower.includes('what up') ||
+        lower.includes('whatapp') ||
+        lower.includes('what are you doing')
+      ) {
+        reply =
+          `Yo Moiz! What's good? Ready at your studio desk. We can organize campaign plates with zero cropping, review Kaldhar lookbook frames, or restructure your portfolio layouts. What are we directing today?`;
+      } else if (
+        lower.includes('who free gemini') ||
+        lower.includes('where free') ||
+        lower.includes('how to get') ||
+        lower.includes('connect gemini') ||
+        lower.includes('why not working') ||
+        lower.includes('not working') ||
+        lower.includes('not verking')
+      ) {
+        reply =
+          `Google gives free Gemini AI directly through **Google AI Studio**! Here is how to get it in 30 seconds:\n\n` +
+          `1. Open **[aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)** in your browser.\n` +
+          `2. Sign in with your regular Google / Gmail account.\n` +
+          `3. Click the blue **"Create API Key"** button.\n` +
+          `4. Copy the key (it starts with \`AIzaSy...\`) and paste it right here in this chat!\n\n` +
+          `Once you paste it, it will automatically connect and activate live Google Gemini for your studio!`;
+      } else if (
+        lower.includes('connect gemini') ||
+        lower.includes('how to get api') ||
+        lower.includes('get api key') ||
+        lower.includes('how to connect')
+      ) {
+      } else if (
+        lower.includes('color') ||
+        lower.includes('red') ||
+        lower.includes('black') ||
+        lower.includes('blue')
+      ) {
+        reply =
+          `Your visual identity is strictly locked to **Pure Red (#e60000)**, **Deep Black (#0d0d0e)**, and **Crisp White**. Zero blue is permitted anywhere on your portfolio. This high-contrast aesthetic creates a bold, luxury directorial presence.`;
+      } else if (
+        lower.includes('font') ||
+        lower.includes('typography') ||
+        lower.includes('text')
+      ) {
+        reply =
+          `Your portfolio uses a high-impact typographic hierarchy: Bold uppercase Display Sans for primary titles and manifesto headings, paired with technical Swiss Monospace for frame tags, metadata, and timestamps.`;
+      } else if (/lighting|camera|set|shoot/i.test(lastUserMsg)) {
+        reply =
+          `For on-set lighting and direction, here is what works best:\n\n` +
+          `1. **Key Lighting**: Skim continuous warm tungsten (2K-3K) across primary textures to avoid flat digital reflection.\n` +
+          `2. **Fill Control**: Use negative black solids on the shadow side to maintain dramatic chiaroscuro falloff.\n` +
+          `3. **Optics**: 35mm / 50mm Anamorphic primes for gentle barrel curvature and organic lens breathing.`;
       }
 
       return NextResponse.json({ success: true, reply, engine: 'studio-director-engine' });

@@ -41,40 +41,37 @@ const SERVICES: ServiceRow[] = [
 
 export default function ServicesSection() {
   return (
-    <section id="services" className="w-full py-16 sm:py-24 bg-white border-t border-black/[0.08]">
+    <section id="services" className="w-full pt-16 sm:pt-24 pb-20 sm:pb-28 bg-white overflow-hidden select-none">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-8 md:px-14">
-        {/* Section Label */}
-        <div className="flex items-center justify-between pb-8 sm:pb-12">
-          <span className="font-mono text-xs sm:text-sm text-black tracking-widest uppercase font-bold">
-            SERVICES — SERVICES —
-          </span>
-          <span className="font-mono text-xs text-muted uppercase tracking-widest">
-            05 DISCIPLINES
-          </span>
+        {/* Giant Typographic Running Header (Page 2 Reference) */}
+        <div className="overflow-hidden pb-6 sm:pb-12 select-none">
+          <h2 className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[104px] tracking-tight uppercase text-black leading-none whitespace-nowrap">
+            Services — Services —
+          </h2>
         </div>
 
-        {/* 3-Column Wide Table Rows */}
-        <div className="border-t border-black/[0.08]">
+        {/* 5 Expansive Rows — Pure Typographic Spacing, Zero Lines */}
+        <div className="space-y-3 sm:space-y-4">
           {SERVICES.map((item) => (
             <div
               key={item.number}
-              className="py-8 sm:py-12 md:py-14 border-b border-black/[0.08] grid grid-cols-1 sm:grid-cols-12 gap-4 sm:gap-6 md:gap-10 items-start transition-colors duration-200 hover:bg-neutral-50/50"
+              className="py-6 sm:py-8 md:py-9 px-4 sm:px-8 grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-8 md:gap-12 items-start transition-all duration-200 group hover:bg-[#faf9f6] rounded-[20px] border-none"
             >
-              {/* Col 1: Number in Electric Cobalt Blue */}
-              <div className="sm:col-span-2 md:col-span-1 font-mono text-sm sm:text-base text-accent-cobalt font-bold tracking-wider">
+              {/* Col 1: Number */}
+              <div className="sm:col-span-2 md:col-span-1 font-mono text-sm sm:text-base font-bold text-black group-hover:text-[#e60000] transition-colors">
                 {item.number}
               </div>
 
-              {/* Col 2: Title in Electric Cobalt Blue */}
+              {/* Col 2: Title */}
               <div className="sm:col-span-5 md:col-span-4">
-                <h3 className="font-sans font-black text-base sm:text-lg md:text-xl tracking-wider uppercase text-accent-cobalt leading-tight">
+                <h3 className="font-display font-black text-base sm:text-lg md:text-xl tracking-wider uppercase text-black group-hover:text-[#e60000] transition-colors leading-tight">
                   {item.title}
                 </h3>
               </div>
 
-              {/* Col 3: Right-aligned/justified descriptive paragraph */}
+              {/* Col 3: Right-aligned Description */}
               <div className="sm:col-span-5 md:col-span-7 flex sm:justify-end">
-                <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-sans max-w-xl sm:text-right">
+                <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed font-sans max-w-xl sm:text-right font-normal">
                   {item.description}
                 </p>
               </div>

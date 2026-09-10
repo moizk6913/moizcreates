@@ -4,9 +4,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from '@/components/Header';
 import HeroScatter from '@/components/HeroScatter';
 import EditorialManifesto from '@/components/EditorialManifesto';
-import ClientsStrip from '@/components/ClientsStrip';
-import DisciplineDeck from '@/components/DisciplineDeck';
 import BtsArcSection from '@/components/BtsArcSection';
+import ClientsStrip from '@/components/ClientsStrip';
 import ServicesSection from '@/components/ServicesSection';
 import ProcessSection from '@/components/ProcessSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
@@ -28,12 +27,10 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<DynamicCanvasFile[]>([]);
 
   const loadUploads = useCallback(async () => {
-    // 1. Sync load from localStorage for instant initial paint
     const syncFiles = getStoredCanvasFiles();
     if (syncFiles && syncFiles.length > 0) {
       setUploadedFiles(syncFiles);
     }
-    // 2. Full-fidelity async load from IndexedDB (contains all 38+ pictures)
     try {
       const idbFiles = await getStoredCanvasFilesAsync();
       if (idbFiles && idbFiles.length > 0) {
@@ -65,19 +62,12 @@ export default function Home() {
     return photos;
   }, [uploadedFiles]);
 
-  const handleShutterFinish = useCallback(() => {
-    setIsIntroDone(true);
-  }, []);
-
   useEffect(() => {
-    // Check if intro was already played this session
     const introDoneThisSession = typeof window !== 'undefined' && sessionStorage.getItem('moiz_intro_done') === 'true';
-
     if (introDoneThisSession && !isIntroDone) {
       setIsIntroDone(true);
       return;
     }
-
     if (isIntroDone && typeof window !== 'undefined') {
       sessionStorage.setItem('moiz_intro_done', 'true');
     }
@@ -85,54 +75,46 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen bg-canvas">
-      {/* Custom Luxury Magnetic Fluid Cursor */}
+      {/* Custom Luxury Fluid Cursor */}
       <CustomCursor />
 
-      {/* Header (Hidden during initial shutter, fades in smoothly) */}
-      <Header visible={isIntroDone} />
+      {/* Header Nav (WORK, PLAYGROUND, Center Logo, ARCHIVE, ABOUT, CONTACT in BN Cringe Sans) */}
+      <Header visible={true} />
 
-      {/* Section 01: Hero Center Shutter & Tight Overlapping Cluster */}
-      <HeroScatter
-        onOpenCase={setSelectedCase}
-        onShutterFinish={handleShutterFinish}
-        userPhotos={userPhotos}
-        uploadedFiles={uploadedFiles}
-      />
+      {/* Section 01: Hero Center Scatter & Shutter Pop */}
+      <HeroScatter onOpenCase={setSelectedCase} />
 
-      {/* Section 01.5: Editorial Manifesto Strip */}
+      {/* Section 01.5: Editorial Manifesto */}
       <EditorialManifesto userPhotos={userPhotos} />
 
-      {/* Section 01.8: Collaborated Companies & Clients B&W Logo Marquee */}
-      <ClientsStrip />
-
-      {/* Section 01.85: 3D Curved Arc BTS & Direction Reels (Upper from deck) */}
+      {/* Section 02: Work Showcase (3D Curved Arc Bento Reels & Campaigns) */}
       <BtsArcSection
         onOpenCase={setSelectedCase}
         uploadedFiles={uploadedFiles}
       />
 
-      {/* Section 01.9: Interactive Discipline Cards Deck (Hover Lift & Shuffle) */}
-      <DisciplineDeck />
+      {/* Section 02.2: Collaborated Brands & Clients B&W Marquee */}
+      <ClientsStrip />
 
-      {/* Section 02: Services (01 - 05 Wide Table) */}
+      {/* Section 03: Services (01 Art Direction ... 05 Creative Strategy) */}
       <ServicesSection />
 
-      {/* Section 02.5: Approach (01 - 03 Phases) */}
+      {/* Section 04: Process / Approach (Research, Direct, Deliver with Star Glyphs) */}
       <ProcessSection />
 
-      {/* Section 02.8: Endorsements & Testimonials (Watermark + Floating Cards) */}
+      {/* Section 05: Testimonials (Line-Free Floating Cards with Red Verified Badges) */}
       <TestimonialsSection />
 
-      {/* Section 03: Frequently Asked (01 - 06 + Cobalt Ribbon) */}
+      {/* Section 06: Frequently Asked Questions (Line-Free Accordion) */}
       <FaqSection />
 
-      {/* Section 03.5: Statement Bridge */}
+      {/* Section 07: Statement Bridge */}
       <StatementBridge />
 
-      {/* Section 04: Direct Inquiries & Contact with 1-Click Clipboard Feedback */}
+      {/* Section 08: Direct Inquiries & Contact (1-Click Clipboard Feedback) */}
       <Contact />
 
-      {/* Case Study Modal */}
+      {/* Case Study Modal (Apple-Style Roundness, 4-Col Archived Frames, Asymmetric Bento End Part) */}
       <CaseModal
         projectId={selectedCase}
         onClose={() => setSelectedCase(null)}

@@ -290,7 +290,7 @@ export default function DisciplineDeck() {
                     <p className="font-mono text-xs tracking-[-0.01em] leading-relaxed opacity-85 mt-0.5 line-clamp-3">
                       {card.desc}
                     </p>
-                    <div className="mt-3 pt-2.5 border-t border-black/10 flex justify-between items-center text-[10px] font-mono font-bold uppercase tracking-wider">
+                    <div className="mt-3 pt-2.5 flex justify-between items-center text-[10px] font-mono font-bold uppercase tracking-wider opacity-80">
                       <span>OPEN ARCHIVE</span>
                       <span>↗</span>
                     </div>

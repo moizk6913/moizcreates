@@ -55,7 +55,7 @@ const ROW_ONE_BENTO: BentoItem[] = [
     brand: 'WINDCHASERS',
     tag: 'POST 1:1',
     aspectClass: 'aspect-square',
-    bgAccent: 'bg-[#0047bb]',
+    bgAccent: 'bg-[#141414]',
     mediaType: 'image',
     mediaUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop',
   },
@@ -360,7 +360,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
             {/* Controls / Tag - 10px Apple radius */}
             <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2 py-0.5 rounded-[10px] bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest border border-white/10">
+              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2 py-0.5 rounded-[10px] bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
                 {item.tag}
               </span>
 
@@ -383,7 +383,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
           {/* Center Magnetic "Expand +" Badge - 10px Apple radius */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] bg-black/85 backdrop-blur-md text-white border border-white/20 shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
               <span className="font-sans text-[11px] md:text-xs font-semibold tracking-wide">Expand</span>
               <span className="text-sm md:text-base font-light leading-none mt-0.5 text-accent-red">+</span>
             </div>
@@ -394,7 +394,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   };
 
   return (
-    <section id="work-showcase" className="w-full py-8 sm:py-12 md:py-14 bg-canvas overflow-hidden">
+    <section id="work" className="w-full py-12 sm:py-16 md:py-20 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks (Zero External Text) */}
       <div className="w-full flex flex-col gap-6 md:gap-8 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with mixed bento widths */}
