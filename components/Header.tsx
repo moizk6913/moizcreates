@@ -63,7 +63,7 @@ export default function Header({ visible = true }: HeaderProps) {
             WORK
           </Link>
           <Link
-            href="/canvas"
+            href="/canvas?view=playground"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
           >
             PLAYGROUND
@@ -93,7 +93,7 @@ export default function Header({ visible = true }: HeaderProps) {
         {/* RIGHT NAV LINKS (Desktop: ARCHIVE, ABOUT, CONTACT) */}
         <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-end">
           <Link
-            href="/canvas"
+            href="/canvas?view=archive"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
           >
             ARCHIVE
@@ -143,8 +143,8 @@ export default function Header({ visible = true }: HeaderProps) {
           <nav className="flex flex-col gap-6">
             {[
               { label: 'WORK', href: '/#work' },
-              { label: 'PLAYGROUND', href: '/canvas' },
-              { label: 'ARCHIVE', href: '/canvas' },
+              { label: 'PLAYGROUND', href: '/canvas?view=playground' },
+              { label: 'ARCHIVE', href: '/canvas?view=archive' },
               { label: 'ABOUT', href: '/about' },
               { label: 'CONTACT', href: '/#contact' },
             ].map((link) => (
