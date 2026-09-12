@@ -269,6 +269,77 @@ Return ONLY raw JSON with:
       });
     }
 
+    // Action 0.8: One-Click Editorial Project Synopsis & Tag Generator
+    if (action === 'generate_editorial_overview') {
+      const { projectTitle, clientName, notes, categoryTag } = body;
+      const cleanTitle = projectTitle || 'Untitled Campaign';
+      const cleanClient = clientName || cleanTitle;
+      const userNotes = notes || '';
+
+      if (apiKey) {
+        try {
+          const prompt = `You are the lead Art Director & Editorial Copywriter for a high-end, luxury creative portfolio (in the creative aesthetic of Saint Laurent, Acne Studios, Nike, Balenciaga, Studio Frith).
+Create a sleek, minimalist, museum-grade creative direction overview for a project with these details:
+- Project Title: "${cleanTitle}"
+- Client / Brand: "${cleanClient}"
+- Category: "${categoryTag || 'COMMERCIAL CAMPAIGN'}"
+- Creative Notes / Bullet Points: "${userNotes}"
+
+RULES:
+1. Write 2-3 sentences maximum.
+2. Tone: Confident, understated, visually articulate, architectural, art-directed. STRICTLY AVOID corporate buzzwords ("cutting-edge", "game-changing", "seamlessly blends", "delve", "testament").
+3. Suggest a refined uppercase category tag (e.g. "COMMERCIAL CAMPAIGN", "DIRECTORIAL & LOOKBOOK", "BRAND IDENTITY & MOTION").
+
+Return ONLY valid JSON:
+{
+  "overview": "2-3 sentences of elevated creative direction copy.",
+  "suggestedTag": "REFINED CATEGORY TAG"
+}`;
+
+          for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest']) {
+            try {
+              const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-goog-api-key': apiKey,
+                },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: { responseMimeType: 'application/json' },
+                }),
+              });
+
+              if (res.ok) {
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  const parsed = JSON.parse(text);
+                  return NextResponse.json({ success: true, ...parsed, model: modelName });
+                }
+              }
+            } catch (innerErr) {
+              console.warn(`Model ${modelName} failed for editorial overview, trying fallback:`, innerErr);
+            }
+          }
+        } catch (geminiErr) {
+          console.warn('Gemini overview generation failed, using heuristic fallback:', geminiErr);
+        }
+      }
+
+      // High-taste Editorial Fallback Generator (Instant, zero latency)
+      const fallbackOverview = userNotes.trim()
+        ? `A multi-format visual campaign for ${cleanClient}, centered around ${userNotes.replace(/[\r\n]+/g, ', ')}. Captured through high-contrast editorial framing, tactile typography, and cinematic motion across digital and spatial mediums.`
+        : `A comprehensive visual identity and directorial campaign developed for ${cleanClient}. Anchored in deliberate framing, architectural pacing, and high-impact visual rhythm across digital and physical touchpoints.`;
+
+      return NextResponse.json({
+        success: true,
+        overview: fallbackOverview,
+        suggestedTag: categoryTag || 'COMMERCIAL CAMPAIGN',
+        engine: 'editorial-fallback',
+      });
+    }
+
     // Action 1: Smart Multimodal Asset & Campaign Analyzer
     if (action === 'analyze_upload') {
       const preferredAspect = detectedAspect || 'aspect-[16/10]';

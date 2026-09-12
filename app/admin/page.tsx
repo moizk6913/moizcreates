@@ -332,6 +332,8 @@ export default function AdminPage() {
   const [newProjectRole, setNewProjectRole] = useState('Director of Visuals');
   const [newProjectOverview, setNewProjectOverview] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -607,6 +609,71 @@ export default function AdminPage() {
     setNewProjectOverview('');
     notifyUser(`Project "${newProj.title}" created successfully.`);
     return newProj.id;
+  };
+
+  const handleSetProjectCover = async (project: Project, workId: string) => {
+    try {
+      const updated: Project = { ...project, coverWorkId: workId, updatedAt: Date.now() };
+      await saveProjectAsync(updated);
+      await refreshData();
+      notifyUser(`Hero cover updated for "${project.title}".`);
+    } catch (err) {
+      console.error('Failed to set cover:', err);
+      notifyUser('Could not update cover image.');
+    }
+  };
+
+  const handleGenerateEditorialCopy = async (
+    title: string,
+    client: string,
+    currentOverview: string,
+    categoryTag: string,
+    onSuccess: (newOverview: string, newTag?: string) => void
+  ) => {
+    setIsGeneratingCopy(true);
+    notifyUser('AI is writing elevated editorial copy...');
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_editorial_overview',
+          geminiKey: apiKey,
+          projectTitle: title,
+          clientName: client,
+          notes: currentOverview,
+          categoryTag: categoryTag,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.overview) {
+          onSuccess(data.overview, data.suggestedTag);
+          notifyUser('Editorial copy generated!');
+        }
+      } else {
+        notifyUser('Could not generate copy, check API connection.');
+      }
+    } catch (err) {
+      console.error('AI copy generation error:', err);
+      notifyUser('Error generating editorial copy.');
+    } finally {
+      setIsGeneratingCopy(false);
+    }
+  };
+
+  const handleSaveEditedProject = async () => {
+    if (!editingProject) return;
+    try {
+      const updated: Project = { ...editingProject, updatedAt: Date.now() };
+      await saveProjectAsync(updated);
+      await refreshData();
+      setEditingProject(null);
+      notifyUser(`Project "${updated.title}" updated.`);
+    } catch (err) {
+      console.error('Failed to update project:', err);
+      notifyUser('Error updating project.');
+    }
   };
 
   const hasLegacyMockData = useMemo(() => {
@@ -1241,6 +1308,15 @@ export default function AdminPage() {
               <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   type="button"
+                  onClick={() => setEditingProject(currentProject)}
+                  className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white hover:text-black text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 border border-white/10"
+                >
+                  <span>✏️</span>
+                  <span>Edit Details</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setProjectToDelete(currentProject)}
                   className="px-5 py-2.5 rounded-full bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 border border-red-500/20"
                 >
@@ -1261,6 +1337,43 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* DIRECT IN-PROJECT DROPZONE / ADD STRIP */}
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                setUploadQueue([]);
+                setBatchSuggestion({ matchedProjectId: currentProject.id, matchedProjectName: currentProject.title, projectConfidence: 1.0 });
+                handleDropFiles(e.dataTransfer.files);
+                setIsAddWorkOpen(true);
+              }
+            }}
+            onClick={() => {
+              setUploadQueue([]);
+              setBatchSuggestion({ matchedProjectId: currentProject.id, matchedProjectName: currentProject.title, projectConfidence: 1.0 });
+              setIsAddWorkOpen(true);
+            }}
+            className="p-6 rounded-2xl border border-dashed border-white/15 hover:border-[#e60000] bg-white/[0.02] hover:bg-[#e60000]/[0.03] transition-all flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer group"
+          >
+            <div className="flex items-center gap-3.5 text-left">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.06] group-hover:bg-[#e60000] group-hover:text-white flex items-center justify-center text-lg transition-colors shrink-0">
+                ＋
+              </div>
+              <div>
+                <p className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                  Drop new media to add directly to {currentProject.title}
+                </p>
+                <p className="font-mono text-[11px] text-neutral-400">
+                  Reels (9:16), Horizontal Videos (16:9), Lookbook Photos, Social Media Designs — Code auto-tags dimensions instantly.
+                </p>
+              </div>
+            </div>
+            <span className="font-mono text-xs font-bold px-4 py-2 rounded-full bg-white text-black group-hover:bg-[#e60000] group-hover:text-white transition-colors shrink-0">
+              Browse / Drop Files
+            </span>
           </div>
 
           {/* DYNAMIC WORK TYPE TABS (ONLY RENDER WHAT ACTUALLY EXISTS IN THIS PROJECT) */}
@@ -1324,6 +1437,26 @@ export default function AdminPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       )}
+
+                      {/* Cover Badge or Set Cover Action */}
+                      {currentProject.coverWorkId === work.id ? (
+                        <span className="absolute top-2.5 left-2.5 z-30 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full bg-[#e60000] text-white shadow-lg flex items-center gap-1">
+                          ★ COVER
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          title="Set as Project Cover Thumbnail"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetProjectCover(currentProject, work.id);
+                          }}
+                          className="absolute top-2.5 left-2.5 z-30 px-2.5 py-1 rounded-full bg-black/80 hover:bg-white hover:text-black text-neutral-300 font-mono text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer border border-white/10 shadow-md opacity-0 group-hover:opacity-100"
+                        >
+                          ★ Make Cover
+                        </button>
+                      )}
+
                       {/* Delete Single Picture Quick Action */}
                       <button
                         type="button"
@@ -1353,6 +1486,19 @@ export default function AdminPage() {
                       </div>
 
                       <div className="flex items-center gap-1.5 pt-1">
+                        {currentProject.coverWorkId !== work.id && (
+                          <button
+                            type="button"
+                            title="Set as Project Cover"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSetProjectCover(currentProject, work.id);
+                            }}
+                            className="flex-1 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white hover:text-black text-neutral-300 font-mono text-[9px] font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                          >
+                            ★ Cover
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -1976,13 +2122,39 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="text-neutral-400 block pb-1">Narrative / Overview</label>
+                <div className="flex items-center justify-between pb-1">
+                  <label className="text-neutral-400">Narrative / Overview</label>
+                  <button
+                    type="button"
+                    disabled={isGeneratingCopy}
+                    onClick={() => {
+                      if (!newProjectTitle.trim()) {
+                        alert('Please enter a Project Title first so AI can write the copy.');
+                        return;
+                      }
+                      handleGenerateEditorialCopy(
+                        newProjectTitle,
+                        newProjectClient || newProjectTitle,
+                        newProjectOverview,
+                        newProjectTag,
+                        (newOverview, newTag) => {
+                          setNewProjectOverview(newOverview);
+                          if (newTag) setNewProjectTag(newTag);
+                        }
+                      );
+                    }}
+                    className="text-[#e60000] hover:text-[#ff3333] font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <span>✨</span>
+                    <span>{isGeneratingCopy ? 'Writing copy...' : 'AI Generate Editorial Copy'}</span>
+                  </button>
+                </div>
                 <textarea
                   value={newProjectOverview}
                   onChange={(e) => setNewProjectOverview(e.target.value)}
                   rows={3}
-                  placeholder="Editorial statement or creative treatment overview..."
-                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 resize-none font-sans text-xs"
+                  placeholder="Type 2-3 quick bullet points or notes and click AI Generate, or write your own..."
+                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 resize-none font-sans text-xs leading-relaxed"
                 />
               </div>
             </div>
@@ -2001,6 +2173,154 @@ export default function AdminPage() {
                 className="px-6 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Create Project
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: EDIT PROJECT DETAILS                                  */}
+      {/* ============================================================ */}
+      {editingProject && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingProject(null);
+          }}
+          className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-xl bg-[#141416] border border-white/[0.08] rounded-3xl p-8 space-y-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                  Edit Project Details
+                </h3>
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-white/[0.08] text-neutral-300 uppercase font-bold">
+                  {editingProject.year}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingProject(null)}
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 font-mono text-xs">
+              <div>
+                <label className="text-neutral-400 block pb-1">Project Title *</label>
+                <input
+                  type="text"
+                  value={editingProject.title}
+                  onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-neutral-400 block pb-1">Client / Brand</label>
+                  <input
+                    type="text"
+                    value={editingProject.client || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, client: e.target.value })}
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-neutral-400 block pb-1">Year</label>
+                  <input
+                    type="text"
+                    value={editingProject.year}
+                    onChange={(e) => setEditingProject({ ...editingProject, year: e.target.value })}
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-neutral-400 block pb-1">Category Tag</label>
+                  <input
+                    type="text"
+                    value={editingProject.tag || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, tag: e.target.value })}
+                    placeholder="e.g. COMMERCIAL CAMPAIGN"
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-neutral-400 block pb-1">Role</label>
+                  <input
+                    type="text"
+                    value={editingProject.role || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, role: e.target.value })}
+                    placeholder="e.g. Lead Art Director"
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between pb-1">
+                  <label className="text-neutral-400">Narrative / Overview</label>
+                  <button
+                    type="button"
+                    disabled={isGeneratingCopy}
+                    onClick={() => {
+                      handleGenerateEditorialCopy(
+                        editingProject.title,
+                        editingProject.client || editingProject.title,
+                        editingProject.overview || '',
+                        editingProject.tag || 'COMMERCIAL CAMPAIGN',
+                        (newOverview, newTag) => {
+                          setEditingProject((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  overview: newOverview,
+                                  tag: newTag || prev.tag,
+                                }
+                              : null
+                          );
+                        }
+                      );
+                    }}
+                    className="text-[#e60000] hover:text-[#ff3333] font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <span>✨</span>
+                    <span>{isGeneratingCopy ? 'Writing copy...' : 'AI Generate Editorial Copy'}</span>
+                  </button>
+                </div>
+                <textarea
+                  value={editingProject.overview || ''}
+                  onChange={(e) => setEditingProject({ ...editingProject, overview: e.target.value })}
+                  rows={4}
+                  placeholder="Editorial statement or creative treatment overview..."
+                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 resize-none font-sans text-xs leading-relaxed"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingProject(null)}
+                className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-white font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditedProject}
+                className="px-6 py-2.5 rounded-full bg-white text-black hover:bg-[#e60000] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Save Changes
               </button>
             </div>
           </div>
