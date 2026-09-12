@@ -275,7 +275,7 @@ export default function HeroScatter({ onOpenCase, uploadedFiles, userPhotos }: H
     >
       {/* Central Artist Identity (Simon Wheatley Reference / Image 4) */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-[2] select-none opacity-90 flex flex-col items-center justify-center gap-1">
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-primary uppercase leading-none">
+        <h1 className="font-dharma font-bold text-6xl sm:text-8xl md:text-9xl tracking-tight text-primary uppercase leading-[0.82]">
           MOIZ KHAN
         </h1>
         <p className="font-mono text-[11px] sm:text-xs md:text-sm tracking-[0.14em] text-secondary uppercase">
