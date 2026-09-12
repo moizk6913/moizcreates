@@ -1,12 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Contact() {
   const [copied, setCopied] = useState(false);
+  const [dubaiTime, setDubaiTime] = useState('');
   const email = 'hiremoiz.works@gmail.com';
+
+  useEffect(() => {
+    const updateTime = () => {
+      try {
+        const now = new Date();
+        const formatted = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Asia/Dubai',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        }).format(now);
+        setDubaiTime(formatted);
+      } catch {
+        setDubaiTime('');
+      }
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -20,141 +41,162 @@ export default function Contact() {
   return (
     <footer
       id="contact"
-      className="w-full pt-20 sm:pt-28 md:pt-36 pb-4 sm:pb-6 bg-[#f4f2ee] relative overflow-hidden select-none border-none"
+      className="w-full pt-16 sm:pt-24 md:pt-32 pb-0 bg-[#efeeea] relative overflow-hidden select-none border-none flex flex-col justify-between"
     >
       {/* Soft Ambient Pure Red Glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(ellipse,rgba(230,0,0,0.04)_0%,transparent_70%)] pointer-events-none"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-[radial-gradient(ellipse,rgba(230,0,0,0.025)_0%,transparent_70%)] pointer-events-none"
         aria-hidden="true"
       />
 
-      <div className="max-w-[1700px] mx-auto px-6 sm:px-10 md:px-14 relative z-10 space-y-16 sm:space-y-20">
-        {/* TOP CALL TO ACTION & DIRECT INQUIRY */}
-        <div className="flex flex-col items-center text-center space-y-6 max-w-4xl mx-auto">
-          {/* Live Availability Status Pill */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-            <span className="w-2 h-2 rounded-full bg-[#e60000] animate-ping" />
-            <span className="font-mono text-[11px] font-bold tracking-wider text-black uppercase">
-              Available for Q1/Q2 Worldwide Commissions
-            </span>
-          </div>
-
-          {/* Headline in Britti Sans Bold */}
-          <div className="space-y-2">
-            <h2 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl uppercase text-black tracking-tight leading-tight">
-              HAVE A PROJECT IN MIND?
-            </h2>
-            <p className="font-sans text-base sm:text-xl text-neutral-600 font-normal">
-              Relax. We got you. Directing high-impact commercial campaigns &amp; visual worlds.
-            </p>
-          </div>
-
-          {/* Hero Email Link & Copy Interaction */}
-          <div className="flex flex-col items-center gap-4 pt-1">
-            <a
-              href={`mailto:${email}`}
-              className="font-display font-bold text-2xl sm:text-4xl md:text-5xl text-black hover:text-[#e60000] transition-colors duration-300 uppercase tracking-tight break-all"
-            >
-              {email}
-            </a>
-
-            <button
-              type="button"
-              onClick={handleCopyEmail}
-              className={`font-mono text-xs px-5 py-2.5 rounded-full transition-all cursor-pointer flex items-center gap-2 shadow-xs font-bold ${
-                copied
-                  ? 'bg-emerald-500 text-white scale-105'
-                  : 'bg-black text-white hover:bg-[#e60000]'
-              }`}
-            >
-              {copied ? (
-                <>
-                  <span>✓</span>
-                  <span>Copied to Clipboard!</span>
-                </>
-              ) : (
-                <>
-                  <span>📋</span>
-                  <span>Click to Copy Email</span>
-                </>
-              )}
-            </button>
-          </div>
+      {/* MAIN ARTBOARD CONTAINER (Exact layout matching Image 1: Artboard 1) */}
+      <div className="w-full max-w-[1780px] mx-auto px-6 sm:px-12 md:px-16 lg:px-24 flex-1 flex flex-col justify-between relative z-10 space-y-16 sm:space-y-24 md:space-y-28">
+        
+        {/* TOP ROW: ICON / MONOGRAM (Exact position from Artboard 1) */}
+        <div className="flex items-center justify-start pt-2">
+          <Link
+            href="#top"
+            className="group block transition-transform duration-300 hover:scale-105"
+            aria-label="Moiz Khan Logo"
+          >
+            <Image
+              src="/assets/logo.png"
+              alt="Moiz Khan"
+              width={48}
+              height={48}
+              className="h-9 sm:h-10 md:h-11 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
+              priority
+            />
+          </Link>
         </div>
 
-        {/* 4-COLUMN ARCHITECTURAL METADATA ROW (Exact Baseborn & Rejouice Standard) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 pt-12 pb-6 border-t border-black/[0.08] font-mono text-xs">
-          {/* Column 1: Rights & Location */}
-          <div className="space-y-1.5">
-            <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest block">
-              ALL RIGHTS RESERVED
-            </span>
-            <p className="font-bold text-black uppercase tracking-wider text-[11px] sm:text-xs">
-              © 2026 MOIZ KHAN
-            </p>
-            <p className="text-[11px] text-neutral-500 uppercase">
-              DUBAI — UAE / WORLDWIDE
-            </p>
-          </div>
-
-          {/* Column 2: Business Inquiries */}
-          <div className="space-y-1.5">
-            <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest block">
-              BUSINESS INQUIRIES
-            </span>
-            <a
-              href={`mailto:${email}`}
-              className="font-bold text-black hover:text-[#e60000] transition-colors uppercase tracking-wider text-[11px] sm:text-xs block"
-            >
-              {email}
-            </a>
-            <span className="text-[11px] text-neutral-500 uppercase block">
-              COMMISSIONS &amp; CAMPAIGNS
-            </span>
-          </div>
-
-          {/* Column 3: Studio Directory */}
-          <div className="space-y-1.5">
-            <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest block">
-              STUDIO DIRECTORY
-            </span>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 font-bold text-black uppercase text-[11px] sm:text-xs">
-              <Link href="/#work" className="hover:text-[#e60000] transition-colors">WORK</Link>
-              <Link href="/canvas?view=playground" className="hover:text-[#e60000] transition-colors">PLAYGROUND</Link>
-              <Link href="/canvas?view=archive" className="hover:text-[#e60000] transition-colors">ARCHIVE</Link>
-              <Link href="/about" className="hover:text-[#e60000] transition-colors">ABOUT</Link>
+        {/* MID-BODY: THE 3 EDITORIAL BLOCKS (Exact composition from Artboard 1) */}
+        <div className="w-full flex flex-col space-y-14 sm:space-y-20">
+          
+          {/* Row 1: BUSINESS INQUIRIES (Left) & STUDIO DIRECTORY (Right) */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 sm:gap-14 items-start">
+            
+            {/* Block 1: BUSINESS INQUIRIES */}
+            <div className="md:col-span-5 lg:col-span-4 space-y-2.5">
+              <span className="font-britti font-bold text-xs sm:text-sm tracking-widest text-black uppercase block">
+                BUSINESS INQUIRIES
+              </span>
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  className="font-mono text-xs sm:text-sm md:text-[15px] font-medium text-black hover:text-[#e60000] uppercase tracking-wider transition-colors block text-left group cursor-pointer"
+                  title="Click to copy email address"
+                >
+                  <span className="group-hover:underline underline-offset-4">
+                    {email}
+                  </span>
+                  {copied && (
+                    <span className="ml-2 text-[10px] font-mono font-bold text-emerald-600 normal-case bg-emerald-100/90 px-2 py-0.5 rounded-full inline-block">
+                      ✓ Copied
+                    </span>
+                  )}
+                </button>
+                <p className="font-mono text-[11px] sm:text-xs text-neutral-500 uppercase tracking-wide">
+                  COMMISSIONS &amp; CAMPAIGNS
+                </p>
+              </div>
             </div>
-            <span className="text-[11px] text-neutral-500 uppercase block">
-              NAVIGATE PORTFOLIO
-            </span>
+
+            {/* Block 2: STUDIO DIRECTORY */}
+            <div className="md:col-start-7 md:col-span-6 lg:col-start-8 lg:col-span-5 space-y-2.5">
+              <span className="font-britti font-bold text-xs sm:text-sm tracking-widest text-black uppercase block">
+                STUDIO DIRECTORY
+              </span>
+              <div className="space-y-1.5">
+                <nav className="flex flex-wrap items-center gap-x-5 sm:gap-x-7 gap-y-1 font-britti font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                  <Link href="/#work" className="hover:text-[#e60000] transition-colors">
+                    WORK
+                  </Link>
+                  <Link href="/canvas?view=playground" className="hover:text-[#e60000] transition-colors">
+                    PLAYGROUND
+                  </Link>
+                  <Link href="/canvas?view=archive" className="hover:text-[#e60000] transition-colors">
+                    ARCHIVE
+                  </Link>
+                  <Link href="/about" className="hover:text-[#e60000] transition-colors">
+                    ABOUT
+                  </Link>
+                </nav>
+                <p className="font-mono text-[11px] sm:text-xs text-neutral-500 uppercase tracking-wide">
+                  NAVIGATE PORTFOLIO
+                </p>
+              </div>
+            </div>
+
           </div>
 
-          {/* Column 4: Direct Channels */}
-          <div className="space-y-1.5">
-            <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest block">
+          {/* Row 2: DIRECT CHANNELS (Centered horizontally as in Artboard 1) */}
+          <div className="w-full flex flex-col items-center text-center space-y-2.5 pt-2 sm:pt-4">
+            <span className="font-britti font-bold text-xs sm:text-sm tracking-widest text-black uppercase block">
               DIRECT CHANNELS
             </span>
-            <div className="flex flex-wrap gap-x-3 gap-y-1 font-bold text-black uppercase text-[11px] sm:text-xs">
-              <a href="https://instagram.com/moizcreates" target="_blank" rel="noopener noreferrer" className="hover:text-[#e60000] transition-colors">
-                INSTAGRAM ↗
+            <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-9 gap-y-2 font-mono text-xs sm:text-sm font-medium uppercase tracking-wider text-black">
+              <a
+                href="https://instagram.com/moizcreates"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#e60000] transition-colors flex items-center gap-1 group"
+              >
+                <span>INSTAGRAM</span>
+                <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </a>
-              <a href="https://linkedin.com/in/moizkhan" target="_blank" rel="noopener noreferrer" className="hover:text-[#e60000] transition-colors">
-                LINKEDIN ↗
+              <a
+                href="https://linkedin.com/in/moizkhan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#e60000] transition-colors flex items-center gap-1 group"
+              >
+                <span>LINKEDIN</span>
+                <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </a>
-              <a href="https://wa.me/971500000000" target="_blank" rel="noopener noreferrer" className="hover:text-[#e60000] transition-colors">
-                WHATSAPP ↗
+              <a
+                href="https://wa.me/971500000000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#e60000] transition-colors flex items-center gap-1 group"
+              >
+                <span>WHATSAPP</span>
+                <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </a>
             </div>
-            <span className="text-[11px] text-neutral-500 uppercase block">
-              LOCAL TIME (GMT+4)
-            </span>
+          </div>
+
+        </div>
+
+        {/* HORIZON METADATA ROW (Exact 3-point alignment above the wordmark from Artboard 1) */}
+        <div className="w-full flex items-center justify-between pt-10 sm:pt-14 pb-2 border-none">
+          {/* Left: All right reserved */}
+          <div className="text-left font-sans text-xs sm:text-sm text-black/80 font-normal">
+            All right reserved
+          </div>
+
+          {/* Center: 2026 */}
+          <div className="text-center font-sans text-xs sm:text-sm text-black/80 font-normal">
+            2026
+          </div>
+
+          {/* Right: Time (GMT+4) with live dynamic Dubai clock */}
+          <div className="text-right font-sans text-xs sm:text-sm text-[#4d5b7c] font-medium flex items-center gap-1.5">
+            <span>Time (GMT+4)</span>
+            {dubaiTime && (
+              <span className="font-mono text-[11px] sm:text-xs text-neutral-500 hidden sm:inline-block">
+                [{dubaiTime}]
+              </span>
+            )}
           </div>
         </div>
+
       </div>
 
-      {/* MONUMENTAL WALL-TO-WALL WORDMARK (Baseborn & Rejouice Signature) */}
-      <div className="w-full overflow-hidden select-none pt-4 sm:pt-6">
-        <h1 className="font-dharma font-bold text-[19vw] sm:text-[20vw] leading-[0.76] tracking-tight uppercase text-black text-center whitespace-nowrap block w-full hover:text-[#e60000] transition-colors duration-700 cursor-default">
+      {/* MONUMENTAL WALL-TO-WALL WORDMARK (Baseborn & Artboard 1 Responsive Precision) */}
+      <div className="w-full overflow-hidden select-none leading-none -mb-2 sm:-mb-3 md:-mb-5 lg:-mb-6 pt-1 sm:pt-2">
+        <h1 className="w-full text-[19.5vw] sm:text-[20.2vw] md:text-[20.8vw] lg:text-[21.2vw] xl:text-[21.6vw] font-dharma font-bold leading-[0.74] tracking-tight uppercase text-black text-center whitespace-nowrap block hover:text-[#e60000] transition-colors duration-700 cursor-default">
           MOIZ KHAN
         </h1>
       </div>
