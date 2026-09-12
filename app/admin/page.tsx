@@ -32,6 +32,8 @@ import {
   getStoredBlogPosts,
   saveBlogPost,
   deleteBlogPost,
+  clearAllArchiveDataAsync,
+  purgeMockAndCaldharProjectsAsync,
 } from '@/lib/contentStore';
 import { BlogPost } from '@/lib/blogData';
 
@@ -329,6 +331,7 @@ export default function AdminPage() {
   const [newProjectYear, setNewProjectYear] = useState(new Date().getFullYear().toString());
   const [newProjectRole, setNewProjectRole] = useState('Director of Visuals');
   const [newProjectOverview, setNewProjectOverview] = useState('');
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -606,31 +609,65 @@ export default function AdminPage() {
     return newProj.id;
   };
 
+  const hasLegacyMockData = useMemo(() => {
+    const isMock = (str: string = '') => {
+      const s = str.toLowerCase();
+      return (
+        s.includes('kaldhar') ||
+        s.includes('kaladhar') ||
+        s.includes('caldhar') ||
+        s.includes('easy hai bro') ||
+        s.includes('windchasers') ||
+        s.includes('porsche') ||
+        s.includes('ruchi') ||
+        s.includes('oxymorons')
+      );
+    };
+    return (
+      projects.some((p) => isMock(p.title) || isMock(p.client || '')) ||
+      works.some((w) => isMock(w.title) || isMock(w.client || '') || (w.tags && w.tags.some(isMock)))
+    );
+  }, [projects, works]);
+
+  const handleDeleteSingleWork = async (work: WorkItem) => {
+    if (confirm(`Permanently delete "${work.title}"? This cannot be undone.`)) {
+      try {
+        await deleteWorkAsync(work.id);
+        if (inspectingWork?.id === work.id) {
+          setInspectingWork(null);
+        }
+        await refreshData();
+        notifyUser('Picture deleted permanently.');
+      } catch (err) {
+        console.error('Failed to delete work:', err);
+        notifyUser('Error deleting picture.');
+      }
+    }
+  };
+
+  const handleDeleteProjectConfirmed = async (project: Project, deleteWithWorks: boolean) => {
+    try {
+      await deleteProjectAsync(project.id, deleteWithWorks);
+      if (selectedProjectId === project.id) {
+        setSelectedProjectId(null);
+        setActiveView('projects');
+      }
+      setProjectToDelete(null);
+      await refreshData();
+      notifyUser(
+        deleteWithWorks
+          ? `Project "${project.title}" and all its deliverables were deleted.`
+          : `Project container deleted. Deliverables kept as Standalone.`
+      );
+    } catch (err) {
+      console.error('Failed to delete project:', err);
+      notifyUser('Error deleting project.');
+    }
+  };
+
   const handleResetAllArchiveData = async () => {
     try {
-      const workIds = works.map((w) => w.id);
-      if (workIds.length > 0) await deleteWorksBatchAsync(workIds);
-
-      for (const p of projects) {
-        await deleteProjectAsync(p.id);
-      }
-
-      for (const c of collections) {
-        await deleteCollectionAsync(c.id);
-      }
-
-      for (const s of seriesList) {
-        await deleteSeriesAsync(s.id);
-      }
-
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('antigravity_canvas_files');
-        localStorage.removeItem('moiz_works_index');
-        localStorage.removeItem('moiz_projects_index');
-        localStorage.removeItem('moiz_collections_index');
-        localStorage.removeItem('moiz_series_index');
-      }
-
+      await clearAllArchiveDataAsync();
       await refreshData();
       notifyUser('Archive reset. All projects and works have been cleared.');
     } catch (err) {
@@ -758,6 +795,36 @@ export default function AdminPage() {
       {statusNotification && (
         <div className="fixed top-20 right-6 z-50 px-5 py-3 rounded-2xl bg-black/90 backdrop-blur-md border border-white/20 text-white font-mono text-xs font-bold shadow-2xl animate-fadeIn">
           {statusNotification}
+        </div>
+      )}
+
+      {/* QUICK PURGE BANNER IF LEGACY SAMPLE PROJECT (KALDHAR) IS DETECTED */}
+      {hasLegacyMockData && (
+        <div className="max-w-[1700px] w-full mx-auto px-6 sm:px-10 pt-4">
+          <div className="p-4 rounded-2xl bg-red-500/15 border border-red-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">⚠️</span>
+              <div>
+                <h4 className="font-display font-bold text-sm text-white uppercase tracking-tight">
+                  Detected Legacy Sample / Kaldhar Project in Browser Storage
+                </h4>
+                <p className="font-mono text-xs text-red-300/80">
+                  Legacy mock projects stored in your browser cache can be wiped with one click.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const count = await purgeMockAndCaldharProjectsAsync();
+                await refreshData();
+                notifyUser(`Purged ${count} legacy sample item(s). Clean slate ready.`);
+              }}
+              className="px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0"
+            >
+              1-Click Purge Kaldhar Now
+            </button>
+          </div>
         </div>
       )}
 
@@ -916,8 +983,21 @@ export default function AdminPage() {
                       {isSelected && <span className="text-[#e60000] font-black text-xs">✓</span>}
                     </div>
 
+                    {/* Single Picture Delete Quick Action */}
+                    <button
+                      type="button"
+                      title="Delete Picture"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSingleWork(work);
+                      }}
+                      className="absolute top-2.5 right-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/10 shadow-md"
+                    >
+                      🗑️
+                    </button>
+
                     {/* Aspect Ratio Badge */}
-                    <div className="absolute top-2.5 right-2.5 z-20 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-white">
+                    <div className="absolute top-2.5 right-11 z-20 font-mono text-[9px] font-bold px-2 py-1 rounded-lg bg-black/70 backdrop-blur-md text-white">
                       {work.dimensions.aspectRatio}
                     </div>
 
@@ -1057,14 +1137,29 @@ export default function AdminPage() {
 
                       {/* Project Meta */}
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
-                            {project.tag || 'CAMPAIGN'}
-                          </span>
-                          <span className="text-neutral-600 font-mono text-xs">•</span>
-                          <span className="font-mono text-[10px] text-neutral-400">
-                            {project.year}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                              {project.tag || 'CAMPAIGN'}
+                            </span>
+                            <span className="text-neutral-600 font-mono text-xs">•</span>
+                            <span className="font-mono text-[10px] text-neutral-400">
+                              {project.year}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            title="Delete Project"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProjectToDelete(project);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white font-mono text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 shrink-0 border border-red-500/20"
+                          >
+                            <span>🗑️</span>
+                            <span>Delete</span>
+                          </button>
                         </div>
 
                         <h3 className="font-display font-black text-xl text-white uppercase tracking-tight group-hover:text-[#e60000] transition-colors">
@@ -1146,16 +1241,11 @@ export default function AdminPage() {
               <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm(`Delete project "${currentProject.title}"? Note: All works inside this project will be preserved as Standalone works.`)) {
-                      deleteProjectAsync(currentProject.id);
-                      setActiveView('projects');
-                      notifyUser(`Project deleted. Works preserved as Standalone.`);
-                    }
-                  }}
-                  className="px-4 py-2.5 rounded-full bg-white/[0.06] hover:bg-red-500/20 hover:text-red-400 text-neutral-400 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  onClick={() => setProjectToDelete(currentProject)}
+                  className="px-5 py-2.5 rounded-full bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 border border-red-500/20"
                 >
-                  Delete Project
+                  <span>🗑️</span>
+                  <span>Delete Project</span>
                 </button>
 
                 <button
@@ -1234,7 +1324,20 @@ export default function AdminPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       )}
-                      <span className="absolute top-2.5 right-2.5 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-white">
+                      {/* Delete Single Picture Quick Action */}
+                      <button
+                        type="button"
+                        title="Delete Picture"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSingleWork(work);
+                        }}
+                        className="absolute top-2.5 right-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/10 shadow-md"
+                      >
+                        🗑️
+                      </button>
+
+                      <span className="absolute top-2.5 right-11 font-mono text-[9px] font-bold px-2 py-1 rounded-lg bg-black/70 backdrop-blur-md text-white">
                         {work.dimensions.aspectRatio}
                       </span>
                     </div>
@@ -1249,16 +1352,28 @@ export default function AdminPage() {
                         </h4>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDetachWorkFromProject(work.id);
-                        }}
-                        className="w-full py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-neutral-400 hover:text-white font-mono text-[9.5px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                      >
-                        Detach (Make Standalone)
-                      </button>
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSingleWork(work);
+                          }}
+                          className="flex-1 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-600 text-red-300 hover:text-white font-mono text-[9px] font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDetachWorkFromProject(work.id);
+                          }}
+                          className="flex-1 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-neutral-400 hover:text-white font-mono text-[9px] font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                        >
+                          Detach
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -2043,6 +2158,73 @@ export default function AdminPage() {
                 className="w-full py-2.5 rounded-full bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Delete Work
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: CONFIRM PROJECT DELETION WITH OPTIONS                 */}
+      {/* ============================================================ */}
+      {projectToDelete && (
+        <div
+          onClick={() => setProjectToDelete(null)}
+          className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#141416] border border-white/[0.12] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl"
+          >
+            <div className="space-y-2">
+              <span className="font-mono text-[10px] text-red-500 font-bold uppercase tracking-widest block">
+                CONFIRM PROJECT DELETION
+              </span>
+              <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                {projectToDelete.title}
+              </h3>
+              <p className="font-mono text-xs text-neutral-400 leading-relaxed">
+                Choose how you want to handle the {works.filter((w) => w.projectId === projectToDelete.id).length} deliverable picture(s) inside this project:
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              {/* Option 1: Delete project AND all pictures */}
+              <button
+                type="button"
+                onClick={() => handleDeleteProjectConfirmed(projectToDelete, true)}
+                className="w-full p-4 rounded-2xl bg-red-500/20 hover:bg-red-600 border border-red-500/40 text-left transition-all cursor-pointer group"
+              >
+                <div className="font-mono text-xs font-bold text-red-300 group-hover:text-white uppercase tracking-wider">
+                  Delete Project &amp; ALL Pictures Permanently
+                </div>
+                <div className="font-mono text-[11px] text-neutral-400 group-hover:text-white/80 pt-1">
+                  Permanently deletes this project container AND completely removes all its pictures from the entire website.
+                </div>
+              </button>
+
+              {/* Option 2: Delete project container only */}
+              <button
+                type="button"
+                onClick={() => handleDeleteProjectConfirmed(projectToDelete, false)}
+                className="w-full p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-left transition-all cursor-pointer group"
+              >
+                <div className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                  Delete Project Only (Keep Pictures Standalone)
+                </div>
+                <div className="font-mono text-[11px] text-neutral-400 group-hover:text-neutral-300 pt-1">
+                  Removes the project container, but preserves all images/videos as standalone works in your library.
+                </div>
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-white/[0.06] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setProjectToDelete(null)}
+                className="px-5 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-neutral-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Cancel
               </button>
             </div>
           </div>

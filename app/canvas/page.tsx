@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import CustomCursor from '@/components/CustomCursor';
-import { getStoredCanvasFiles, getStoredCanvasFilesAsync, subscribeToCanvasUpdates, deleteCanvasFile } from '@/lib/contentStore';
+import { getStoredCanvasFiles, getStoredCanvasFilesAsync, subscribeToCanvasUpdates, deleteCanvasFile, saveCanvasFile } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData } from '@/components/ArchiveFolderCard';
 
 export interface ArchiveFile {
@@ -979,6 +979,35 @@ function InfiniteCanvasContent() {
                           onClick={() => setEnlargedIndex(rawIndex)}
                           className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
                         >
+                          {/* Single Picture Delete Action */}
+                          <button
+                            type="button"
+                            title="Delete Picture"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm('Delete this picture from this collection?')) {
+                                const newPhotos = rawPhotos.filter((_, pIdx) => pIdx !== rawIndex);
+                                if (newPhotos.length === 0) {
+                                  deleteCanvasFile(selectedFile.id);
+                                  setSelectedFile(null);
+                                } else {
+                                  const updated = {
+                                    ...selectedFile,
+                                    photos: newPhotos,
+                                    photoCount: newPhotos.length,
+                                    img: newPhotos[0] || '',
+                                  };
+                                  saveCanvasFile(updated as any);
+                                  setSelectedFile(updated);
+                                }
+                                refreshCanvasFiles();
+                              }
+                            }}
+                            className="absolute top-2.5 left-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/15 shadow-md"
+                          >
+                            🗑️
+                          </button>
+
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={photoUrl}
@@ -1024,6 +1053,35 @@ function InfiniteCanvasContent() {
                           onClick={() => setEnlargedIndex(rawIndex)}
                           className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
                         >
+                          {/* Single Picture Delete Action */}
+                          <button
+                            type="button"
+                            title="Delete Picture"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm('Delete this picture from this collection?')) {
+                                const newPhotos = rawPhotos.filter((_, pIdx) => pIdx !== rawIndex);
+                                if (newPhotos.length === 0) {
+                                  deleteCanvasFile(selectedFile.id);
+                                  setSelectedFile(null);
+                                } else {
+                                  const updated = {
+                                    ...selectedFile,
+                                    photos: newPhotos,
+                                    photoCount: newPhotos.length,
+                                    img: newPhotos[0] || '',
+                                  };
+                                  saveCanvasFile(updated as any);
+                                  setSelectedFile(updated);
+                                }
+                                refreshCanvasFiles();
+                              }
+                            }}
+                            className="absolute top-2.5 left-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/15 shadow-md"
+                          >
+                            🗑️
+                          </button>
+
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={photoUrl}
@@ -1097,7 +1155,7 @@ function InfiniteCanvasContent() {
                     {rawPhotos.length} {rawPhotos.length === 1 ? 'Asset' : 'Assets'} Available • {selectedFile.name}
                   </span>
                   <div className="flex flex-wrap items-center gap-3">
-                    {customFolderIds.has(selectedFile.id) && (
+                    {(!selectedFile.isComingSoon || customFolderIds.has(selectedFile.id) || (selectedFile.photos && selectedFile.photos.length > 0)) && (
                       <button
                         type="button"
                         onClick={() => {

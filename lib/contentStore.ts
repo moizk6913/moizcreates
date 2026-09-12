@@ -23,6 +23,8 @@ import {
   getAllCanvasFilesIDB,
   saveCanvasFileIDB,
   deleteCanvasFileIDB,
+  clearLegacyCanvasStoreIDB,
+  clearAllStoresIDB,
 } from './idbStore';
 
 // ==========================================
@@ -220,6 +222,10 @@ export function subscribeToCanvasUpdates(callback: () => void): () => void {
 export async function getStoredWorksAsync(): Promise<WorkItem[]> {
   if (typeof window === 'undefined') return [];
   try {
+    await purgeMockAndCaldharProjectsAsync();
+  } catch {}
+
+  try {
     const idbWorks = await getAllWorksIDB();
     if (idbWorks && idbWorks.length > 0) {
       return idbWorks as WorkItem[];
@@ -288,18 +294,48 @@ export async function saveWorksBatchAsync(works: WorkItem[]): Promise<void> {
 
 export async function deleteWorkAsync(id: string): Promise<void> {
   if (typeof window === 'undefined') return;
+  // 1. Delete from Works IDB
   try {
     await deleteWorkIDB(id);
   } catch (err) {
     console.warn('Error deleting work from IDB:', err);
   }
 
+  // 2. Delete from Works localStorage index
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.WORKS_INDEX);
     if (raw) {
       const items: WorkItem[] = JSON.parse(raw);
       const filtered = items.filter((w) => w.id !== id);
       localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(filtered));
+    }
+  } catch {}
+
+  // 3. Clean up from legacy canvas_files IDB store & canvas localStorage
+  try {
+    const legacyFiles = await getAllCanvasFilesIDB();
+    for (const lf of legacyFiles) {
+      if (lf.id === id) {
+        await deleteCanvasFileIDB(id);
+      } else if (lf.photos && lf.photos.length > 0) {
+        const remaining = lf.photos.filter((p: string) => p !== id && !p.includes(id));
+        if (remaining.length !== lf.photos.length) {
+          if (remaining.length === 0) {
+            await deleteCanvasFileIDB(lf.id);
+          } else {
+            await saveCanvasFileIDB({ ...lf, photos: remaining, photoCount: remaining.length });
+          }
+        }
+      }
+    }
+  } catch {}
+
+  try {
+    const rawCanvas = localStorage.getItem(STORAGE_KEYS.CANVAS_FILES);
+    if (rawCanvas) {
+      const arr = JSON.parse(rawCanvas);
+      const filtered = arr.filter((x: any) => x.id !== id);
+      localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(filtered));
     }
   } catch {}
 
@@ -375,28 +411,50 @@ export async function saveProjectAsync(project: Project): Promise<void> {
   notifyCanvasUpdated();
 }
 
-export async function deleteProjectAsync(id: string): Promise<void> {
+export async function deleteProjectAsync(id: string, deleteContainedWorks: boolean = true): Promise<void> {
   if (typeof window === 'undefined') return;
   
-  // 1. Delete project container
+  // 1. Delete project container from IDB
   try {
     await deleteProjectIDB(id);
   } catch (err) {
     console.warn('Error deleting project from IDB:', err);
   }
 
-  // 2. CRITICAL PRINCIPLE: Detach contained works to Standalone (never delete underlying works!)
+  // 2. Also delete corresponding legacy canvas store entry
+  try {
+    await deleteCanvasFileIDB(id);
+  } catch {}
+
+  // 3. Handle contained works: either permanently delete or detach to Standalone
   try {
     const works = await getStoredWorksAsync();
     const affected = works.filter((w) => w.projectId === id);
     if (affected.length > 0) {
-      const detached = affected.map((w) => ({ ...w, projectId: null }));
-      await saveWorksBatchIDB(detached as IDBWorkItem[]);
+      if (deleteContainedWorks) {
+        const affectedIds = affected.map((w) => w.id);
+        await deleteWorksBatchIDB(affectedIds);
+
+        // Update works index in localStorage
+        try {
+          const rawWorks = localStorage.getItem(STORAGE_KEYS.WORKS_INDEX);
+          if (rawWorks) {
+            const items: WorkItem[] = JSON.parse(rawWorks);
+            const idSet = new Set(affectedIds);
+            const filtered = items.filter((w) => !idSet.has(w.id));
+            localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(filtered));
+          }
+        } catch {}
+      } else {
+        const detached = affected.map((w) => ({ ...w, projectId: null }));
+        await saveWorksBatchIDB(detached as IDBWorkItem[]);
+      }
     }
   } catch (err) {
-    console.warn('Error detaching works upon project deletion:', err);
+    console.warn('Error handling works upon project deletion:', err);
   }
 
+  // 4. Update project index in localStorage
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PROJECTS_INDEX);
     if (raw) {
@@ -406,7 +464,120 @@ export async function deleteProjectAsync(id: string): Promise<void> {
     }
   } catch {}
 
+  // 5. Update canvas files localStorage
+  try {
+    const rawCanvas = localStorage.getItem(STORAGE_KEYS.CANVAS_FILES);
+    if (rawCanvas) {
+      const items: any[] = JSON.parse(rawCanvas);
+      const filtered = items.filter((p) => p.id !== id);
+      localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(filtered));
+    }
+  } catch {}
+
   notifyCanvasUpdated();
+}
+
+export async function clearAllArchiveDataAsync(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    await clearAllStoresIDB();
+  } catch (err) {
+    console.warn('Error clearing IDB stores:', err);
+  }
+
+  try {
+    localStorage.removeItem(STORAGE_KEYS.WORKS_INDEX);
+    localStorage.removeItem(STORAGE_KEYS.PROJECTS_INDEX);
+    localStorage.removeItem(STORAGE_KEYS.CANVAS_FILES);
+    localStorage.removeItem('antigravity_canvas_files');
+    localStorage.removeItem('moiz_custom_canvas_files');
+    localStorage.removeItem('moiz_user_photos');
+    localStorage.removeItem('moiz_collections_index');
+    localStorage.removeItem('moiz_series_index');
+    localStorage.removeItem('has_completed_shutter_intro');
+  } catch {}
+
+  notifyCanvasUpdated();
+}
+
+export async function purgeMockAndCaldharProjectsAsync(): Promise<number> {
+  if (typeof window === 'undefined') return 0;
+  let count = 0;
+  try {
+    const isMock = (str: string = '') => {
+      const s = str.toLowerCase();
+      return (
+        s.includes('kaldhar') ||
+        s.includes('kaladhar') ||
+        s.includes('caldhar') ||
+        s.includes('easy hai bro') ||
+        s.includes('windchasers') ||
+        s.includes('porsche') ||
+        s.includes('ruchi') ||
+        s.includes('oxymorons')
+      );
+    };
+
+    // 1. Projects
+    const projects = await getAllProjectsIDB();
+    for (const p of projects) {
+      if (isMock(p.title) || isMock(p.client || '') || isMock(p.slug)) {
+        await deleteProjectIDB(p.id);
+        count++;
+      }
+    }
+
+    // 2. Works
+    const works = await getAllWorksIDB();
+    const mockWorkIds: string[] = [];
+    for (const w of works) {
+      if (isMock(w.title) || isMock(w.client || '') || isMock(w.fileName) || (w.tags && w.tags.some(isMock))) {
+        mockWorkIds.push(w.id);
+        count++;
+      }
+    }
+    if (mockWorkIds.length > 0) {
+      await deleteWorksBatchIDB(mockWorkIds);
+    }
+
+    // 3. Legacy canvas files
+    const legacyFiles = await getAllCanvasFilesIDB();
+    for (const lf of legacyFiles) {
+      if (isMock(lf.name || '') || isMock(lf.id || '') || isMock(lf.discipline || '')) {
+        await deleteCanvasFileIDB(lf.id);
+        count++;
+      }
+    }
+
+    // 4. LocalStorage
+    try {
+      const rawCustom = localStorage.getItem(STORAGE_KEYS.CANVAS_FILES);
+      if (rawCustom) {
+        const arr = JSON.parse(rawCustom);
+        const filtered = arr.filter((x: any) => !isMock(x.name) && !isMock(x.id));
+        localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(filtered));
+      }
+      const rawPrj = localStorage.getItem(STORAGE_KEYS.PROJECTS_INDEX);
+      if (rawPrj) {
+        const arr = JSON.parse(rawPrj);
+        const filtered = arr.filter((x: any) => !isMock(x.title) && !isMock(x.slug));
+        localStorage.setItem(STORAGE_KEYS.PROJECTS_INDEX, JSON.stringify(filtered));
+      }
+      const rawWrk = localStorage.getItem(STORAGE_KEYS.WORKS_INDEX);
+      if (rawWrk) {
+        const arr = JSON.parse(rawWrk);
+        const filtered = arr.filter((x: any) => !isMock(x.title) && !isMock(x.fileName));
+        localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(filtered));
+      }
+    } catch {}
+
+    if (count > 0) {
+      notifyCanvasUpdated();
+    }
+  } catch (err) {
+    console.warn('Error purging mock data:', err);
+  }
+  return count;
 }
 
 // ==========================================
@@ -687,6 +858,8 @@ export function saveCanvasFile(file: DynamicCanvasFile): void {
 export function deleteCanvasFile(id: string): void {
   if (typeof window === 'undefined') return;
   deleteCanvasFileIDB(id).catch(console.warn);
+  deleteProjectAsync(id, true).catch(console.warn);
+  deleteWorkAsync(id).catch(console.warn);
   try {
     const existing = getStoredCanvasFiles();
     const updated = existing.filter((f) => f.id !== id);
@@ -705,10 +878,38 @@ async function migrateLegacyCanvasFiles(): Promise<WorkItem[]> {
     const legacyFiles = await getAllCanvasFilesIDB();
     if (!legacyFiles || legacyFiles.length === 0) return [];
 
+    const isMock = (str: string = '') => {
+      const s = str.toLowerCase();
+      return (
+        s.includes('kaldhar') ||
+        s.includes('kaladhar') ||
+        s.includes('caldhar') ||
+        s.includes('easy hai bro') ||
+        s.includes('windchasers') ||
+        s.includes('porsche') ||
+        s.includes('ruchi') ||
+        s.includes('oxymorons')
+      );
+    };
+
+    // Purge any mock legacy files from IDB right away
+    for (const f of legacyFiles) {
+      if (isMock(f.name) || isMock(f.id) || isMock(f.discipline)) {
+        await deleteCanvasFileIDB(f.id);
+      }
+    }
+
+    const validFiles = legacyFiles.filter((f) => !isMock(f.name) && !isMock(f.id) && !isMock(f.discipline));
+
+    if (validFiles.length === 0) {
+      await clearLegacyCanvasStoreIDB();
+      return [];
+    }
+
     const migratedWorks: WorkItem[] = [];
     const migratedProjects: Project[] = [];
 
-    for (const file of legacyFiles) {
+    for (const file of validFiles) {
       const photos: string[] = file.photos && file.photos.length > 0 ? file.photos : file.img ? [file.img] : [];
       
       const project: Project = {
@@ -763,6 +964,9 @@ async function migrateLegacyCanvasFiles(): Promise<WorkItem[]> {
       }
       await saveWorksBatchIDB(migratedWorks as IDBWorkItem[]);
     }
+
+    // Clean legacy store once migrated so it never duplicates
+    await clearLegacyCanvasStoreIDB();
 
     return migratedWorks;
   } catch (err) {

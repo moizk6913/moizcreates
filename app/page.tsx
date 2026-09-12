@@ -19,6 +19,7 @@ import {
   getStoredCanvasFilesAsync,
   subscribeToCanvasUpdates,
   DynamicCanvasFile,
+  purgeMockAndCaldharProjectsAsync,
 } from '@/lib/contentStore';
 
 export default function Home() {
@@ -27,6 +28,9 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<DynamicCanvasFile[]>([]);
 
   const loadUploads = useCallback(async () => {
+    try {
+      await purgeMockAndCaldharProjectsAsync();
+    } catch {}
     const syncFiles = getStoredCanvasFiles();
     if (syncFiles && syncFiles.length > 0) {
       setUploadedFiles(syncFiles);

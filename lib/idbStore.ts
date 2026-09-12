@@ -478,3 +478,54 @@ export async function deleteCanvasFileIDB(id: string): Promise<void> {
     console.error('Failed to delete from legacy store:', err);
   }
 }
+
+export async function clearLegacyCanvasStoreIDB(): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      if (!db.objectStoreNames.contains(STORES.LEGACY_CANVAS)) {
+        db.close();
+        resolve();
+        return;
+      }
+      const transaction = db.transaction(STORES.LEGACY_CANVAS, 'readwrite');
+      transaction.objectStore(STORES.LEGACY_CANVAS).clear();
+      transaction.oncomplete = () => { db.close(); resolve(); };
+      transaction.onerror = () => { db.close(); resolve(); };
+    });
+  } catch {
+    // ignore
+  }
+}
+
+export async function clearAllStoresIDB(): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const storeNames = [
+        STORES.WORKS,
+        STORES.PROJECTS,
+        STORES.COLLECTIONS,
+        STORES.SERIES,
+        STORES.LEGACY_CANVAS,
+      ].filter((name) => db.objectStoreNames.contains(name));
+
+      if (storeNames.length === 0) {
+        db.close();
+        resolve();
+        return;
+      }
+
+      const transaction = db.transaction(storeNames, 'readwrite');
+      for (const name of storeNames) {
+        transaction.objectStore(name).clear();
+      }
+
+      transaction.oncomplete = () => { db.close(); resolve(); };
+      transaction.onerror = () => { db.close(); reject(transaction.error); };
+      transaction.onabort = () => { db.close(); resolve(); };
+    });
+  } catch (err) {
+    console.warn('Error clearing all IDB stores:', err);
+  }
+}
