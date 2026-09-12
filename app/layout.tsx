@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Space_Mono, DM_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono, Space_Mono, DM_Mono, Syne, Archivo_Black, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import SmoothScroll from '@/components/SmoothScroll';
 import SeoScriptInjector from '@/components/SeoScriptInjector';
@@ -32,6 +32,26 @@ const spaceMono = Space_Mono({
   display: 'swap',
 });
 
+const syne = Syne({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-syne',
+  display: 'swap',
+});
+
+const archivoBlack = Archivo_Black({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-archivo-black',
+  display: 'swap',
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Art Director & Brand Visual Designer',
   description: 'Art Director & Brand Visual Designer. Commercial campaigns, shoot direction, visual systems. Dubai / Worldwide.',
@@ -51,7 +71,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${dmMono.variable} ${spaceMono.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrains.variable} ${dmMono.variable} ${spaceMono.variable} ${syne.variable} ${archivoBlack.variable} ${plusJakarta.variable}`}
+    >
       <body className="font-sans bg-canvas text-primary selection:bg-accent-red selection:text-white">
         <SeoScriptInjector />
         <SmoothScroll>{children}</SmoothScroll>

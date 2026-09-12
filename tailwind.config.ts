@@ -24,8 +24,11 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
-        display: ["'BN Cringe Sans'", "'BN Cringe Serif'", 'sans-serif'],
+        display: ['var(--font-archivo-black)', "'BN Cringe Sans'", 'var(--font-syne)', 'sans-serif'],
         mono: ['var(--font-dm-mono)', 'var(--font-space-mono)', 'monospace'],
+        syne: ['var(--font-syne)', 'sans-serif'],
+        monument: ['var(--font-archivo-black)', 'sans-serif'],
+        grotesk: ['var(--font-plus-jakarta)', 'sans-serif'],
       },
       aspectRatio: {
         '21/9': '21 / 9',
