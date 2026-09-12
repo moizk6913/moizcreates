@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { Volume2, VolumeX } from 'lucide-react';
 import { DynamicCanvasFile } from '@/lib/contentStore';
 
@@ -15,122 +16,9 @@ interface BentoItem {
   posterUrl?: string;
 }
 
-const ROW_ONE_BENTO: BentoItem[] = [
-  {
-    id: 'bento-01',
-    projectId: 'porsche',
-    brand: 'PORSCHE',
-    tag: 'CINEMA 16:9',
-    aspectClass: 'aspect-[16/9]',
-    bgAccent: 'bg-[#0f1115]',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-01.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-02',
-    projectId: 'easyhaibro',
-    brand: 'EASY HAI BRO',
-    tag: 'REEL 9:16',
-    aspectClass: 'aspect-[9/16]',
-    bgAccent: 'bg-[#ff4e00]',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-02.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-03',
-    projectId: 'prada',
-    brand: 'PRADA',
-    tag: 'LOOKBOOK 4:5',
-    aspectClass: 'aspect-[4/5]',
-    bgAccent: 'bg-[#0b2416]',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-03.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-04',
-    projectId: 'windchasers',
-    brand: 'WINDCHASERS',
-    tag: 'POST 1:1',
-    aspectClass: 'aspect-square',
-    bgAccent: 'bg-[#141414]',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-05',
-    projectId: 'easyhaibro',
-    brand: 'STREET REEL',
-    tag: 'REEL 9:16',
-    aspectClass: 'aspect-[9/16]',
-    mediaType: 'video',
-    bgAccent: 'bg-[#141414]',
-    mediaUrl: '/assets/bts/bts-04.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1200&auto=format&fit=crop',
-  },
-];
-
-const ROW_TWO_BENTO: BentoItem[] = [
-  {
-    id: 'bento-06',
-    projectId: 'dior',
-    brand: 'DIOR',
-    tag: 'REEL 9:16',
-    aspectClass: 'aspect-[9/16]',
-    bgAccent: 'bg-[#181329]',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-08.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-07',
-    projectId: 'kaladhar',
-    brand: 'KALADHAR',
-    tag: 'POST 1:1',
-    aspectClass: 'aspect-square',
-    bgAccent: 'bg-[#966b2d]',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-08',
-    projectId: 'oxymorons',
-    brand: 'OXYMORONS',
-    tag: 'CINEMA 16:9',
-    aspectClass: 'aspect-[16/9]',
-    bgAccent: 'bg-[#1a1c23]',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-06.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-09',
-    projectId: 'ruchi',
-    brand: 'RUCHI',
-    tag: 'POST 1:1',
-    aspectClass: 'aspect-square',
-    bgAccent: 'bg-[#c41230]',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 'bento-10',
-    projectId: 'porsche',
-    brand: 'STUDIO KEY',
-    tag: 'MONITOR 16:10',
-    aspectClass: 'aspect-[16/10]',
-    bgAccent: 'bg-[#111317]',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-07.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=1200&auto=format&fit=crop',
-  },
-];
-
 function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: BentoItem[]; rowTwo: BentoItem[] } {
   if (!files || files.length === 0) {
-    return { rowOne: ROW_ONE_BENTO, rowTwo: ROW_TWO_BENTO };
+    return { rowOne: [], rowTwo: [] };
   }
 
   // Flatten all photos along with campaign metadata
@@ -146,7 +34,7 @@ function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: Bento
   });
 
   if (flatPhotos.length === 0) {
-    return { rowOne: ROW_ONE_BENTO, rowTwo: ROW_TWO_BENTO };
+    return { rowOne: [], rowTwo: [] };
   }
 
   const aspectConfigs = [
@@ -392,6 +280,41 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
       </div>
     );
   };
+
+  if (rowOne.length === 0 && rowTwo.length === 0) {
+    return (
+      <section id="work" className="w-full py-20 sm:py-28 md:py-32 bg-canvas overflow-hidden select-none">
+        <div className="max-w-[1600px] mx-auto px-6 sm:px-10 md:px-14">
+          <div className="rounded-[32px] bg-[#faf9f6] p-10 sm:p-16 md:p-20 text-center flex flex-col items-center justify-center space-y-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)]">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/5 font-mono text-[10px] font-bold tracking-widest uppercase text-neutral-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]" />
+              <span>ARCHIVE (2024–2026)</span>
+            </div>
+            <h3 className="font-display font-black text-3xl sm:text-5xl md:text-6xl uppercase tracking-tight text-black leading-none">
+              Directorial Works In Curation
+            </h3>
+            <p className="font-sans text-sm sm:text-base text-neutral-500 max-w-lg leading-relaxed">
+              New commercial campaigns, brand systems, and editorial lookbooks are currently being uploaded to the private archive.
+            </p>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/admin"
+                className="px-6 py-3 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#ff1a1a] transition-all shadow-md"
+              >
+                + Add Work in Studio Desk →
+              </Link>
+              <Link
+                href="/canvas"
+                className="px-6 py-3 rounded-full bg-black/5 hover:bg-black/10 text-black font-mono text-xs font-bold uppercase tracking-wider transition-all"
+              >
+                Explore Discipline Canvas
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="work" className="w-full py-12 sm:py-16 md:py-20 bg-canvas overflow-hidden">

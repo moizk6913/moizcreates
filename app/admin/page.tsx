@@ -606,6 +606,39 @@ export default function AdminPage() {
     return newProj.id;
   };
 
+  const handleResetAllArchiveData = async () => {
+    try {
+      const workIds = works.map((w) => w.id);
+      if (workIds.length > 0) await deleteWorksBatchAsync(workIds);
+
+      for (const p of projects) {
+        await deleteProjectAsync(p.id);
+      }
+
+      for (const c of collections) {
+        await deleteCollectionAsync(c.id);
+      }
+
+      for (const s of seriesList) {
+        await deleteSeriesAsync(s.id);
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('antigravity_canvas_files');
+        localStorage.removeItem('moiz_works_index');
+        localStorage.removeItem('moiz_projects_index');
+        localStorage.removeItem('moiz_collections_index');
+        localStorage.removeItem('moiz_series_index');
+      }
+
+      await refreshData();
+      notifyUser('Archive reset. All projects and works have been cleared.');
+    } catch (err) {
+      console.error('Failed to reset archive:', err);
+      notifyUser('Error resetting archive.');
+    }
+  };
+
   // ==========================================
   // FILTERED DATA COMPUTATION
   // ==========================================
@@ -1399,6 +1432,28 @@ export default function AdminPage() {
             >
               Export JSON Archive Backup
             </button>
+
+            <div className="pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="font-mono text-xs text-red-400 font-bold uppercase tracking-wider block">
+                  Reset Archive Data
+                </span>
+                <p className="font-mono text-[11px] text-neutral-500 max-w-md">
+                  Permanently clear all stored works and projects from local browser storage to start completely fresh.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (confirm('Are you sure you want to completely clear all stored works and projects? This will reset your portfolio archive to a clean slate.')) {
+                    await handleResetAllArchiveData();
+                  }
+                }}
+                className="px-5 py-2.5 rounded-full bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0"
+              >
+                Reset Archive (Clean Slate)
+              </button>
+            </div>
           </div>
         </section>
       )}
@@ -1767,7 +1822,7 @@ export default function AdminPage() {
                   type="text"
                   value={newProjectTitle}
                   onChange={(e) => setNewProjectTitle(e.target.value)}
-                  placeholder="e.g. Kaldhar Bridal Campaign"
+                  placeholder="e.g. Luxury Brand Campaign"
                   className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
                 />
               </div>
@@ -1779,7 +1834,7 @@ export default function AdminPage() {
                     type="text"
                     value={newProjectClient}
                     onChange={(e) => setNewProjectClient(e.target.value)}
-                    placeholder="e.g. Kaldhar Luxury"
+                    placeholder="e.g. Brand Client"
                     className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
                   />
                 </div>

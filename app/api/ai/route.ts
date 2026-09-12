@@ -513,10 +513,10 @@ You collaborate directly with Moiz to curate, organize, and present his brand vi
 Tone & Style:
 - Speak conversationally, warmly, and naturally like an experienced, passionate human colleague. Never sound like a robotic generic assistant.
 - You have deep practical expertise in multi-channel commercial campaigns (Editorial Print Lookbooks, 9:16 vertical reels/stories, 1:1 Instagram carousels, panoramic e-commerce hero banners, retail OOH hoardings/billboards, ARRI/Cooke cinema setups, Swiss typography).
-- When Moiz provides an artwork, folder, or collection of campaign assets (like Kaldhar with multiple pages, social posts, standees):
-  1. Acknowledge the assets by name and group them into formats (Lookbook prints, social posts, retail standees, artboards).
+- When Moiz provides an artwork, folder, or collection of campaign assets (with multiple deliverables, reels, lookbook frames, social posts, or branding):
+  1. Acknowledge the assets and group them into detected formats (Lookbook prints, reels, social designs, brand systems).
   2. Point out specific visual strengths (typography hierarchy, lighting, color grading, textile contrast).
-  3. Tell Moiz you can publish all these assets to his Infinite Canvas and Portfolio in 1 click, and ask him which visual should be the primary hero cover.
+  3. Assist Moiz with frictionless 1-click organization into standalone works or project containers.
   4. Keep your responses crisp, engaging, structured, and easy to reply to in seconds.`;
 
           const contents = history.map((m: { role: string; content: string; image?: string }, index: number) => {
@@ -618,20 +618,16 @@ Tone & Style:
         lower.includes('show project') ||
         lower.includes('current project')
       ) {
-        reply =
-          `Right now in your studio, you have **4 live campaigns** ready on your portfolio:\n\n` +
-          `• **Kaldhar Bridal**: 88 deliverables — 16:9 master widescreen banner first, 4:5 editorial lookbook plates (Frames 80–88), and the asymmetric bento spread at the end.\n` +
-          `• **Easy Hai Bro**: Streetwear visual identity — 16:9 commercial cut, 4:5 key art, and 9:16 vertical motion reel.\n` +
-          `• **Porsche Carrera Telemetry**: Automotive film — 16:9 widescreen tracking master and cockpit stills.\n` +
-          `• **Windchasers Aviation**: Brand lookbook and dual-pilot flight deck motion.`;
-
         if (customCampaigns.length > 0) {
-          reply +=
-            `\n\nPlus **${customCampaigns.length} custom campaign(s)** in your library:\n` +
-            customCampaigns.map((c) => `• **${c.name}**: ${c.discipline} (${c.deliverables || 1} deliverables)`).join('\n');
+          reply =
+            `Right now in your studio, you have **${customCampaigns.length} campaign(s)** in your library:\n\n` +
+            customCampaigns.map((c) => `• **${c.name}**: ${c.discipline} (${c.deliverables || 1} deliverables)`).join('\n') +
+            `\n\nWhat would you like to do? We can add new deliverables, inspect uncropped containers, or publish new work!`;
+        } else {
+          reply =
+            `Your creative archive is currently clean and ready for your real deliverables.\n\n` +
+            `You can click **+ Add Work** or drop files directly into the Studio Desk to begin organizing!`;
         }
-
-        reply += `\n\nWhat would you like to do? We can add new deliverables to Kaldhar, adjust uncropped containers, or drop new files here to publish a fresh project!`;
       } else if (
         lower.includes('crop') ||
         lower.includes('size') ||
@@ -649,18 +645,6 @@ Tone & Style:
           `• **Asymmetric Bento End Spread**: Automatically locks a 16:9 wide card (~65%) and a 4:5 portrait card (~35%) to the exact same flush height so there are no awkward cuts or blank white gaps.\n\n` +
           `Drop any mix of these into this chat and I will arrange them into uncropped containers automatically!`;
       } else if (
-        lower.includes('kaldhar') ||
-        lower.includes('kaladhar') ||
-        lower.includes('bridal')
-      ) {
-        reply =
-          `**Kaldhar Bridal** is set up with 88 total archived deliverables:\n\n` +
-          `• **Lead Hero**: 16:9 master widescreen banner.\n` +
-          `• **Deliverables Grid**: 4-column responsive gallery displaying Frames 80 through 88 with high-res lightbox view.\n` +
-          `• **Signature Bento End Spread**: Flush 16:9 + 4:5 cards locked to the exact same height, with your editorial narrative on the left and logo on the right.\n` +
-          `• **Commercial Motion**: Integrated commercial video reel.\n\n` +
-          `If you want to add or swap any deliverables, simply drop the images or video here!`;
-      } else if (
         lower.includes('how to upload') ||
         lower.includes('how do i') ||
         lower.includes('upload') ||
@@ -669,11 +653,10 @@ Tone & Style:
         lower.includes('help')
       ) {
         reply =
-          `I made the backend upload workflow super simple for you:\n\n` +
-          `1. **Attach Files**: Click the 📎 paperclip button or drag & drop your campaign visuals/videos into this chat.\n` +
-          `2. **Set Name**: Type the campaign title (e.g. 'Kaldhar Bridal Lookbook').\n` +
-          `3. **One-Click Publish**: Review the uncropped preview and hit the **🚀 Publish** button to go live instantly.\n\n` +
-          `Or switch to the **⚡ Quick Upload** tab above if you prefer a direct form!`;
+          `The upload workflow is simple:\n\n` +
+          `1. **Click + Add Work**: Drop 1 to 50+ files at once.\n` +
+          `2. **Auto-Inspection**: Dimensions, aspect ratios, and durations are detected client-side.\n` +
+          `3. **One-Click Publish**: Assign to a project or save as Standalone work immediately!`;
       } else if (
         lower.includes('delete') ||
         lower.includes('remove') ||
@@ -722,7 +705,7 @@ Tone & Style:
         lower.includes('what are you doing')
       ) {
         reply =
-          `Yo Moiz! What's good? Ready at your studio desk. We can organize campaign plates with zero cropping, review Kaldhar lookbook frames, or restructure your portfolio layouts. What are we directing today?`;
+          `Yo Moiz! What's good? Ready at your studio desk. We can organize creative deliverables with zero cropping, review lookbook frames, or restructure your portfolio layouts. What are we directing today?`;
       } else if (
         lower.includes('who free gemini') ||
         lower.includes('where free') ||

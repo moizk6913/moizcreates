@@ -82,7 +82,11 @@ export default function Home() {
       <Header visible={true} />
 
       {/* Section 01: Hero Center Scatter & Shutter Pop */}
-      <HeroScatter onOpenCase={setSelectedCase} />
+      <HeroScatter
+        onOpenCase={setSelectedCase}
+        uploadedFiles={uploadedFiles}
+        userPhotos={userPhotos}
+      />
 
       {/* Section 01.5: Editorial Manifesto */}
       <EditorialManifesto userPhotos={userPhotos} />

@@ -33,239 +33,6 @@ export interface CaseProjectData {
   scopePills?: string[];
 }
 
-const BUILTIN_PROJECTS: Record<string, CaseProjectData> = {
-  kaldhar: {
-    tag: 'HERITAGE LUXURY CAMPAIGN',
-    title: 'Kaldhar',
-    role: 'Director of Visuals',
-    team: 'Direct with Production Crew & Founders',
-    scope: 'Editorial Lookbook (4:5) • Social Stories & Motion (9:16) • Retail Displays • Hero Banners',
-    market: 'Art Direction • Bridal Campaign',
-    narrative:
-      'Kaldhar — Complete multi-channel campaign with 88 deliverables including lookbook editorial spreads, vertical social media motion, and retail standee assets.',
-    videoUrl: '/assets/bts/bts-04.mp4',
-    scopePills: [
-      'Editorial Lookbook (4:5)',
-      'Social Stories & Motion (9:16)',
-      'Retail Displays',
-      'Hero Banners',
-      'Campaign Architecture',
-    ],
-    media: [
-      {
-        format: '16-9',
-        caption: 'Hero Campaign Visual • Master Widescreen Display',
-        image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1600&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Editorial Lookbook Key Art',
-        image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Bridal Heritage Frame 81',
-        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Bridal Heritage Frame 82',
-        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Red Takes The Stage Frame 83',
-        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Every Wedding Brighter Frame 84',
-        image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Made For Every Occasion Frame 85',
-        image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Sarees For Every Occasion Frame 86',
-        image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Celebration Begins Frame 87',
-        image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Editorial Lookbook Spreads Frame 88',
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop',
-      },
-    ],
-  },
-  kaladhar: {
-    tag: 'HERITAGE LUXURY CAMPAIGN',
-    title: 'Kaldhar',
-    role: 'Director of Visuals',
-    team: 'Direct with Production Crew & Founders',
-    scope: 'Editorial Lookbook (4:5) • Social Stories & Motion (9:16) • Retail Displays • Hero Banners',
-    market: 'Art Direction • Bridal Campaign',
-    narrative:
-      'Kaldhar — Complete multi-channel campaign with 88 deliverables including lookbook editorial spreads, vertical social media motion, and retail standee assets.',
-    videoUrl: '/assets/bts/bts-04.mp4',
-    scopePills: [
-      'Editorial Lookbook (4:5)',
-      'Social Stories & Motion (9:16)',
-      'Retail Displays',
-      'Hero Banners',
-      'Campaign Architecture',
-    ],
-    media: [
-      {
-        format: '16-9',
-        caption: 'Hero Campaign Visual • Master Widescreen Display',
-        image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1600&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Editorial Lookbook Key Art',
-        image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Bridal Heritage Frame 81',
-        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Bridal Heritage Frame 82',
-        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Red Takes The Stage Frame 83',
-        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Every Wedding Brighter Frame 84',
-        image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop',
-      },
-    ],
-  },
-  easyhaibro: {
-    tag: 'FEATURED DIRECTION CREDIT',
-    title: 'Easy Hai Bro',
-    role: 'Art Director & Brand Visual Designer',
-    team: 'Led 4 Creatives Direct with Founders',
-    scope: 'Brand Identity, Shoot Direction, Commercial Content',
-    market: 'Streetwear & Youth Culture',
-    narrative:
-      'Directed the full visual identity and commercial production for Easy Hai Bro. Managed a crew of four spanning cinematography, lighting, wardrobe, and editorial. Built an energetic visual language combining street-culture spontaneity with commercial camera discipline.',
-    videoUrl: '/assets/bts/bts-02.mp4',
-    scopePills: [
-      'Brand Identity',
-      'Commercial Content (16:9)',
-      'Social Reels (9:16)',
-      'Editorial Lookbook',
-    ],
-    media: [
-      {
-        format: '16-9',
-        caption: 'Widescreen Broadcast Master • Director Cut',
-        image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1600&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Editorial Key Art • Hard Key Lighting',
-        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
-      },
-      {
-        format: '9-16',
-        caption: 'Mobile Story Reel • Fast-Paced Cut',
-        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=900&auto=format&fit=crop',
-      },
-    ],
-  },
-  porsche: {
-    tag: 'VISCERAL AUTOMOTIVE BROADCAST',
-    title: 'Porsche Carrera Telemetry',
-    role: 'Commercial Film Director & Editor',
-    team: 'Pursuit Vehicle Crew & Sound Designer',
-    scope: 'Broadcast Master, High-Speed Tracking, Engine Sound Design',
-    market: 'Automotive & Luxury Performance',
-    narrative:
-      'A visceral automotive director cut sync-edited to raw exhaust acoustics and precision German asphalt telemetry. Captured with heavy pursuit tracking arms across coastal switchbacks and nighttime industrial docks.',
-    videoUrl: '/assets/bts/bts-01.mp4',
-    scopePills: [
-      'Broadcast Master (16:9)',
-      'Pursuit Telemetry Track',
-      'Cockpit Stills',
-      'Sound Architecture',
-    ],
-    media: [
-      {
-        format: '16-9',
-        caption: 'Pursuit Arm Dynamic Tracking Frame',
-        image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=1600&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Cockpit Instrumentation Key Art',
-        image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop',
-      },
-    ],
-  },
-  windchasers: {
-    tag: 'LOOKBOOK & BRAND SHOOT',
-    title: 'Windchasers Aviation Academy',
-    role: 'Brand Shoot Director & Cinematographer',
-    team: 'Cockpit Crew & 2nd Unit Camera',
-    scope: 'Lookbook & Brand Shoot, Aerial Cinematography, Digital Identity',
-    market: 'Commercial Aviation & Training',
-    narrative:
-      'Comprehensive brand identity and high-contrast lookbook shoot for Windchasers Aviation. Captured dual-pilot flight deck operations, tarmac motion sequences, and high-altitude cockpit light studies.',
-    videoUrl: '/assets/bts/bts-03.mp4',
-    scopePills: ['Flight Deck Lookbook', 'Aerial Cinematography', 'Digital Identity', 'Brand Shoot Direction'],
-    media: [
-      {
-        format: '16-9',
-        caption: 'Hero Brand Still • Hard Contrast Direct Light',
-        image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1600&auto=format&fit=crop',
-      },
-      {
-        format: '4-5',
-        caption: 'Cockpit Instrumentation Key Art',
-        image: 'https://images.unsplash.com/photo-1520690214124-2405c5217036?q=80&w=1200&auto=format&fit=crop',
-      },
-    ],
-  },
-  ruchi: {
-    tag: 'COMMERCIAL FOOD DIRECTION',
-    title: 'Ruchi Fried Chicken',
-    role: 'Commercial Art Director',
-    team: 'Food Stylist, Macro Camera Operator',
-    scope: 'Food Art Direction, Commercial Color Grade, High-Speed Capture',
-    market: 'Commercial QSR',
-    narrative:
-      'High-octane commercial food styling and art direction. Directed high-speed probe lenses and saturated RGB rim lighting to make crispy textures pop off screens.',
-    scopePills: ['High-Speed Probe Camera', 'Food Art Direction', 'RGB Rim Grade', 'Social Reels'],
-    media: [
-      {
-        format: '16-9',
-        caption: 'Slow-Motion Capture Frame',
-        image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=1600&auto=format&fit=crop',
-      },
-      {
-        format: '9-16',
-        caption: 'Social Story Frame',
-        image: 'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=900&auto=format&fit=crop',
-      },
-    ],
-  },
-};
-
 export default function CaseModal({ projectId, onClose, uploadedFiles, userPhotos }: CaseModalProps) {
   const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
 
@@ -315,27 +82,22 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
           : [];
 
       const pData: CaseProjectData = {
-        tag: (matchedUser.discipline || 'ART DIRECTION').toUpperCase(),
+        tag: (matchedUser.discipline || 'DIRECTORIAL CAMPAIGN').toUpperCase(),
         title: matchedUser.name,
         role: matchedUser.role || 'Director of Visuals',
-        team: 'Direct with Production Crew & Founders',
+        team: matchedUser.client ? `Client: ${matchedUser.client}` : 'Direct with Production Crew & Founders',
         scope:
           matchedUser.deliverables?.join(' • ') ||
-          'Editorial Lookbook (4:5) • Social Stories & Motion (9:16) • Retail Displays • Hero Banners',
-        market: matchedUser.discipline || 'Art Direction • Bridal Campaign',
+          'Comprehensive Creative Direction',
+        market: matchedUser.discipline || 'Art Direction • Visual Systems',
         narrative:
           matchedUser.desc ||
-          `${matchedUser.name} — Complete multi-channel campaign with ${photos.length} deliverables including lookbook editorial spreads, vertical social media motion, and retail standee assets.`,
+          `${matchedUser.name} — Directorial campaign with ${photos.length} deliverable(s).`,
         videoUrl: matchedUser.videoUrl,
         scopePills:
           matchedUser.deliverables && matchedUser.deliverables.length > 0
             ? matchedUser.deliverables
-            : [
-                'Editorial Lookbook (4:5)',
-                'Social Stories & Motion (9:16)',
-                'Retail Displays',
-                'Hero Banners',
-              ],
+            : ['Campaign Architecture', 'Visual Direction'],
         media: photos.map((p) => ({
           image: p,
           format: 'auto',
@@ -345,24 +107,8 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
       return { projectData: pData, userProject: matchedUser };
     }
 
-    // Match builtin projects
-    const builtin = BUILTIN_PROJECTS[lowerId] || BUILTIN_PROJECTS['kaldhar'] || BUILTIN_PROJECTS['easyhaibro'];
-    return { projectData: builtin, userProject: null };
+    return { projectData: null, userProject: null };
   }, [projectId, uploadedFiles]);
-
-  useEffect(() => {
-    if (!projectId) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [projectId, onClose]);
 
   if (!projectData) return null;
 

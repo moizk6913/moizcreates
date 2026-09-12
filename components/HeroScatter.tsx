@@ -3,13 +3,17 @@
 import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { DynamicCanvasFile } from '@/lib/contentStore';
 
 interface HeroScatterProps {
   onOpenCase: (id: string) => void;
+  uploadedFiles?: DynamicCanvasFile[];
+  userPhotos?: string[];
 }
 
 interface CloudItem {
   id: string;
+  projectId?: string;
   w: number;
   h: number;
   x: number;
@@ -23,60 +27,60 @@ interface CloudItem {
 // 48 Curated Constellation Galaxy Cards (Images 1, 2, 3, 4 reference — expansive multi-depth array)
 const initialCloudData: CloudItem[] = [
   // Tier 1: Core Inner Ring (Hero focal pieces, depth 1.3 - 1.5)
-  { id: 'easyhaibro', w: 82, h: 104, x: -8, y: -8, rot: -3, z: 12, depth: 1.4, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 96, h: 56, x: 7, y: -9, rot: 4, z: 14, depth: 1.5, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 78, h: 96, x: 12, y: 5, rot: -4, z: 13, depth: 1.3, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 90, h: 58, x: -11, y: 7, rot: 5, z: 11, depth: 1.4, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 68, h: 92, x: 0, y: -15, rot: -2, z: 10, depth: 1.3, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 64, h: 64, x: -3, y: 14, rot: 3, z: 11, depth: 1.2, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 88, h: 52, x: 16, y: -15, rot: -5, z: 12, depth: 1.4, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 72, h: 72, x: -17, y: -14, rot: 4, z: 10, depth: 1.3, img: '/assets/logo.png' },
+  { id: 'card-1', w: 82, h: 104, x: -8, y: -8, rot: -3, z: 12, depth: 1.4, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-2', w: 96, h: 56, x: 7, y: -9, rot: 4, z: 14, depth: 1.5, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-3', w: 78, h: 96, x: 12, y: 5, rot: -4, z: 13, depth: 1.3, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-4', w: 90, h: 58, x: -11, y: 7, rot: 5, z: 11, depth: 1.4, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-5', w: 68, h: 92, x: 0, y: -15, rot: -2, z: 10, depth: 1.3, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-6', w: 64, h: 64, x: -3, y: 14, rot: 3, z: 11, depth: 1.2, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-7', w: 88, h: 52, x: 16, y: -15, rot: -5, z: 12, depth: 1.4, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-8', w: 72, h: 72, x: -17, y: -14, rot: 4, z: 10, depth: 1.3, img: '/assets/logo.png' },
 
   // Tier 2: Mid Constellation Ring (Medium cards, depth 0.9 - 1.2)
-  { id: 'ruchi', w: 56, h: 76, x: -22, y: -6, rot: -4, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 74, h: 46, x: 23, y: -7, rot: 5, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 54, h: 70, x: -20, y: 12, rot: 3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 72, h: 44, x: 22, y: 13, rot: -3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 52, h: 68, x: -9, y: -23, rot: 5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 70, h: 42, x: 9, y: -24, rot: -4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 50, h: 66, x: -10, y: 22, rot: -5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 68, h: 40, x: 10, y: 23, rot: 4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 48, h: 48, x: 28, y: 3, rot: -6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 50, h: 65, x: -28, y: 2, rot: 6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-9', w: 56, h: 76, x: -22, y: -6, rot: -4, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-10', w: 74, h: 46, x: 23, y: -7, rot: 5, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-11', w: 54, h: 70, x: -20, y: 12, rot: 3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-12', w: 72, h: 44, x: 22, y: 13, rot: -3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-13', w: 52, h: 68, x: -9, y: -23, rot: 5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-14', w: 70, h: 42, x: 9, y: -24, rot: -4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-15', w: 50, h: 66, x: -10, y: 22, rot: -5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-16', w: 68, h: 40, x: 10, y: 23, rot: 4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-17', w: 48, h: 48, x: 28, y: 3, rot: -6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-18', w: 50, h: 65, x: -28, y: 2, rot: 6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=600&auto=format&fit=crop' },
 
   // Tier 3: Expansive Galaxy Arms (Outer cards, depth 0.75 - 0.85)
-  { id: 'ruchi', w: 46, h: 60, x: -33, y: -16, rot: -5, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 66, h: 38, x: 33, y: -17, rot: 4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 45, h: 58, x: -32, y: 18, rot: 5, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 64, h: 36, x: 32, y: 19, rot: -4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 44, h: 56, x: -18, y: -31, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 62, h: 36, x: 19, y: -30, rot: -5, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 45, h: 58, x: -18, y: 29, rot: -3, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 60, h: 38, x: 19, y: 30, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 42, h: 42, x: 38, y: -6, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 42, h: 54, x: -38, y: -7, rot: 5, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 44, h: 44, x: 37, y: 11, rot: 3, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 44, h: 54, x: -37, y: 10, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-19', w: 46, h: 60, x: -33, y: -16, rot: -5, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-20', w: 66, h: 38, x: 33, y: -17, rot: 4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-21', w: 45, h: 58, x: -32, y: 18, rot: 5, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-22', w: 64, h: 36, x: 32, y: 19, rot: -4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-23', w: 44, h: 56, x: -18, y: -31, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-24', w: 62, h: 36, x: 19, y: -30, rot: -5, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-25', w: 45, h: 58, x: -18, y: 29, rot: -3, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-26', w: 60, h: 38, x: 19, y: 30, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-27', w: 42, h: 42, x: 38, y: -6, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-28', w: 42, h: 54, x: -38, y: -7, rot: 5, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-29', w: 44, h: 44, x: 37, y: 11, rot: 3, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-30', w: 44, h: 54, x: -37, y: 10, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=600&auto=format&fit=crop' },
 
   // Tier 4: Micro Satellite Stars (Tiny thumbnails, deep space, depth 0.5 - 0.65)
-  { id: 'easyhaibro', w: 32, h: 40, x: -44, y: -22, rot: 6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 40, h: 26, x: 44, y: -21, rot: -6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 30, h: 38, x: -43, y: 24, rot: -5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 38, h: 24, x: 43, y: 25, rot: 5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 28, h: 36, x: -28, y: -36, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 36, h: 24, x: 28, y: -35, rot: 4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 28, h: 36, x: -27, y: 35, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 36, h: 24, x: 27, y: 36, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 26, h: 34, x: -5, y: -36, rot: 3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 34, h: 22, x: 5, y: -37, rot: -3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 26, h: 34, x: -4, y: 37, rot: -4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 34, h: 22, x: 4, y: 38, rot: 4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 30, h: 30, x: -47, y: 2, rot: 7, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
-  { id: 'ruchi', w: 30, h: 30, x: 47, y: 3, rot: -7, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
-  { id: 'oxymorons', w: 28, h: 36, x: -46, y: -10, rot: -5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
-  { id: 'easyhaibro', w: 34, h: 22, x: 46, y: -11, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop' },
-  { id: 'windchasers', w: 28, h: 34, x: -45, y: 13, rot: 4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'kaladhar', w: 34, h: 24, x: 45, y: 14, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' }
+  { id: 'card-31', w: 32, h: 40, x: -44, y: -22, rot: 6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-32', w: 40, h: 26, x: 44, y: -21, rot: -6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-33', w: 30, h: 38, x: -43, y: 24, rot: -5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-34', w: 38, h: 24, x: 43, y: 25, rot: 5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-35', w: 28, h: 36, x: -28, y: -36, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-36', w: 36, h: 24, x: 28, y: -35, rot: 4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-37', w: 28, h: 36, x: -27, y: 35, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-38', w: 36, h: 24, x: 27, y: 36, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-39', w: 26, h: 34, x: -5, y: -36, rot: 3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-40', w: 34, h: 22, x: 5, y: -37, rot: -3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-41', w: 26, h: 34, x: -4, y: 37, rot: -4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-42', w: 34, h: 22, x: 4, y: 38, rot: 4, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-43', w: 30, h: 30, x: -47, y: 2, rot: 7, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-44', w: 30, h: 30, x: 47, y: 3, rot: -7, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-45', w: 28, h: 36, x: -46, y: -10, rot: -5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-46', w: 34, h: 22, x: 46, y: -11, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-47', w: 28, h: 34, x: -45, y: 13, rot: 4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-48', w: 34, h: 24, x: 45, y: 14, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' }
 ];
 
 const popAssetPool = [
@@ -94,7 +98,7 @@ const popAssetPool = [
   '/assets/logo.png',
 ];
 
-export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
+export default function HeroScatter({ onOpenCase, uploadedFiles, userPhotos }: HeroScatterProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
@@ -303,7 +307,7 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
             ref={(el) => {
               cardRefs.current[idx] = el;
             }}
-            onClick={() => onOpenCase(item.id)}
+            onClick={() => { if (item.projectId) onOpenCase(item.projectId); }}
             style={{
               left: `calc(50% + ${item.x}vw)`,
               top: `calc(50% + ${item.y}vh)`,

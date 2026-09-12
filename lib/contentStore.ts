@@ -118,6 +118,7 @@ export interface DynamicCanvasFile {
   code: string;
   name: string;
   discipline: string;
+  client?: string;
   year: string;
   role: string;
   x: number;
@@ -587,6 +588,7 @@ export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> 
           code: `PRJ_${project.year.slice(-2)}.${(project.tag || 'DIR').slice(0, 3).toUpperCase()}`,
           name: project.title,
           discipline: project.tag || projectWorks[0]?.disciplines[0] || 'Art Direction',
+          client: project.client,
           year: project.year,
           role: project.role || 'Lead Art Director',
           x: 0,
@@ -612,6 +614,7 @@ export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> 
           code: `WRK_${work.year.slice(-2)}.${(work.workType || 'AST').slice(0, 3).toUpperCase()}`,
           name: work.title,
           discipline: work.disciplines[0] || 'Creative Work',
+          client: work.client,
           year: work.year,
           role: 'Art Director',
           x: 0,
