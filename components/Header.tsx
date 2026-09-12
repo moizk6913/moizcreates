@@ -47,11 +47,28 @@ export default function Header({ visible = true }: HeaderProps) {
     }, 900);
   };
 
+  const [scrolledDown, setScrolledDown] = useState(false);
+
+  useEffect(() => {
+    let lastY = 0;
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY > 120 && currentY > lastY) {
+        setScrolledDown(true);
+      } else {
+        setScrolledDown(false);
+      }
+      lastY = currentY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 md:px-14 py-5 sm:py-6 flex items-center justify-between pointer-events-none transition-all duration-700 ease-out bg-white/75 backdrop-blur-md border-none ${
-          visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        className={`fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 md:px-14 py-5 sm:py-6 flex items-center justify-between pointer-events-none transition-all duration-500 ease-out bg-white/75 backdrop-blur-md border-none ${
+          visible && !scrolledDown ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
         }`}
       >
         {/* LEFT NAV LINKS (Desktop: WORK, PLAYGROUND) */}
