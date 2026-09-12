@@ -123,7 +123,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
       className="w-full py-12 sm:py-16 md:py-20 bg-gradient-to-b from-white via-[#f7f6f1] to-white border-none overflow-hidden relative"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
-        <h2 className="font-dharma font-bold text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] leading-[0.84] tracking-tight text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">
+        <h2 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.94] tracking-tight text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">
           {/* Line 1 */}
           <span className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-3 overflow-hidden py-1 sm:py-0.5">
             <span className="manifesto-token inline-flex items-center will-change-transform">

@@ -290,7 +290,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
               <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]" />
               <span>ARCHIVE (2024–2026)</span>
             </div>
-            <h3 className="font-dharma font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight text-black leading-[0.85]">
+            <h3 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl uppercase tracking-tight text-black leading-tight">
               Directorial Works In Curation
             </h3>
             <p className="font-sans text-sm sm:text-base text-neutral-500 max-w-lg leading-relaxed">

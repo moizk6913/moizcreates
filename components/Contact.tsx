@@ -39,9 +39,9 @@ export default function Contact() {
             </span>
           </div>
 
-          {/* Headline in Dharma Gothic Condensed Typography */}
+          {/* Headline in Britti Sans Bold */}
           <div className="space-y-2">
-            <h2 className="font-dharma font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl uppercase text-black tracking-tight leading-[0.9]">
+            <h2 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl uppercase text-black tracking-tight leading-tight">
               HAVE A PROJECT IN MIND?
             </h2>
             <p className="font-sans text-base sm:text-xl text-neutral-600 font-normal">
@@ -53,7 +53,7 @@ export default function Contact() {
           <div className="flex flex-col items-center gap-4 pt-1">
             <a
               href={`mailto:${email}`}
-              className="font-dharma font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-black hover:text-[#e60000] transition-colors duration-300 uppercase tracking-tight break-all"
+              className="font-display font-bold text-2xl sm:text-4xl md:text-5xl text-black hover:text-[#e60000] transition-colors duration-300 uppercase tracking-tight break-all"
             >
               {email}
             </a>
