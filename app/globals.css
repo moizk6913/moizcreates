@@ -74,6 +74,120 @@
   font-display: swap;
 }
 
+/* ==========================================
+   BRITTI SANS (Complete High-Fashion Swiss Sans)
+   ========================================== */
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-ThinItalic.ttf') format('truetype');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-RegularItalic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-MediumItalic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-SemiboldItalic.ttf') format('truetype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Britti Sans';
+  src: url('/fonts/BrittiSans-ExtraBoldItalic.ttf') format('truetype');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ==========================================
+   NITTI TYPEWRITER (Authentic Monospaced Editorial)
+   ========================================== */
+@font-face {
+  font-family: 'Nitti Typewriter';
+  src: url('/fonts/NittiTypewriter-Normal.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 @font-face {
   font-family: 'DharmaGothicE_Bold_R';
   src: url('/fonts/DharmaGothicE_Bold_R.otf') format('opentype'),
