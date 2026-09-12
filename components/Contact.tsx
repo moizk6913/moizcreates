@@ -41,19 +41,13 @@ export default function Contact() {
   return (
     <footer
       id="contact"
-      className="w-full pt-16 sm:pt-24 md:pt-32 pb-0 bg-[#efeeea] relative overflow-hidden select-none border-none flex flex-col justify-between"
+      className="w-full pt-16 sm:pt-20 md:pt-24 pb-0 bg-[#efeeea] relative overflow-hidden select-none border-none flex flex-col justify-between"
     >
-      {/* Soft Ambient Pure Red Glow */}
-      <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-[radial-gradient(ellipse,rgba(230,0,0,0.025)_0%,transparent_70%)] pointer-events-none"
-        aria-hidden="true"
-      />
-
-      {/* MAIN ARTBOARD CONTAINER (Exact layout matching Image 1: Artboard 1) */}
-      <div className="w-full max-w-[1780px] mx-auto px-6 sm:px-12 md:px-16 lg:px-24 flex-1 flex flex-col justify-between relative z-10 space-y-16 sm:space-y-24 md:space-y-28">
+      {/* MAIN ARTBOARD CONTAINER (Exact layout matching Artboard 1) */}
+      <div className="w-full max-w-[1700px] mx-auto px-6 sm:px-10 md:px-14 lg:px-20 flex-1 flex flex-col justify-between relative z-10 space-y-12 sm:space-y-16 md:space-y-20">
         
         {/* TOP ROW: ICON / MONOGRAM (Exact position from Artboard 1) */}
-        <div className="flex items-center justify-start pt-2">
+        <div className="flex items-center justify-start">
           <Link
             href="#top"
             className="group block transition-transform duration-300 hover:scale-105"
@@ -64,28 +58,28 @@ export default function Contact() {
               alt="Moiz Khan"
               width={48}
               height={48}
-              className="h-9 sm:h-10 md:h-11 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
               priority
             />
           </Link>
         </div>
 
         {/* MID-BODY: THE 3 EDITORIAL BLOCKS (Exact composition from Artboard 1) */}
-        <div className="w-full flex flex-col space-y-14 sm:space-y-20">
+        <div className="w-full flex flex-col space-y-12 sm:space-y-16">
           
           {/* Row 1: BUSINESS INQUIRIES (Left) & STUDIO DIRECTORY (Right) */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 sm:gap-14 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-12 items-start">
             
             {/* Block 1: BUSINESS INQUIRIES */}
-            <div className="md:col-span-5 lg:col-span-4 space-y-2.5">
-              <span className="font-britti font-bold text-xs sm:text-sm tracking-widest text-black uppercase block">
+            <div className="md:col-span-5 lg:col-span-5 space-y-2">
+              <span className="font-britti font-bold text-xs sm:text-sm tracking-wider text-black uppercase block">
                 BUSINESS INQUIRIES
               </span>
               <div className="space-y-1">
                 <button
                   type="button"
                   onClick={handleCopyEmail}
-                  className="font-mono text-xs sm:text-sm md:text-[15px] font-medium text-black hover:text-[#e60000] uppercase tracking-wider transition-colors block text-left group cursor-pointer"
+                  className="font-mono text-xs sm:text-sm md:text-[14px] font-medium text-black hover:text-[#e60000] uppercase tracking-wider transition-colors block text-left group cursor-pointer"
                   title="Click to copy email address"
                 >
                   <span className="group-hover:underline underline-offset-4">
@@ -104,12 +98,12 @@ export default function Contact() {
             </div>
 
             {/* Block 2: STUDIO DIRECTORY */}
-            <div className="md:col-start-7 md:col-span-6 lg:col-start-8 lg:col-span-5 space-y-2.5">
-              <span className="font-britti font-bold text-xs sm:text-sm tracking-widest text-black uppercase block">
+            <div className="md:col-start-7 md:col-span-6 lg:col-start-8 lg:col-span-5 space-y-2">
+              <span className="font-britti font-bold text-xs sm:text-sm tracking-wider text-black uppercase block">
                 STUDIO DIRECTORY
               </span>
-              <div className="space-y-1.5">
-                <nav className="flex flex-wrap items-center gap-x-5 sm:gap-x-7 gap-y-1 font-britti font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+              <div className="space-y-1">
+                <nav className="flex flex-wrap items-center gap-x-5 sm:gap-x-6 gap-y-1 font-mono text-xs sm:text-sm uppercase tracking-wider text-black">
                   <Link href="/#work" className="hover:text-[#e60000] transition-colors">
                     WORK
                   </Link>
@@ -132,11 +126,11 @@ export default function Contact() {
           </div>
 
           {/* Row 2: DIRECT CHANNELS (Centered horizontally as in Artboard 1) */}
-          <div className="w-full flex flex-col items-center text-center space-y-2.5 pt-2 sm:pt-4">
-            <span className="font-britti font-bold text-xs sm:text-sm tracking-widest text-black uppercase block">
+          <div className="w-full flex flex-col items-center text-center space-y-2 pt-2 sm:pt-4">
+            <span className="font-britti font-bold text-xs sm:text-sm tracking-wider text-black uppercase block">
               DIRECT CHANNELS
             </span>
-            <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-9 gap-y-2 font-mono text-xs sm:text-sm font-medium uppercase tracking-wider text-black">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-2 font-mono text-xs sm:text-sm font-medium uppercase tracking-wider text-black">
               <a
                 href="https://instagram.com/moizcreates"
                 target="_blank"
@@ -169,20 +163,20 @@ export default function Contact() {
 
         </div>
 
-        {/* HORIZON METADATA ROW (Exact 3-point alignment above the wordmark from Artboard 1) */}
-        <div className="w-full flex items-center justify-between pt-10 sm:pt-14 pb-2 border-none">
+        {/* HORIZON METADATA ROW (Above wordmark, with generous breathing space) */}
+        <div className="w-full flex items-center justify-between pt-12 sm:pt-16 pb-3 border-none text-xs sm:text-sm font-sans text-neutral-600">
           {/* Left: All right reserved */}
-          <div className="text-left font-sans text-xs sm:text-sm text-black/80 font-normal">
+          <div className="text-left font-normal text-neutral-600">
             All right reserved
           </div>
 
           {/* Center: 2026 */}
-          <div className="text-center font-sans text-xs sm:text-sm text-black/80 font-normal">
+          <div className="text-center font-normal text-neutral-600">
             2026
           </div>
 
-          {/* Right: Time (GMT+4) with live dynamic Dubai clock */}
-          <div className="text-right font-sans text-xs sm:text-sm text-[#4d5b7c] font-medium flex items-center gap-1.5">
+          {/* Right: Time (GMT+4) */}
+          <div className="text-right text-[#4d5b7c] font-medium flex items-center gap-1.5">
             <span>Time (GMT+4)</span>
             {dubaiTime && (
               <span className="font-mono text-[11px] sm:text-xs text-neutral-500 hidden sm:inline-block">
@@ -194,9 +188,9 @@ export default function Contact() {
 
       </div>
 
-      {/* MONUMENTAL WALL-TO-WALL WORDMARK (Baseborn & Artboard 1 Responsive Precision) */}
-      <div className="w-full overflow-hidden select-none leading-none -mb-2 sm:-mb-3 md:-mb-5 lg:-mb-6 pt-1 sm:pt-2">
-        <h1 className="w-full text-[19.5vw] sm:text-[20.2vw] md:text-[20.8vw] lg:text-[21.2vw] xl:text-[21.6vw] font-dharma font-bold leading-[0.74] tracking-tight uppercase text-black text-center whitespace-nowrap block hover:text-[#e60000] transition-colors duration-700 cursor-default">
+      {/* MONUMENTAL WORDMARK (Exact Baseborn & Artboard 1 Proportions — Archivo Black) */}
+      <div className="w-full overflow-hidden select-none leading-none pt-2 sm:pt-3">
+        <h1 className="w-full text-[13.4vw] sm:text-[13.8vw] md:text-[14.1vw] lg:text-[14.3vw] xl:text-[14.5vw] font-monument leading-[0.82] tracking-tighter uppercase text-black text-center whitespace-nowrap block hover:text-[#e60000] transition-colors duration-500 cursor-default">
           MOIZ KHAN
         </h1>
       </div>
