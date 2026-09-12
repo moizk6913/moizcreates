@@ -350,6 +350,20 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
     return { projectData: builtin, userProject: null };
   }, [projectId, uploadedFiles]);
 
+  useEffect(() => {
+    if (!projectId) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [projectId, onClose]);
+
   if (!projectData) return null;
 
   // Extract all images

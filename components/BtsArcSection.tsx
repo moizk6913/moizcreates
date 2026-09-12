@@ -314,9 +314,9 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         onClick={() => handleCardClick(item.projectId)}
         className={`h-full flex-shrink-0 cursor-pointer group select-none relative ${item.aspectClass}`}
       >
-        {/* Visual Bento Container - 10px Apple corner radius */}
+        {/* Visual Bento Container - Apple continuous squircle radius */}
         <div
-          className={`relative w-full h-full rounded-[10px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/10 transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
+          className={`relative w-full h-full rounded-[24px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
         >
           {/* Media: Looping Video on Desktop or High-Speed Photography on Mobile */}
           {isVideoAllowed ? (

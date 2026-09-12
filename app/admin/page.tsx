@@ -1,464 +1,651 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import CustomCursor from '@/components/CustomCursor';
 import {
-  DynamicCanvasFile,
-  getStoredCanvasFiles,
-  getStoredCanvasFilesAsync,
-  saveCanvasFileAsync,
-  deleteCanvasFile,
+  WorkItem,
+  Project,
+  Collection,
+  SeriesGroup,
+  MediaDimensions,
+  getStoredWorksAsync,
+  saveWorkAsync,
+  saveWorksBatchAsync,
+  deleteWorkAsync,
+  deleteWorksBatchAsync,
+  getStoredProjectsAsync,
+  saveProjectAsync,
+  deleteProjectAsync,
+  getStoredCollectionsAsync,
+  saveCollectionAsync,
+  deleteCollectionAsync,
+  getStoredSeriesAsync,
+  saveSeriesAsync,
+  deleteSeriesAsync,
+  filterWorks,
   getStoredApiKey,
   saveApiKey,
+  getStoredSeoConfig,
+  saveSeoConfig,
+  SeoConfig,
+  getStoredBlogPosts,
+  saveBlogPost,
+  deleteBlogPost,
 } from '@/lib/contentStore';
+import { BlogPost } from '@/lib/blogData';
 
-type AdminTab = 'assistant' | 'manage' | 'quick';
+type AdminView = 'all_work' | 'projects' | 'single_project' | 'collections' | 'journal' | 'settings';
 
-interface ChatMessage {
-  id: string;
-  sender: 'ai' | 'user';
-  text: string;
-  timestamp: string;
-  suggestedAction?: {
-    label: string;
-    projectDraft?: Partial<DynamicCanvasFile>;
-  };
+// ==========================================
+// CLIENT-SIDE ASSET INSPECTOR (AUTO-DETECTS DIMENSIONS & RATIOS)
+// ==========================================
+
+interface InspectedAsset {
+  file: File;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  mediaType: 'image' | 'video';
+  dataUrl: string;
+  thumbnailUrl: string;
+  dimensions: MediaDimensions;
+  title: string;
+  workType: string;
+  disciplines: string[];
+  tags: string[];
+  projectId: string | null;
+  seriesId: string | null;
+  suggestedProjectName?: string | null;
+  projectConfidence?: number;
 }
 
-// Crisp client-side asset reader (maintains sharpness for text & print)
-const readHighResAsset = (file: File): Promise<{ dataUrl: string; name: string; isVideo: boolean; width: number; height: number }> => {
+const COMMON_WORK_TYPES = [
+  'Reel',
+  'Lookbook Frame',
+  'Advertisement',
+  'Branding',
+  'Photography',
+  'Print Artwork',
+  'Horizontal Video',
+  'Social Design',
+  'Poster',
+  'Motion Graphic',
+  'Campaign Visual',
+];
+
+const DISCIPLINE_PRESETS = [
+  'Art Direction',
+  'Motion',
+  'Branding',
+  'Editorial',
+  'Photography',
+  'Cinematography',
+  'Creative Strategy',
+  'Packaging',
+];
+
+const inspectMediaFile = (file: File): Promise<InspectedAsset> => {
   return new Promise((resolve) => {
-    const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name);
+    const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(file.name);
+    const cleanTitle = file.name
+      .replace(/\.[a-zA-Z0-9]+$/, '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .trim();
+
+    if (isVideo) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      const objUrl = URL.createObjectURL(file);
+      video.src = objUrl;
+
+      const finishVideo = (w: number, h: number, dur: number, posterUrl: string, fullDataUrl: string) => {
+        URL.revokeObjectURL(objUrl);
+        const orientation: MediaDimensions['orientation'] =
+          h > w * 1.1 ? 'vertical' : w > h * 1.1 ? 'horizontal' : 'square';
+        let aspectRatio = orientation === 'vertical' ? '9:16' : '16:9';
+        if (Math.abs(w / h - 1) < 0.1) aspectRatio = '1:1';
+
+        resolve({
+          file,
+          fileName: file.name,
+          fileType: file.type || 'video/mp4',
+          fileSize: file.size,
+          mediaType: 'video',
+          dataUrl: fullDataUrl,
+          thumbnailUrl: posterUrl,
+          dimensions: {
+            width: w,
+            height: h,
+            aspectRatio,
+            orientation,
+            duration: Math.round(dur),
+            resolution: `${w}x${h}`,
+            fileSize: file.size,
+          },
+          title: cleanTitle,
+          workType: orientation === 'vertical' ? 'Reel' : 'Horizontal Video',
+          disciplines: ['Motion', 'Art Direction'],
+          tags: [cleanTitle.split(' ')[0] || 'Studio'],
+          projectId: null,
+          seriesId: null,
+        });
+      };
+
+      video.onloadedmetadata = () => {
+        const w = video.videoWidth || 1920;
+        const h = video.videoHeight || 1080;
+        const dur = video.duration || 10;
+
+        video.currentTime = Math.min(0.5, dur / 2);
+        video.onseeked = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.min(w, 640);
+            canvas.height = Math.round((canvas.width * h) / w);
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              const poster = canvas.toDataURL('image/jpeg', 0.85);
+              finishVideo(w, h, dur, poster, objUrl);
+              return;
+            }
+          } catch {}
+          finishVideo(w, h, dur, '', objUrl);
+        };
+      };
+
+      video.onerror = () => {
+        finishVideo(1920, 1080, 15, '', objUrl);
+      };
+      return;
+    }
+
+    // Image inspection
     const reader = new FileReader();
-
     reader.onload = (e) => {
-      const dataUrl = (e.target?.result as string) || '';
-      if (isVideo) {
-        resolve({ dataUrl, name: file.name, isVideo: true, width: 1920, height: 1080 });
-        return;
-      }
-
+      const fullData = (e.target?.result as string) || '';
       const img = new Image();
       img.onload = () => {
-        // High-res canvas resize only if image exceeds 2560px
+        const w = img.naturalWidth || 1920;
+        const h = img.naturalHeight || 1080;
+        const orientation: MediaDimensions['orientation'] =
+          h > w * 1.15 ? 'vertical' : w > h * 1.8 ? 'panoramic' : w > h * 1.15 ? 'horizontal' : 'square';
+
+        let aspectRatio = '16:10';
+        const ratio = w / h;
+        if (Math.abs(ratio - 9 / 16) < 0.12) aspectRatio = '9:16';
+        else if (Math.abs(ratio - 4 / 5) < 0.12) aspectRatio = '4:5';
+        else if (Math.abs(ratio - 1) < 0.12) aspectRatio = '1:1';
+        else if (Math.abs(ratio - 16 / 9) < 0.12) aspectRatio = '16:9';
+
         const maxDim = 2560;
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
+        let finalData = fullData;
+        let thumbData = fullData;
 
-        if (w > maxDim || h > maxDim) {
-          if (w > h) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
+        try {
+          const thumbCanvas = document.createElement('canvas');
+          const thumbW = Math.min(w, 640);
+          const thumbH = Math.round((thumbW * h) / w);
+          thumbCanvas.width = thumbW;
+          thumbCanvas.height = thumbH;
+          const tCtx = thumbCanvas.getContext('2d');
+          if (tCtx) {
+            tCtx.drawImage(img, 0, 0, thumbW, thumbH);
+            thumbData = thumbCanvas.toDataURL('image/jpeg', 0.85);
           }
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, w, h);
-            resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.88), name: file.name, isVideo: false, width: w, height: h });
-            return;
+
+          if (w > maxDim || h > maxDim) {
+            const canvas = document.createElement('canvas');
+            const targetW = w > h ? maxDim : Math.round((w * maxDim) / h);
+            const targetH = h > w ? maxDim : Math.round((h * maxDim) / w);
+            canvas.width = targetW;
+            canvas.height = targetH;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, targetW, targetH);
+              finalData = canvas.toDataURL('image/jpeg', 0.9);
+            }
           }
-        }
-        resolve({ dataUrl, name: file.name, isVideo: false, width: w, height: h });
+        } catch {}
+
+        let workType = 'Photography';
+        if (/print|a4|book|magazine|spread/i.test(cleanTitle)) workType = 'Print Artwork';
+        else if (/brand|logo|identity/i.test(cleanTitle)) workType = 'Branding';
+        else if (/ad|banner|billboard/i.test(cleanTitle)) workType = 'Advertisement';
+        else if (aspectRatio === '4:5' || orientation === 'vertical') workType = 'Lookbook Frame';
+        else if (aspectRatio === '1:1') workType = 'Social Design';
+
+        resolve({
+          file,
+          fileName: file.name,
+          fileType: file.type || 'image/jpeg',
+          fileSize: file.size,
+          mediaType: 'image',
+          dataUrl: finalData,
+          thumbnailUrl: thumbData,
+          dimensions: {
+            width: w,
+            height: h,
+            aspectRatio,
+            orientation,
+            resolution: `${w}x${h}`,
+            fileSize: file.size,
+          },
+          title: cleanTitle,
+          workType,
+          disciplines: ['Art Direction'],
+          tags: [cleanTitle.split(' ')[0] || 'Studio'],
+          projectId: null,
+          seriesId: null,
+        });
       };
+
       img.onerror = () => {
-        resolve({ dataUrl, name: file.name, isVideo: false, width: 1200, height: 800 });
+        resolve({
+          file,
+          fileName: file.name,
+          fileType: file.type || 'image/jpeg',
+          fileSize: file.size,
+          mediaType: 'image',
+          dataUrl: fullData,
+          thumbnailUrl: fullData,
+          dimensions: {
+            width: 1200,
+            height: 800,
+            aspectRatio: '16:10',
+            orientation: 'horizontal',
+            resolution: '1200x800',
+            fileSize: file.size,
+          },
+          title: cleanTitle,
+          workType: 'Photography',
+          disciplines: ['Art Direction'],
+          tags: ['Studio'],
+          projectId: null,
+          seriesId: null,
+        });
       };
-      img.src = dataUrl;
+      img.src = fullData;
     };
-
     reader.readAsDataURL(file);
   });
 };
 
-function renderFormattedMessage(text: string) {
-  const lines = text.split('\n');
-  return (
-    <div className="space-y-2">
-      {lines.map((line, idx) => {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          return <div key={idx} className="h-1.5" />;
-        }
-
-        const isBullet = trimmed.startsWith('•') || trimmed.startsWith('-') || /^\d+\./.test(trimmed);
-        const cleanContent = isBullet ? trimmed.replace(/^[•\-]\s*/, '').replace(/^\d+\.\s*/, '') : trimmed;
-
-        const parts = cleanContent.split(/(\*\*[^*]+\*\*)/g);
-        const formatted = parts.map((part, pIdx) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return (
-              <strong key={pIdx} className="font-bold text-white">
-                {part.slice(2, -2)}
-              </strong>
-            );
-          }
-          return <span key={pIdx}>{part}</span>;
-        });
-
-        if (isBullet) {
-          return (
-            <div key={idx} className="flex items-start gap-2 pl-2">
-              <span className="text-[#e60000] font-bold text-sm leading-none mt-1 shrink-0">•</span>
-              <span className="flex-1 text-sm leading-relaxed">{formatted}</span>
-            </div>
-          );
-        }
-
-        return (
-          <p key={idx} className="text-sm leading-relaxed">
-            {formatted}
-          </p>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('assistant');
-  const [campaigns, setCampaigns] = useState<DynamicCanvasFile[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  // Navigation & View State
+  const [activeView, setActiveView] = useState<AdminView>('all_work');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
-  // AI Chat State
-  const [chatInput, setChatInput] = useState('');
-  const [chatFiles, setChatFiles] = useState<Array<{ dataUrl: string; name: string; isVideo: boolean; width: number; height: number }>>([]);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    {
-      id: 'msg-0',
-      sender: 'ai',
-      text: "Hey Moiz — Welcome to your Studio Desk. Tell me what campaign you want to add or organize. You can drop files right here and say: 'I have Kaldhar: 1 widescreen 1920x1080 banner, 6 brochure pages in order, and 1 video reel'. I'll organize the layout with zero cropping and publish it live.",
-      timestamp: 'Studio Bot',
-    },
-  ]);
+  // Relational Archive Data
+  const [works, setWorks] = useState<WorkItem[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [seriesList, setSeriesList] = useState<SeriesGroup[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Quick Form State
-  const [quickTitle, setQuickTitle] = useState('');
-  const [quickDiscipline, setQuickDiscipline] = useState('Art Direction • Luxury Campaign');
-  const [quickMarket, setQuickMarket] = useState('Heritage Luxury');
-  const [quickDesc, setQuickDesc] = useState('');
-  const [quickFiles, setQuickFiles] = useState<Array<{ dataUrl: string; name: string; isVideo: boolean }>>([]);
+  // Ingestion Modal State ("+ Add Work")
+  const [isAddWorkOpen, setIsAddWorkOpen] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<InspectedAsset[]>([]);
+  const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
+  const [batchSuggestion, setBatchSuggestion] = useState<{
+    matchedProjectId?: string | null;
+    matchedProjectName?: string | null;
+    projectConfidence?: number;
+    groupSuggestion?: { shouldGroup: boolean; groupTitle: string; groupType: string };
+  } | null>(null);
+  const [isPublishingBatch, setIsPublishingBatch] = useState(false);
 
-  // Gemini API Key State
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [isKeyVerified, setIsKeyVerified] = useState(false);
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState('');
+  // Search & Filtering State (All Work)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterProject, setFilterProject] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterOrientation, setFilterOrientation] = useState<'vertical' | 'horizontal' | 'square' | 'panoramic' | 'all'>('all');
+  const [filterStatus, setFilterStatus] = useState<'published' | 'draft' | 'archived' | 'all'>('all');
 
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  // Single Project Detail State
+  const [projectTypeFilter, setProjectTypeFilter] = useState<string>('all');
+
+  // Selection & Inspector Drawer
+  const [selectedWorkIds, setSelectedWorkIds] = useState<Set<string>>(new Set());
+  const [inspectingWork, setInspectingWork] = useState<WorkItem | null>(null);
+
+  // Settings & Credentials
+  const [apiKey, setApiKey] = useState('');
+  const [apiVerified, setApiVerified] = useState<boolean | null>(null);
+  const [seoConfig, setSeoConfig] = useState<SeoConfig>({});
+  const [statusNotification, setStatusNotification] = useState<string | null>(null);
+
+  // Project Creation Modal
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [newProjectClient, setNewProjectClient] = useState('');
+  const [newProjectTag, setNewProjectTag] = useState('COMMERCIAL CAMPAIGN');
+  const [newProjectYear, setNewProjectYear] = useState(new Date().getFullYear().toString());
+  const [newProjectRole, setNewProjectRole] = useState('Director of Visuals');
+  const [newProjectOverview, setNewProjectOverview] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load active campaigns
-  const refreshCampaigns = async () => {
-    try {
-      const list = await getStoredCanvasFilesAsync();
-      setCampaigns(list || []);
-    } catch {
-      setCampaigns(getStoredCanvasFiles());
-    }
+  const notifyUser = (msg: string) => {
+    setStatusNotification(msg);
+    setTimeout(() => setStatusNotification(null), 4000);
   };
 
-  useEffect(() => {
-    refreshCampaigns();
-    const stored = getStoredApiKey();
-    const keyToTest = stored && !stored.includes('AIzaSyCic') ? stored : '';
-    if (keyToTest) {
-      setGeminiApiKey(keyToTest);
-      setTempApiKey(keyToTest);
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [w, p, c, s] = await Promise.all([
+        getStoredWorksAsync(),
+        getStoredProjectsAsync(),
+        getStoredCollectionsAsync(),
+        getStoredSeriesAsync(),
+      ]);
+      setWorks(w);
+      setProjects(p);
+      setCollections(c);
+      setSeriesList(s);
+      setPosts(getStoredBlogPosts());
+      setApiKey(getStoredApiKey());
+      setSeoConfig(getStoredSeoConfig());
+    } catch (err) {
+      console.error('Failed to load archive data', err);
+    } finally {
+      setIsLoading(false);
     }
-    fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'verify_key', geminiKey: keyToTest }),
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.verified) {
-          setIsKeyVerified(true);
-          if (!keyToTest) {
-            setGeminiApiKey('Connected via Studio Server');
-            setTempApiKey('');
-          }
-        } else {
-          setIsKeyVerified(false);
-        }
-      })
-      .catch(() => setIsKeyVerified(false));
   }, []);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
+    refreshData();
+    const handleUpdate = () => refreshData();
+    window.addEventListener('antigravity_content_updated', handleUpdate);
+    return () => window.removeEventListener('antigravity_content_updated', handleUpdate);
+  }, [refreshData]);
 
-  const handleFileDrop = async (e: React.DragEvent | React.ChangeEvent<HTMLInputElement>) => {
-    let files: File[] = [];
-    if ('dataTransfer' in e && e.dataTransfer.files) {
-      e.preventDefault();
-      files = Array.from(e.dataTransfer.files);
-    } else if ('target' in e && (e.target as HTMLInputElement).files) {
-      files = Array.from((e.target as HTMLInputElement).files || []);
-    }
-
-    if (!files.length) return;
-
-    setStatusMessage(`Processing ${files.length} high-resolution deliverables...`);
-    const processed = await Promise.all(files.map((f) => readHighResAsset(f)));
-    setChatFiles((prev) => [...prev, ...processed]);
-    setStatusMessage(null);
-
-    // Bot notifies in chat
-    setChatHistory((prev) => [
-      ...prev,
-      {
-        id: `file-${Date.now()}`,
-        sender: 'ai',
-        text: `Received ${files.length} file(s) (${processed.map((p) => p.name).slice(0, 3).join(', ')}${files.length > 3 ? '...' : ''}). What is the project name, and how should we arrange them?`,
-        timestamp: 'Studio Bot',
-      },
-    ]);
-  };
-
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!chatInput.trim() && chatFiles.length === 0) return;
-
-    const userText = chatInput.trim();
-    const currentFiles = [...chatFiles];
-    setChatInput('');
-    setChatFiles([]);
-
-    const userMsg: ChatMessage = {
-      id: `usr-${Date.now()}`,
-      sender: 'user',
-      text: userText || `Uploaded ${currentFiles.length} file(s) for organization.`,
-      timestamp: 'You',
-    };
-
-    setChatHistory((prev) => [...prev, userMsg]);
-
-    const lower = userText.toLowerCase().trim();
-
-    // 0. Auto-detect pasted Gemini API Key
-    const keyMatch = userText.match(/(?:AIzaSy|AQ\.)[A-Za-z0-9_\-]{30,70}/);
-    if (keyMatch) {
-      const extractedKey = keyMatch[0];
-      saveApiKey(extractedKey);
-      setGeminiApiKey(extractedKey);
-      setTempApiKey(extractedKey);
-      setStatusMessage('Connecting & verifying key with Google...');
-
+  // Check initial API key verification status if key exists
+  useEffect(() => {
+    const key = getStoredApiKey();
+    if (key) {
       fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify_key', geminiKey: extractedKey }),
+        body: JSON.stringify({ action: 'verify_key', geminiKey: key }),
       })
         .then((r) => r.json())
-        .then((res) => {
-          if (res.verified) {
-            setIsKeyVerified(true);
-            setStatusMessage(`✓ Google Gemini Live Connected (${res.model})!`);
-            setChatHistory((prev) => [
-              ...prev,
-              {
-                id: `ai-${Date.now()}`,
-                sender: 'ai',
-                text: `🎉 **Google Gemini Successfully Connected!**\n\nYour studio co-director is now linked live to Google Gemini AI (${res.model}). You have real-time conversational reasoning and visual campaign analysis active!`,
-                timestamp: 'Gemini AI',
-              },
-            ]);
-          } else {
-            setIsKeyVerified(false);
-            setStatusMessage(`✕ Key Error: ${res.error || res.reason || 'Invalid key'}`);
-            setChatHistory((prev) => [
-              ...prev,
-              {
-                id: `ai-${Date.now()}`,
-                sender: 'ai',
-                text: `⚠️ **Key Verification Notice:** Google returned: "${res.error || res.reason || 'Key could not be verified'}".\n\nPlease check your key at **[aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)**. In the meantime, I'm running on your built-in Studio Director engine.`,
-                timestamp: 'Studio Bot',
-              },
-            ]);
-          }
-          setTimeout(() => setStatusMessage(null), 5000);
-        })
-        .catch(() => {
-          setIsKeyVerified(true);
-          setStatusMessage('✓ Saved key to studio.');
-        });
-      return;
+        .then((d) => setIsKeyVerified(d.verified === true))
+        .catch(() => setIsKeyVerified(false));
     }
+  }, []);
 
-    // 1. If files are attached, organize them into an uncropped campaign draft
-    if (currentFiles.length > 0) {
-      setTimeout(() => {
-        let inferredTitle = 'New Campaign';
-        const lower = userText.toLowerCase();
-        if (lower.includes('kaldhar') || lower.includes('kaladhar')) inferredTitle = 'Kaldhar Bridal';
-        else if (lower.includes('porsche')) inferredTitle = 'Porsche Carrera';
-        else if (lower.includes('prada')) inferredTitle = 'Prada Deconstruct';
-        else if (lower.includes('easy') || lower.includes('hai bro')) inferredTitle = 'Easy Hai Bro';
-        else {
-          const titleMatch = userText.match(/(?:for|named|project|campaign)\s+([A-Za-z0-9\s]{3,24})/i);
-          if (titleMatch) inferredTitle = titleMatch[1].trim();
-        }
+  const setIsKeyVerified = (verified: boolean) => {
+    setApiVerified(verified);
+  };
 
-        const videoAsset = currentFiles.find((f) => f.isVideo);
-        const photoAssets = currentFiles.filter((f) => !f.isVideo).map((f) => f.dataUrl);
+  // ==========================================
+  // INGESTION: DRAG & DROP 1-100+ FILES
+  // ==========================================
 
-        const draft: Partial<DynamicCanvasFile> = {
-          id: `custom-${Date.now()}`,
-          code: inferredTitle.slice(0, 3).toUpperCase(),
-          name: inferredTitle,
-          discipline:
-            lower.includes('bridal') || lower.includes('luxury')
-              ? 'Art Direction • Luxury Fashion'
-              : 'Brand Identity & Visual Direction',
-          year: '2026',
-          role: 'Art Director & Brand Designer',
-          x: 100,
-          y: 100,
-          rot: 0,
-          img: photoAssets[0] || '',
-          aspect: '16/9',
-          colorTag: '#e60000',
-          photos: photoAssets,
-          photoCount: photoAssets.length,
-          desc: `Complete multi-channel campaign. Directed key visuals, lookbook brochure spreads, and commercial motion for ${inferredTitle}.`,
-          deliverables: ['Brand Identity', 'Lookbook Spreads', 'Widescreen Banners', 'Campaign Motion'],
-          videoUrl: videoAsset?.dataUrl || undefined,
-        };
+  const handleDropFiles = async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (!files.length) return;
 
-        const aiReply: ChatMessage = {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: `Received ${currentFiles.length} visual asset(s) for "${inferredTitle}" (${photoAssets.length} uncropped plates${videoAsset ? ' + 1 commercial video reel' : ''}). Key visuals set to 16:9 widescreen master banner and 4:5 editorial lookbook frames. Ready to publish live to your portfolio?`,
-          timestamp: 'Studio Bot',
-          suggestedAction: {
-            label: `🚀 Publish "${inferredTitle}" to Live Portfolio`,
-            projectDraft: draft,
-          },
-        };
+    notifyUser(`Inspecting ${files.length} creative file(s)...`);
 
-        setChatHistory((prev) => [...prev, aiReply]);
-      }, 500);
-      return;
-    }
+    const inspectedList = await Promise.all(files.map((f) => inspectMediaFile(f)));
 
-    // 2. Direct AI Conversation: Call /api/ai (uses live Gemini if connected, or smart director engine)
+    // Pre-fill projectId if we are adding to a specific project
+    const defaultProjectId = batchSuggestion?.matchedProjectId || (activeView === 'single_project' ? selectedProjectId : null);
+    const updatedInspected = inspectedList.map((item) => ({
+      ...item,
+      projectId: defaultProjectId || item.projectId,
+    }));
+
+    setUploadQueue((prev) => [...prev, ...updatedInspected]);
+
+    // Background AI Suggestion Pipeline
+    setIsAnalyzingAi(true);
     try {
-      const apiRes = await fetch('/api/ai', {
+      const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'chat',
-          geminiKey: geminiApiKey,
-          campaigns: campaigns.map((c) => ({
-            name: c.name,
-            discipline: c.discipline,
-            deliverables: c.photos?.length || 1,
+          action: 'suggest_work_metadata',
+          geminiKey: apiKey,
+          files: updatedInspected.map((item) => ({
+            name: item.fileName,
+            type: item.fileType,
+            size: item.fileSize,
+            aspectRatio: item.dimensions.aspectRatio,
+            orientation: item.dimensions.orientation,
+            duration: item.dimensions.duration,
           })),
-          messages: chatHistory
-            .map((m) => ({
-              role: m.sender === 'ai' ? 'model' : 'user',
-              content: m.text,
-            }))
-            .concat([{ role: 'user', content: userText }]),
+          existingProjects: projects.map((p) => ({ id: p.id, title: p.title })),
+          existingDisciplines: DISCIPLINE_PRESETS,
         }),
       });
 
-      if (apiRes.ok) {
-        const data = await apiRes.json();
-        if (data.reply) {
-          setChatHistory((prev) => [
-            ...prev,
-            {
-              id: `ai-${Date.now()}`,
-              sender: 'ai',
-              text: data.reply,
-              timestamp: data.engine?.startsWith('gemini') ? 'Gemini AI' : 'Studio Bot',
-            },
-          ]);
-          return;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.matchedProjectId || data.matchedProjectName) {
+          setBatchSuggestion({
+            matchedProjectId: data.matchedProjectId,
+            matchedProjectName: data.matchedProjectName,
+            projectConfidence: data.confidence || 0.9,
+            groupSuggestion: data.groupSuggestion,
+          });
+
+          // Auto-apply high confidence project match if not already assigned
+          if (data.matchedProjectId && !defaultProjectId) {
+            setUploadQueue((prev) =>
+              prev.map((item) => ({
+                ...item,
+                projectId: item.projectId || data.matchedProjectId,
+                workType: item.workType,
+              }))
+            );
+          }
         }
       }
     } catch (err) {
-      console.warn('API call failed, falling back', err);
+      console.warn('AI analysis fallback', err);
+    } finally {
+      setIsAnalyzingAi(false);
     }
-
-    // 3. Emergency offline fallback
-    setTimeout(() => {
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: "I'm here at your studio desk. Drop your campaign images or video files right into this chat, and I'll organize them with zero cropping.",
-          timestamp: 'Studio Bot',
-        },
-      ]);
-    }, 300);
   };
 
-  const handlePublishDraft = async (draft?: Partial<DynamicCanvasFile>) => {
-    if (!draft || !draft.name) return;
-    setIsSaving(true);
+  const handlePublishUploadQueue = async (status: 'published' | 'draft') => {
+    if (!uploadQueue.length) return;
+    setIsPublishingBatch(true);
 
-    const newProject: DynamicCanvasFile = {
-      id: draft.id || `custom-${Date.now()}`,
-      code: draft.code || 'DIR',
-      name: draft.name,
-      discipline: draft.discipline || 'Art Direction',
-      year: draft.year || '2026',
-      role: draft.role || 'Art Director',
-      x: 200,
-      y: 200,
-      rot: 0,
-      img: draft.img || draft.photos?.[0] || '',
-      aspect: '16/9',
-      colorTag: '#e60000',
-      photos: draft.photos || [],
-      photoCount: draft.photos?.length || 0,
-      desc: draft.desc || 'Comprehensive visual direction.',
-      deliverables: draft.deliverables || ['Brand Identity'],
-      videoUrl: draft.videoUrl,
+    try {
+      const newWorks: WorkItem[] = uploadQueue.map((item) => ({
+        id: `work-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title: item.title,
+        mediaUrl: item.dataUrl,
+        thumbnailUrl: item.thumbnailUrl,
+        mediaType: item.mediaType,
+        fileType: item.fileType,
+        fileName: item.fileName,
+        fileSize: item.fileSize,
+        dimensions: item.dimensions,
+        workType: item.workType,
+        disciplines: item.disciplines,
+        tags: item.tags,
+        projectId: item.projectId, // null = STANDALONE WORK! 100% VALID!
+        collectionIds: [],
+        seriesId: item.seriesId,
+        year: new Date().getFullYear().toString(),
+        status,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }));
+
+      // If series grouping was suggested, create series container
+      if (batchSuggestion?.groupSuggestion?.shouldGroup) {
+        const newSeries: SeriesGroup = {
+          id: `series-${Date.now()}`,
+          title: batchSuggestion.groupSuggestion.groupTitle,
+          type: (batchSuggestion.groupSuggestion.groupType as any) || 'lookbook',
+          projectId: batchSuggestion.matchedProjectId || null,
+        };
+        await saveSeriesAsync(newSeries);
+        newWorks.forEach((w, idx) => {
+          w.seriesId = newSeries.id;
+          w.seriesOrder = idx + 1;
+        });
+      }
+
+      await saveWorksBatchAsync(newWorks);
+      await refreshData();
+
+      setUploadQueue([]);
+      setBatchSuggestion(null);
+      setIsAddWorkOpen(false);
+      notifyUser(`Successfully saved ${newWorks.length} work(s)!`);
+    } catch (err) {
+      console.error('Failed to save batch', err);
+      notifyUser('Error saving works. Check storage quota.');
+    } finally {
+      setIsPublishingBatch(false);
+    }
+  };
+
+  // ==========================================
+  // BULK ACTIONS (ZERO-COPY RELATIONSHIP UPDATES)
+  // ==========================================
+
+  const handleSelectAll = () => {
+    if (selectedWorkIds.size === filteredWorks.length) {
+      setSelectedWorkIds(new Set());
+    } else {
+      setSelectedWorkIds(new Set(filteredWorks.map((w) => w.id)));
+    }
+  };
+
+  const toggleSelectWork = (id: string) => {
+    setSelectedWorkIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkAssignProject = async (projId: string | null) => {
+    if (!selectedWorkIds.size) return;
+    const targets = works.filter((w) => selectedWorkIds.has(w.id));
+    const updated = targets.map((w) => ({ ...w, projectId: projId, updatedAt: Date.now() }));
+    await saveWorksBatchAsync(updated);
+    await refreshData();
+    setSelectedWorkIds(new Set());
+    const projName = projId ? projects.find((p) => p.id === projId)?.title || 'Project' : 'Standalone';
+    notifyUser(`Moved ${updated.length} work(s) to ${projName}.`);
+  };
+
+  const handleBulkSetType = async (workType: string) => {
+    if (!selectedWorkIds.size) return;
+    const targets = works.filter((w) => selectedWorkIds.has(w.id));
+    const updated = targets.map((w) => ({ ...w, workType, updatedAt: Date.now() }));
+    await saveWorksBatchAsync(updated);
+    await refreshData();
+    setSelectedWorkIds(new Set());
+    notifyUser(`Updated ${updated.length} work(s) to ${workType}.`);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedWorkIds.size) return;
+    if (confirm(`Permanently delete ${selectedWorkIds.size} selected work(s)? This cannot be undone.`)) {
+      await deleteWorksBatchAsync(Array.from(selectedWorkIds));
+      await refreshData();
+      setSelectedWorkIds(new Set());
+      notifyUser('Deleted selected works.');
+    }
+  };
+
+  const handleDetachWorkFromProject = async (workId: string) => {
+    const work = works.find((w) => w.id === workId);
+    if (!work) return;
+    await saveWorkAsync({ ...work, projectId: null, updatedAt: Date.now() });
+    await refreshData();
+    notifyUser(`"${work.title}" is now a Standalone Work.`);
+  };
+
+  const handleCreateNewProject = async (): Promise<string | null> => {
+    if (!newProjectTitle.trim()) {
+      alert('Project title is required.');
+      return null;
+    }
+    const slug = newProjectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const newProj: Project = {
+      id: `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title: newProjectTitle.trim(),
+      slug,
+      tag: newProjectTag.trim() || 'COMMERCIAL CAMPAIGN',
+      client: newProjectClient.trim() || newProjectTitle.trim(),
+      role: newProjectRole.trim() || 'Director of Visuals',
+      year: newProjectYear.trim() || new Date().getFullYear().toString(),
+      overview: newProjectOverview.trim(),
+      coverWorkId: null,
+      status: 'published',
+      featured: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     };
-
-    await saveCanvasFileAsync(newProject);
-    await refreshCampaigns();
-    setIsSaving(false);
-
-    setChatHistory((prev) => [
-      ...prev,
-      {
-        id: `pub-${Date.now()}`,
-        sender: 'ai',
-        text: `🎉 "${newProject.name}" has been published to your live portfolio! You can open it in the Work section or manage it under the Manage tab.`,
-        timestamp: 'Studio Bot',
-      },
-    ]);
+    await saveProjectAsync(newProj);
+    await refreshData();
+    setIsNewProjectModalOpen(false);
+    setNewProjectTitle('');
+    setNewProjectClient('');
+    setNewProjectOverview('');
+    notifyUser(`Project "${newProj.title}" created successfully.`);
+    return newProj.id;
   };
 
-  const handleDeleteCampaign = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to completely delete "${name}"? This cannot be undone.`)) {
-      deleteCanvasFile(id);
-      await refreshCampaigns();
-      setStatusMessage(`Deleted "${name}" successfully.`);
-      setTimeout(() => setStatusMessage(null), 3000);
-    }
-  };
+  // ==========================================
+  // FILTERED DATA COMPUTATION
+  // ==========================================
+
+  const filteredWorks = useMemo(() => {
+    return filterWorks(works, {
+      search: searchQuery,
+      projectId: filterProject,
+      workType: filterType,
+      orientation: filterOrientation,
+      status: filterStatus,
+    });
+  }, [works, searchQuery, filterProject, filterType, filterOrientation, filterStatus]);
+
+  // Current project for single project detail view
+  const currentProject = useMemo(() => {
+    return projects.find((p) => p.id === selectedProjectId) || null;
+  }, [projects, selectedProjectId]);
+
+  const currentProjectWorks = useMemo(() => {
+    if (!selectedProjectId) return [];
+    return works.filter((w) => w.projectId === selectedProjectId);
+  }, [works, selectedProjectId]);
+
+  // Dynamic Work Types that ACTUALLY exist in this project
+  const currentProjectTypes = useMemo(() => {
+    return Array.from(new Set(currentProjectWorks.map((w) => w.workType))).filter(Boolean);
+  }, [currentProjectWorks]);
+
+  const displayProjectWorks = useMemo(() => {
+    if (projectTypeFilter === 'all') return currentProjectWorks;
+    return currentProjectWorks.filter((w) => w.workType.toLowerCase() === projectTypeFilter.toLowerCase());
+  }, [currentProjectWorks, projectTypeFilter]);
 
   return (
-    <main className="min-h-screen bg-[#0d0d0e] text-white selection:bg-[#e60000] selection:text-white font-sans">
+    <main className="min-h-screen bg-[#0d0d0e] text-white selection:bg-[#e60000] selection:text-white font-sans flex flex-col">
       <CustomCursor />
 
-      {/* Top Luxury Studio Bar — Line-Free */}
-      <header className="sticky top-0 z-40 bg-[#141416]/90 backdrop-blur-md px-6 sm:px-12 py-5 flex items-center justify-between">
+      {/* TOP EDITORIAL STUDIO BAR */}
+      <header className="sticky top-0 z-40 bg-[#121214]/90 backdrop-blur-md px-6 sm:px-10 py-4 flex items-center justify-between border-b border-white/[0.06]">
         <div className="flex items-center gap-4">
           <Link
             href="/"
@@ -466,561 +653,1346 @@ export default function AdminPage() {
           >
             ← <span>Return to Portfolio</span>
           </Link>
-          <span className="text-neutral-600 font-mono text-xs">•</span>
-          <span className="font-display font-black text-sm uppercase tracking-wider text-white">
-            Studio Desk
+          <span className="text-neutral-700 font-mono text-xs">•</span>
+          <span className="font-display font-black text-xs uppercase tracking-wider text-white">
+            Creative Archive
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-[#e60000]/15 text-[#e60000] font-mono text-[10px] font-bold">
-            Live Mode
+          <span className="px-2 py-0.5 rounded-full bg-[#e60000]/15 text-[#e60000] font-mono text-[9px] font-bold uppercase">
+            Upload First CMS
           </span>
         </div>
 
-        {/* Actions & Tab Switcher Pills */}
-        <div className="flex items-center gap-3">
-          <nav className="flex items-center bg-black/50 p-1 rounded-full text-xs font-mono">
-            <button
-              type="button"
-              onClick={() => setActiveTab('assistant')}
-              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
-                activeTab === 'assistant'
-                  ? 'bg-[#e60000] text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              🤖 AI Studio Assistant
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('manage')}
-              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
-                activeTab === 'manage'
-                  ? 'bg-[#e60000] text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              📂 Manage Campaigns ({campaigns.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('quick')}
-              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
-                activeTab === 'quick'
-                  ? 'bg-[#e60000] text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              ⚡ Quick Upload
-            </button>
-          </nav>
+        {/* View Switcher Pills */}
+        <nav className="flex items-center bg-black/60 p-1 rounded-full text-xs font-mono">
+          <button
+            type="button"
+            onClick={() => { setActiveView('all_work'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
+              activeView === 'all_work' ? 'bg-[#e60000] text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            All Work ({works.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveView('projects'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
+              activeView === 'projects' || activeView === 'single_project'
+                ? 'bg-[#e60000] text-white shadow-xs'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Projects ({projects.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveView('journal'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
+              activeView === 'journal' ? 'bg-[#e60000] text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Journal ({posts.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveView('settings'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
+              activeView === 'settings' ? 'bg-[#e60000] text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Settings
+          </button>
+        </nav>
 
-          {/* Gemini API Connection Button */}
+        {/* + ADD WORK Primary Action */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => {
-              setTempApiKey(geminiApiKey);
-              setShowKeyModal(true);
+              setUploadQueue([]);
+              setBatchSuggestion(null);
+              setIsAddWorkOpen(true);
             }}
-            className={`px-3.5 py-1.5 rounded-full font-mono text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
-              geminiApiKey && isKeyVerified
-                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                : geminiApiKey
-                ? 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25'
-                : 'bg-[#1e1e24] hover:bg-[#282830] text-neutral-300'
-            }`}
-            title="Configure Google Gemini API Key"
+            className="px-5 py-2 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer"
           >
-            <span className={geminiApiKey && isKeyVerified ? 'text-emerald-400' : geminiApiKey ? 'text-amber-400' : 'text-neutral-500'}>●</span>
-            <span>{geminiApiKey && isKeyVerified ? 'Gemini Live' : geminiApiKey ? 'Verify Gemini' : '⚡ Connect Free Gemini'}</span>
+            <span>+</span>
+            <span>Add Work</span>
           </button>
         </div>
       </header>
 
-      {/* Gemini API Key Modal */}
-      {showKeyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#141416] p-6 sm:p-8 rounded-[28px] max-w-lg w-full space-y-5 shadow-2xl border border-white/5">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
-                  Live AI Intelligence
-                </span>
-                <h3 className="font-display font-black text-xl text-white uppercase tracking-tight mt-1">
-                  Connect Free Google Gemini
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowKeyModal(false)}
-                className="text-neutral-500 hover:text-white font-mono text-sm cursor-pointer p-1"
-              >
-                ✕
-              </button>
-            </div>
+      {/* TOAST NOTIFICATION BANNER */}
+      {statusNotification && (
+        <div className="fixed top-20 right-6 z-50 px-5 py-3 rounded-2xl bg-black/90 backdrop-blur-md border border-white/20 text-white font-mono text-xs font-bold shadow-2xl animate-fadeIn">
+          {statusNotification}
+        </div>
+      )}
 
-            <div className="bg-black/40 rounded-2xl p-4 space-y-2 text-xs font-sans text-neutral-300">
-              <p className="font-bold text-white flex items-center gap-2">
-                <span className="text-[#e60000]">●</span> Google provides 100% Free Gemini API keys:
-              </p>
-              <ol className="list-decimal list-inside space-y-1 text-neutral-400 pl-1 leading-relaxed">
-                <li>Open <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#e60000] hover:underline font-mono">aistudio.google.com/app/apikey ↗</a></li>
-                <li>Sign in with your regular Google account &amp; click <strong className="text-white">Create API Key</strong></li>
-                <li>Copy the key (starts with <code className="font-mono text-white text-[11px]">AIzaSy...</code>) and paste it below</li>
-              </ol>
-            </div>
-
-            <div className="space-y-2">
-              <label className="font-mono text-[11px] text-neutral-300 block uppercase">
-                Paste Gemini API Key
-              </label>
+      {/* ============================================================ */}
+      {/* VIEW 1: ALL WORK (THE CENTRAL CREATIVE ARCHIVE LIBRARY)      */}
+      {/* ============================================================ */}
+      {activeView === 'all_work' && (
+        <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-6">
+          {/* Controls Bar: Search & Filter Chips */}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-[#141416] p-4 sm:p-5 rounded-3xl border border-white/[0.06]">
+            {/* Natural Language & Keyword Search */}
+            <div className="relative flex-1 w-full max-w-xl">
               <input
                 type="text"
-                value={tempApiKey}
-                onChange={(e) => setTempApiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full bg-[#1e1e24] text-white px-4 py-3 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#e60000]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder='Search work, tags, or try natural queries: "all reels", "all standalone", "all 2026"...'
+                className="w-full bg-black/60 border border-white/[0.08] text-white placeholder-neutral-500 px-5 py-3 rounded-full text-xs font-mono outline-none focus:border-white/30 transition-all"
               />
-              <div className="flex items-center justify-between pt-1">
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-[10px] text-[#e60000] hover:underline"
-                >
-                  Get free key from Google AI Studio ↗
-                </a>
-                {geminiApiKey && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      saveApiKey('');
-                      setGeminiApiKey('');
-                      setTempApiKey('');
-                      setIsKeyVerified(false);
-                      setShowKeyModal(false);
-                      setStatusMessage('Gemini key removed. Studio is in offline director mode.');
-                      setTimeout(() => setStatusMessage(null), 3000);
-                    }}
-                    className="font-mono text-[10px] text-red-500 hover:underline cursor-pointer"
-                  >
-                    Disconnect Key
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowKeyModal(false)}
-                className="px-4 py-2 rounded-full font-mono text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const keyToSave = tempApiKey.trim();
-                  saveApiKey(keyToSave);
-                  setGeminiApiKey(keyToSave);
-                  setShowKeyModal(false);
-
-                  if (keyToSave) {
-                    setStatusMessage('Testing connection with Google Gemini...');
-                    try {
-                      const res = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'verify_key', geminiKey: keyToSave }),
-                      });
-                      const data = await res.json();
-                      if (data.verified) {
-                        setIsKeyVerified(true);
-                        setStatusMessage(`✓ Connected & Verified with Google (${data.model})!`);
-                      } else {
-                        setIsKeyVerified(false);
-                        setStatusMessage(`✕ Key Error: ${data.error || data.reason || 'Google rejected key'}`);
-                      }
-                    } catch {
-                      setIsKeyVerified(false);
-                      setStatusMessage('✓ Saved key to studio.');
-                    }
-                  } else {
-                    setIsKeyVerified(false);
-                    setStatusMessage('Studio is in offline director mode.');
-                  }
-                  setTimeout(() => setStatusMessage(null), 5000);
-                }}
-                className="px-6 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-              >
-                Save &amp; Verify
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Bar */}
-      {statusMessage && (
-        <div className="bg-[#e60000] text-white py-2 px-6 text-center font-mono text-xs font-bold animate-fadeIn">
-          {statusMessage}
-        </div>
-      )}
-
-      {/* Main Studio Viewport */}
-      <div className="max-w-6xl mx-auto px-6 py-8 sm:py-12">
-        {/* TAB 1: AI STUDIO ASSISTANT */}
-        {activeTab === 'assistant' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Chat Conversation Column */}
-            <div className="lg:col-span-8 flex flex-col bg-[#141416] rounded-[24px] p-6 sm:p-8 min-h-[580px] shadow-2xl">
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto space-y-6 pr-2 max-h-[480px]">
-                {chatHistory.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-                  >
-                    <span className="font-mono text-[10px] text-neutral-500 mb-1 px-1">
-                      {msg.timestamp}
-                    </span>
-                    <div
-                      className={`max-w-xl rounded-[20px] p-4 sm:p-5 text-sm leading-relaxed ${
-                        msg.sender === 'user'
-                          ? 'bg-[#e60000] text-white font-medium'
-                          : 'bg-[#1e1e24] text-neutral-200'
-                      }`}
-                    >
-                      {renderFormattedMessage(msg.text)}
-
-                      {/* Bot Action Button (Publish Draft) */}
-                      {msg.suggestedAction && (
-                        <div className="mt-4 pt-2">
-                          <button
-                            type="button"
-                            disabled={isSaving}
-                            onClick={() => handlePublishDraft(msg.suggestedAction?.projectDraft)}
-                            className="w-full py-3 px-4 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-all cursor-pointer shadow-lg disabled:opacity-50"
-                          >
-                            {isSaving ? 'Publishing...' : msg.suggestedAction.label}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Chat Input & File Drop Area */}
-              <form onSubmit={handleSendMessage} className="mt-6 pt-2 space-y-3">
-                {/* Attached Files Preview */}
-                {chatFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-2 bg-black/40 rounded-xl">
-                    {chatFiles.map((f, i) => (
-                      <span
-                        key={i}
-                        className="px-2.5 py-1 rounded-md bg-[#1e1e24] text-xs font-mono text-neutral-300 flex items-center gap-1.5"
-                      >
-                        <span>{f.isVideo ? '🎥' : '🖼️'}</span>
-                        <span className="max-w-[120px] truncate">{f.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => setChatFiles((prev) => prev.filter((_, idx) => idx !== i))}
-                          className="text-neutral-500 hover:text-white ml-1"
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileDrop}
-                    multiple
-                    accept="image/*,video/*"
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-12 h-12 rounded-full bg-[#1e1e24] hover:bg-neutral-700 text-white flex items-center justify-center cursor-pointer transition-colors text-lg shrink-0"
-                    title="Attach Deliverable Images / Video"
-                  >
-                    📎
-                  </button>
-
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Tell your bot what to upload or organize (e.g. Kaldhar Bridal brochure)..."
-                    className="flex-1 bg-[#1e1e24] text-white placeholder-neutral-500 px-5 py-3.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#e60000]"
-                  />
-
-                  <button
-                    type="submit"
-                    className="px-6 py-3.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0"
-                  >
-                    Send →
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* Right Guide Column */}
-            <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[#141416] p-6 rounded-[24px] space-y-4">
-                <h3 className="font-display font-black text-sm uppercase tracking-wider text-white">
-                  Quick Prompts for Bot
-                </h3>
-                <div className="space-y-2">
-                  {[
-                    'Organize Kaldhar Bridal with 1920x1080 banner first, then brochure pages',
-                    'Create Brand Identity campaign with widescreen slides',
-                    'Upload fashion lookbook with A4 double-page spreads',
-                    'Add automotive reel with sound',
-                  ].map((p, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setChatInput(p)}
-                      className="w-full text-left p-3 rounded-xl bg-[#1e1e24] hover:bg-[#282830] text-xs text-neutral-300 transition-colors cursor-pointer block"
-                    >
-                      💬 &ldquo;{p}&rdquo;
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[#141416] p-6 rounded-[24px] space-y-3 font-mono text-xs text-neutral-400">
-                <h4 className="text-white font-bold uppercase tracking-wider">Uncropped Specs</h4>
-                <p>• 1920×1080 (16:9): Displays full widescreen banner.</p>
-                <p>• A4 / 4:5: Displays as clean brochure spreads without crop.</p>
-                <p>• Videos / Reels: Supported up to 1080×1920 or 1920×1080.</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: MANAGE LIVE CAMPAIGNS */}
-        {activeTab === 'manage' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-display font-black text-2xl uppercase tracking-wider text-white">
-                  Active Portfolio Campaigns
-                </h2>
-                <p className="text-neutral-400 text-xs font-mono mt-1">
-                  Manage all projects currently accessible on your portfolio. Delete any with 1 click.
-                </p>
-              </div>
-            </div>
-
-            {campaigns.length === 0 ? (
-              <div className="bg-[#141416] rounded-[24px] p-12 text-center space-y-4">
-                <p className="text-neutral-400 text-sm font-mono">No custom campaigns uploaded yet.</p>
+              {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setActiveTab('assistant')}
-                  className="px-6 py-2.5 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white text-xs font-mono"
                 >
-                  Upload First Campaign with AI →
+                  ✕
                 </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {campaigns.map((c) => (
+              )}
+            </div>
+
+            {/* Filter Dropdowns */}
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs w-full lg:w-auto">
+              {/* Project Filter */}
+              <select
+                value={filterProject}
+                onChange={(e) => setFilterProject(e.target.value)}
+                className="bg-black/60 border border-white/[0.08] text-neutral-300 rounded-full px-3.5 py-2.5 outline-none cursor-pointer hover:border-white/20"
+              >
+                <option value="all" className="bg-neutral-900">All Projects &amp; Standalone</option>
+                <option value="standalone" className="bg-neutral-900">Standalone Works Only</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-neutral-900">Project: {p.title}</option>
+                ))}
+              </select>
+
+              {/* Work Type Filter */}
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="bg-black/60 border border-white/[0.08] text-neutral-300 rounded-full px-3.5 py-2.5 outline-none cursor-pointer hover:border-white/20"
+              >
+                <option value="all" className="bg-neutral-900">All Work Types</option>
+                {COMMON_WORK_TYPES.map((t) => (
+                  <option key={t} value={t} className="bg-neutral-900">{t}</option>
+                ))}
+              </select>
+
+              {/* Orientation Filter */}
+              <select
+                value={filterOrientation}
+                onChange={(e) => setFilterOrientation(e.target.value as any)}
+                className="bg-black/60 border border-white/[0.08] text-neutral-300 rounded-full px-3.5 py-2.5 outline-none cursor-pointer hover:border-white/20"
+              >
+                <option value="all" className="bg-neutral-900">All Orientations</option>
+                <option value="vertical" className="bg-neutral-900">Vertical (9:16 / 4:5)</option>
+                <option value="horizontal" className="bg-neutral-900">Horizontal (16:9 / 16:10)</option>
+                <option value="square" className="bg-neutral-900">Square (1:1)</option>
+                <option value="panoramic" className="bg-neutral-900">Panoramic</option>
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as any)}
+                className="bg-black/60 border border-white/[0.08] text-neutral-300 rounded-full px-3.5 py-2.5 outline-none cursor-pointer hover:border-white/20"
+              >
+                <option value="all" className="bg-neutral-900">All Statuses</option>
+                <option value="published" className="bg-neutral-900">Published</option>
+                <option value="draft" className="bg-neutral-900">Draft</option>
+                <option value="archived" className="bg-neutral-900">Archived</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Select All & Summary Header */}
+          <div className="flex items-center justify-between font-mono text-xs text-neutral-400 px-2">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {selectedWorkIds.size === filteredWorks.length && filteredWorks.length > 0
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
+              <span>•</span>
+              <span>Showing {filteredWorks.length} of {works.length} works</span>
+            </div>
+
+            {selectedWorkIds.size > 0 && (
+              <span className="text-[#e60000] font-bold">
+                {selectedWorkIds.size} work(s) selected
+              </span>
+            )}
+          </div>
+
+          {/* WORKS VISUAL GRID */}
+          {isLoading ? (
+            <div className="py-24 text-center font-mono text-xs text-neutral-500 animate-pulse">
+              Hydrating archive from IndexedDB...
+            </div>
+          ) : filteredWorks.length === 0 ? (
+            <div className="py-24 text-center space-y-3 bg-[#141416] rounded-3xl border border-white/[0.06] p-8">
+              <p className="font-mono text-xs text-neutral-400">
+                No works found matching your filter.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterProject('all');
+                  setFilterType('all');
+                  setFilterOrientation('all');
+                  setFilterStatus('all');
+                }}
+                className="px-4 py-2 rounded-full bg-white/[0.08] text-white font-mono text-xs hover:bg-white/[0.15] cursor-pointer"
+              >
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {filteredWorks.map((work) => {
+                const isSelected = selectedWorkIds.has(work.id);
+                const project = projects.find((p) => p.id === work.projectId);
+
+                return (
                   <div
-                    key={c.id}
-                    className="bg-[#141416] rounded-[20px] overflow-hidden group shadow-lg flex flex-col justify-between"
+                    key={work.id}
+                    onClick={() => setInspectingWork(work)}
+                    className={`group relative rounded-2xl bg-[#141416] border overflow-hidden flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
+                      isSelected
+                        ? 'border-[#e60000] ring-2 ring-[#e60000]/50'
+                        : 'border-white/[0.06] hover:border-white/20'
+                    }`}
                   >
-                    {/* Thumbnail */}
-                    <div className="relative aspect-[16/9] bg-black/40 overflow-hidden">
-                      {c.img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.img}
-                          alt={c.name}
+                    {/* Checkbox Overlay */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelectWork(work.id);
+                      }}
+                      className="absolute top-2.5 left-2.5 z-20 w-6 h-6 rounded-lg bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/20 hover:border-white transition-colors cursor-pointer"
+                    >
+                      {isSelected && <span className="text-[#e60000] font-black text-xs">✓</span>}
+                    </div>
+
+                    {/* Aspect Ratio Badge */}
+                    <div className="absolute top-2.5 right-2.5 z-20 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-white">
+                      {work.dimensions.aspectRatio}
+                    </div>
+
+                    {/* Media Thumbnail */}
+                    <div className="relative aspect-[4/5] bg-black overflow-hidden">
+                      {work.mediaType === 'video' ? (
+                        <video
+                          src={work.mediaUrl}
+                          poster={work.thumbnailUrl}
+                          muted
+                          loop
+                          playsInline
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center font-mono text-xs text-neutral-600">
-                          NO PREVIEW
-                        </div>
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={work.thumbnailUrl || work.mediaUrl}
+                          alt={work.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       )}
-                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md font-mono text-[10px] text-white font-bold">
-                        {c.photos?.length || 1} DELIVERABLES
+                    </div>
+
+                    {/* Card Meta */}
+                    <div className="p-3 space-y-1.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <span className="font-mono text-[9px] font-bold text-[#e60000] uppercase tracking-wider block">
+                          {work.workType}
+                        </span>
+                        <h4 className="font-display font-bold text-xs text-white line-clamp-1">
+                          {work.title}
+                        </h4>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/[0.04] flex items-center justify-between font-mono text-[9.5px]">
+                        <span className="text-neutral-400 truncate max-w-[90px]">
+                          {project ? project.title : 'Standalone'}
+                        </span>
+                        <span className="text-neutral-600 uppercase font-semibold">
+                          {work.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* VIEW 2: PROJECTS (CONTAINERS FOR BODIES OF WORK)             */}
+      {/* ============================================================ */}
+      {activeView === 'projects' && (
+        <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
+                Project Containers ({projects.length})
+              </h2>
+              <p className="font-mono text-xs text-neutral-400 pt-1">
+                Optional containers representing larger campaigns or brand identities. Works exist independently.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsNewProjectModalOpen(true)}
+              className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer"
+            >
+              + New Project Container
+            </button>
+          </div>
+
+          {projects.length === 0 ? (
+            <div className="py-24 text-center space-y-3 bg-[#141416] rounded-3xl border border-white/[0.06] p-8">
+              <p className="font-mono text-xs text-neutral-400">
+                No projects created yet. You can create projects to group reels, lookbooks, and branding together.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsNewProjectModalOpen(true)}
+                className="px-5 py-2.5 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Create First Project
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => {
+                const projectWorks = works.filter((w) => w.projectId === project.id);
+                const coverWork = works.find((w) => w.id === project.coverWorkId) || projectWorks[0];
+                const workTypes = Array.from(new Set(projectWorks.map((w) => w.workType))).filter(Boolean);
+
+                return (
+                  <div
+                    key={project.id}
+                    onClick={() => {
+                      setSelectedProjectId(project.id);
+                      setProjectTypeFilter('all');
+                      setActiveView('single_project');
+                    }}
+                    className="group rounded-3xl bg-[#141416] border border-white/[0.06] hover:border-white/20 p-6 space-y-5 cursor-pointer transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+                  >
+                    <div className="space-y-4">
+                      {/* Cover Visual */}
+                      <div className="w-full aspect-[16/9] rounded-2xl bg-black overflow-hidden relative">
+                        {coverWork ? (
+                          coverWork.mediaType === 'video' ? (
+                            <video
+                              src={coverWork.mediaUrl}
+                              poster={coverWork.thumbnailUrl}
+                              muted
+                              loop
+                              playsInline
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={coverWork.thumbnailUrl || coverWork.mediaUrl}
+                              alt={project.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          )
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center font-mono text-xs text-neutral-600">
+                            No Works Assigned Yet
+                          </div>
+                        )}
+                        <span className="absolute top-3 right-3 font-mono text-[10px] font-bold px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md text-white">
+                          {projectWorks.length} Deliverable(s)
+                        </span>
+                      </div>
+
+                      {/* Project Meta */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                            {project.tag || 'CAMPAIGN'}
+                          </span>
+                          <span className="text-neutral-600 font-mono text-xs">•</span>
+                          <span className="font-mono text-[10px] text-neutral-400">
+                            {project.year}
+                          </span>
+                        </div>
+
+                        <h3 className="font-display font-black text-xl text-white uppercase tracking-tight group-hover:text-[#e60000] transition-colors">
+                          {project.title}
+                        </h3>
+
+                        {project.client && (
+                          <p className="font-mono text-xs text-neutral-400">
+                            Client: <strong className="text-white">{project.client}</strong>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Dynamic Deliverable Breakdown Badges */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {workTypes.map((type) => (
+                          <span
+                            key={type}
+                            className="font-mono text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-neutral-300"
+                          >
+                            {type}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/[0.04] flex items-center justify-between font-mono text-xs text-neutral-500">
+                      <span>OPEN PROJECT ARCHIVE</span>
+                      <span className="text-white group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* VIEW 3: SINGLE PROJECT DETAIL VIEW (DYNAMIC WORK TYPE TABS)  */}
+      {/* ============================================================ */}
+      {activeView === 'single_project' && currentProject && (
+        <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          {/* Back Navigation & Project Header */}
+          <div className="space-y-6">
+            <button
+              type="button"
+              onClick={() => { setActiveView('projects'); setSelectedProjectId(null); }}
+              className="font-mono text-xs font-bold text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <span>←</span>
+              <span>BACK TO ALL PROJECTS</span>
+            </button>
+
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 p-8 rounded-3xl bg-[#141416] border border-white/[0.06]">
+              <div className="space-y-2 max-w-3xl">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-[#e60000] font-bold uppercase tracking-widest">
+                    {currentProject.tag || 'PROJECT'}
+                  </span>
+                  <span className="font-mono text-xs text-neutral-500">•</span>
+                  <span className="font-mono text-xs text-neutral-400 uppercase font-semibold">
+                    {currentProject.year}
+                  </span>
+                </div>
+                <h1 className="font-display font-black text-3xl sm:text-5xl text-white uppercase tracking-tight">
+                  {currentProject.title}
+                </h1>
+                <p className="font-mono text-xs text-neutral-400">
+                  Client: <strong className="text-white">{currentProject.client || currentProject.title}</strong> • Role: <strong className="text-white">{currentProject.role || 'Lead Art Director'}</strong>
+                </p>
+                {currentProject.overview && (
+                  <p className="font-sans text-sm text-neutral-300 pt-2 leading-relaxed">
+                    {currentProject.overview}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Delete project "${currentProject.title}"? Note: All works inside this project will be preserved as Standalone works.`)) {
+                      deleteProjectAsync(currentProject.id);
+                      setActiveView('projects');
+                      notifyUser(`Project deleted. Works preserved as Standalone.`);
+                    }
+                  }}
+                  className="px-4 py-2.5 rounded-full bg-white/[0.06] hover:bg-red-500/20 hover:text-red-400 text-neutral-400 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  Delete Project
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadQueue([]);
+                    setBatchSuggestion({ matchedProjectId: currentProject.id, matchedProjectName: currentProject.title, projectConfidence: 1.0 });
+                    setIsAddWorkOpen(true);
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#e60000] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  + Add Work To Project
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* DYNAMIC WORK TYPE TABS (ONLY RENDER WHAT ACTUALLY EXISTS IN THIS PROJECT) */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-white/[0.06] font-mono text-xs font-bold tracking-wider">
+              <button
+                type="button"
+                onClick={() => setProjectTypeFilter('all')}
+                className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
+                  projectTypeFilter === 'all' ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                ALL ({currentProjectWorks.length})
+              </button>
+
+              {currentProjectTypes.map((type) => {
+                const count = currentProjectWorks.filter((w) => w.workType.toLowerCase() === type.toLowerCase()).length;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setProjectTypeFilter(type)}
+                    className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
+                      projectTypeFilter === type ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    {type.toUpperCase()} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* PROJECT WORKS GRID */}
+            {displayProjectWorks.length === 0 ? (
+              <div className="py-16 text-center font-mono text-xs text-neutral-500">
+                No works found in this tab.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                {displayProjectWorks.map((work) => (
+                  <div
+                    key={work.id}
+                    className="group rounded-2xl bg-[#141416] border border-white/[0.06] hover:border-white/20 overflow-hidden flex flex-col cursor-pointer"
+                    onClick={() => setInspectingWork(work)}
+                  >
+                    <div className="relative aspect-[4/5] bg-black overflow-hidden">
+                      {work.mediaType === 'video' ? (
+                        <video
+                          src={work.mediaUrl}
+                          poster={work.thumbnailUrl}
+                          muted
+                          loop
+                          playsInline
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={work.thumbnailUrl || work.mediaUrl}
+                          alt={work.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      )}
+                      <span className="absolute top-2.5 right-2.5 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-white">
+                        {work.dimensions.aspectRatio}
                       </span>
                     </div>
 
-                    {/* Meta & Delete Action */}
-                    <div className="p-5 space-y-4">
+                    <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
                       <div>
-                        <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
-                          {c.discipline}
+                        <span className="font-mono text-[9px] font-bold text-[#e60000] uppercase tracking-wider block">
+                          {work.workType}
                         </span>
-                        <h3 className="font-display font-black text-lg text-white uppercase tracking-tight mt-0.5">
-                          {c.name}
-                        </h3>
-                        <p className="text-xs text-neutral-400 line-clamp-2 mt-1 font-sans">
-                          {c.desc}
-                        </p>
+                        <h4 className="font-display font-bold text-xs text-white line-clamp-1">
+                          {work.title}
+                        </h4>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2">
-                        <Link
-                          href="/"
-                          className="font-mono text-xs text-neutral-400 hover:text-white transition-colors"
-                        >
-                          View Live ↗
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCampaign(c.id, c.name)}
-                          className="px-3.5 py-1.5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs font-bold transition-all cursor-pointer"
-                        >
-                          🗑️ Delete
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDetachWorkFromProject(work.id);
+                        }}
+                        className="w-full py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-neutral-400 hover:text-white font-mono text-[9.5px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                      >
+                        Detach (Make Standalone)
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        )}
+        </section>
+      )}
 
-        {/* TAB 3: QUICK DIRECT UPLOAD */}
-        {activeTab === 'quick' && (
-          <div className="max-w-2xl mx-auto bg-[#141416] p-8 rounded-[24px] shadow-2xl space-y-6">
-            <h2 className="font-display font-black text-xl uppercase tracking-wider text-white">
-              Direct Campaign Upload
-            </h2>
+      {/* ============================================================ */}
+      {/* VIEW 4: JOURNAL / BLOG                                       */}
+      {/* ============================================================ */}
+      {activeView === 'journal' && (
+        <section className="flex-1 max-w-[1400px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
+                Journal Articles ({posts.length})
+              </h2>
+              <p className="font-mono text-xs text-neutral-400 pt-1">
+                Editorial thoughts, on-set technical notes, and typography manifestos. Independent from creative works.
+              </p>
+            </div>
+          </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="font-mono text-xs text-neutral-400 block mb-1 uppercase">
-                  Project Title *
-                </label>
-                <input
-                  type="text"
-                  value={quickTitle}
-                  onChange={(e) => setQuickTitle(e.target.value)}
-                  placeholder="e.g. Kaldhar Luxury Bridal"
-                  className="w-full bg-[#1e1e24] text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#e60000]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="font-mono text-xs text-neutral-400 block mb-1 uppercase">
-                    Discipline
-                  </label>
-                  <input
-                    type="text"
-                    value={quickDiscipline}
-                    onChange={(e) => setQuickDiscipline(e.target.value)}
-                    placeholder="e.g. Art Direction"
-                    className="w-full bg-[#1e1e24] text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#e60000]"
-                  />
-                </div>
-                <div>
-                  <label className="font-mono text-xs text-neutral-400 block mb-1 uppercase">
-                    Market
-                  </label>
-                  <input
-                    type="text"
-                    value={quickMarket}
-                    onChange={(e) => setQuickMarket(e.target.value)}
-                    placeholder="e.g. Heritage Luxury"
-                    className="w-full bg-[#1e1e24] text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#e60000]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-mono text-xs text-neutral-400 block mb-1 uppercase">
-                  Narrative
-                </label>
-                <textarea
-                  value={quickDesc}
-                  onChange={(e) => setQuickDesc(e.target.value)}
-                  rows={3}
-                  placeholder="Project narrative and commercial impact..."
-                  className="w-full bg-[#1e1e24] text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#e60000]"
-                />
-              </div>
-
-              {/* File Selector */}
-              <div>
-                <label className="font-mono text-xs text-neutral-400 block mb-1 uppercase">
-                  Upload Deliverables (Images &amp; Videos)
-                </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={async (e) => {
-                    if (e.target.files) {
-                      const files = Array.from(e.target.files);
-                      const processed = await Promise.all(files.map((f) => readHighResAsset(f)));
-                      setQuickFiles(processed);
-                    }
-                  }}
-                  className="w-full text-xs font-mono text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#e60000] file:text-white hover:file:bg-[#ff1a1a] cursor-pointer"
-                />
-                {quickFiles.length > 0 && (
-                  <p className="mt-2 text-xs font-mono text-emerald-400">
-                    ✓ {quickFiles.length} deliverable(s) ready to publish.
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <div
+                key={post.slug}
+                className="p-6 rounded-2xl bg-[#141416] border border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+              >
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                    {post.category} • {post.date}
+                  </span>
+                  <h3 className="font-display font-bold text-lg text-white">
+                    {post.title}
+                  </h3>
+                  <p className="font-mono text-xs text-neutral-400 line-clamp-1 max-w-2xl">
+                    {post.excerpt}
                   </p>
-                )}
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    target="_blank"
+                    className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-white font-mono text-xs font-bold uppercase tracking-wider"
+                  >
+                    View Post ↗
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`Delete post "${post.title}"?`)) {
+                        deleteBlogPost(post.slug);
+                        setPosts(getStoredBlogPosts());
+                        notifyUser('Post deleted.');
+                      }
+                    }}
+                    className="p-2 rounded-full text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* VIEW 5: SETTINGS & LIVE CREDENTIALS                          */}
+      {/* ============================================================ */}
+      {activeView === 'settings' && (
+        <section className="flex-1 max-w-[1000px] w-full mx-auto px-6 sm:px-10 py-8 space-y-10">
+          <div>
+            <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
+              Settings &amp; Directorial Configuration
+            </h2>
+            <p className="font-mono text-xs text-neutral-400 pt-1">
+              Configure Google Gemini API keys, SEO verification tags, and archive backups.
+            </p>
+          </div>
+
+          {/* Gemini AI API Key Manager */}
+          <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.06] space-y-6">
+            <div className="space-y-1">
+              <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
+                Google Gemini API Key
+              </h3>
+              <p className="font-mono text-xs text-neutral-400">
+                Powers real-time work analysis, project suggestion confidence, and editorial ghostwriting.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => {
+                  setApiKey(e.target.value);
+                  setApiVerified(null);
+                }}
+                placeholder="Enter Gemini API Key (e.g. AIzaSy...)"
+                className="flex-1 px-4 py-3 rounded-xl bg-black/60 border border-white/[0.08] text-white font-mono text-xs outline-none focus:border-white/30"
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  saveApiKey(apiKey);
+                  notifyUser('Verifying API Key with Google...');
+                  try {
+                    const res = await fetch('/api/ai', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'verify_key', geminiKey: apiKey }),
+                    });
+                    const data = await res.json();
+                    if (data.verified) {
+                      setApiVerified(true);
+                      notifyUser('API Key Verified Successfully!');
+                    } else {
+                      setApiVerified(false);
+                      notifyUser('Google rejected this API Key.');
+                    }
+                  } catch {
+                    setApiVerified(false);
+                  }
+                }}
+                className="px-6 py-3 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer shrink-0"
+              >
+                Save &amp; Verify
+              </button>
+            </div>
+
+            {apiVerified === true && (
+              <div className="font-mono text-xs text-emerald-400 font-bold flex items-center gap-2">
+                <span>✓</span>
+                <span>Active &amp; connected to Google Gemini 2.0 Flash.</span>
+              </div>
+            )}
+            {apiVerified === false && (
+              <div className="font-mono text-xs text-red-400 font-bold flex items-center gap-2">
+                <span>✕</span>
+                <span>Key invalid or refused by Google. Please check your credentials.</span>
+              </div>
+            )}
+          </div>
+
+          {/* Database Backup & Export */}
+          <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.06] space-y-4">
+            <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
+              Archive Backup &amp; Health
+            </h3>
+            <p className="font-mono text-xs text-neutral-400">
+              Total Works: <strong className="text-white">{works.length}</strong> • Total Projects: <strong className="text-white">{projects.length}</strong>
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const data = { works, projects, collections, seriesList, timestamp: Date.now() };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `moiz_creative_archive_${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+              }}
+              className="px-5 py-2.5 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Export JSON Archive Backup
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* FLOATING BULK UTILITY BAR (WHEN 1+ WORKS SELECTED)           */}
+      {/* ============================================================ */}
+      {selectedWorkIds.size > 0 && activeView === 'all_work' && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-2xl bg-black/90 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-wrap items-center gap-4 animate-fadeIn max-w-[95vw]">
+          <span className="font-mono text-xs font-bold text-[#e60000] tracking-wider uppercase">
+            {selectedWorkIds.size} Selected
+          </span>
+
+          <div className="h-4 w-px bg-white/20" />
+
+          {/* Assign Project Dropdown */}
+          <select
+            onChange={(e) => {
+              if (e.target.value === 'new') {
+                setIsNewProjectModalOpen(true);
+              } else if (e.target.value === 'standalone') {
+                handleBulkAssignProject(null);
+              } else if (e.target.value) {
+                handleBulkAssignProject(e.target.value);
+              }
+              e.target.value = '';
+            }}
+            defaultValue=""
+            className="bg-white/[0.1] hover:bg-white/[0.2] text-white border-0 rounded-lg px-3 py-1.5 text-xs font-mono font-medium outline-none cursor-pointer"
+          >
+            <option value="" disabled className="bg-neutral-900">Assign to Project...</option>
+            <option value="standalone" className="bg-neutral-900">Make Standalone (No Project)</option>
+            <option value="new" className="bg-neutral-900">+ Create New Project</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id} className="bg-neutral-900">{p.title}</option>
+            ))}
+          </select>
+
+          {/* Set Type Dropdown */}
+          <select
+            onChange={(e) => {
+              if (e.target.value) handleBulkSetType(e.target.value);
+              e.target.value = '';
+            }}
+            defaultValue=""
+            className="bg-white/[0.1] hover:bg-white/[0.2] text-white border-0 rounded-lg px-3 py-1.5 text-xs font-mono font-medium outline-none cursor-pointer"
+          >
+            <option value="" disabled className="bg-neutral-900">Set Work Type...</option>
+            {COMMON_WORK_TYPES.map((t) => (
+              <option key={t} value={t} className="bg-neutral-900">{t}</option>
+            ))}
+          </select>
+
+          {/* Bulk Delete */}
+          <button
+            type="button"
+            onClick={handleBulkDelete}
+            className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+          >
+            Delete
+          </button>
+
+          {/* Clear Selection */}
+          <button
+            type="button"
+            onClick={() => setSelectedWorkIds(new Set())}
+            className="text-neutral-400 hover:text-white font-mono text-xs cursor-pointer ml-1"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: "+ ADD WORK" (UPLOAD FIRST, ORGANIZE SECOND)          */}
+      {/* ============================================================ */}
+      {isAddWorkOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isPublishingBatch) setIsAddWorkOpen(false);
+          }}
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-5xl max-h-[92vh] bg-[#121214] border border-white/[0.08] rounded-[32px] overflow-hidden flex flex-col shadow-[0_30px_90px_rgba(0,0,0,0.8)]"
+          >
+            {/* Modal Header */}
+            <div className="px-8 py-5 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-[#121214]/90 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                  Add Creative Work
+                </h3>
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-[#e60000]/20 text-[#e60000] font-bold uppercase tracking-wider">
+                  UPLOAD FIRST
+                </span>
               </div>
 
               <button
                 type="button"
-                disabled={!quickTitle || quickFiles.length === 0 || isSaving}
-                onClick={async () => {
-                  setIsSaving(true);
-                  const newProj: DynamicCanvasFile = {
-                    id: `custom-${Date.now()}`,
-                    code: quickTitle.slice(0, 3).toUpperCase(),
-                    name: quickTitle,
-                    discipline: quickDiscipline,
-                    year: '2026',
-                    role: 'Art Director',
-                    x: 200,
-                    y: 200,
-                    rot: 0,
-                    img: quickFiles[0]?.dataUrl || '',
-                    aspect: '16/9',
-                    colorTag: '#e60000',
-                    photos: quickFiles.filter((q) => !q.isVideo).map((q) => q.dataUrl),
-                    photoCount: quickFiles.length,
-                    desc: quickDesc,
-                    deliverables: ['Brand Identity', 'Lookbook'],
-                    videoUrl: quickFiles.find((q) => q.isVideo)?.dataUrl,
-                  };
-
-                  await saveCanvasFileAsync(newProj);
-                  await refreshCampaigns();
-                  setIsSaving(false);
-                  setQuickTitle('');
-                  setQuickFiles([]);
-                  setActiveTab('manage');
-                }}
-                className="w-full py-4 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+                onClick={() => setIsAddWorkOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
               >
-                {isSaving ? 'Publishing...' : 'Publish Campaign to Portfolio →'}
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Scroll Body */}
+            <div className="p-8 overflow-y-auto space-y-6 flex-1">
+              {/* Dropzone */}
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer.files) handleDropFiles(e.dataTransfer.files);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className="p-10 rounded-3xl border-2 border-dashed border-white/15 hover:border-[#e60000] hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-3 cursor-pointer transition-all duration-300 group"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) handleDropFiles(e.target.files);
+                  }}
+                />
+                <div className="w-14 h-14 rounded-2xl bg-white/[0.06] group-hover:bg-[#e60000] text-white flex items-center justify-center text-2xl transition-all group-hover:scale-110">
+                  📁
+                </div>
+                <h4 className="font-display font-black text-lg text-white uppercase tracking-tight">
+                  Drag &amp; Drop Creative Files Here
+                </h4>
+                <p className="font-mono text-xs text-neutral-400 max-w-sm">
+                  Upload 1, 5, 20, or 50+ files at once. The system extracts dimensions, aspect ratios, and orientations automatically.
+                </p>
+              </div>
+
+              {/* AI Status Banner */}
+              {isAnalyzingAi && (
+                <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center gap-3 animate-pulse">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#e60000] animate-ping shrink-0" />
+                  <span className="font-mono text-xs text-neutral-300 font-bold">
+                    Analyzing uploaded work and comparing against existing archive relationships...
+                  </span>
+                </div>
+              )}
+
+              {/* Batch Match Banner (Existing Project Suggestion) */}
+              {batchSuggestion?.matchedProjectName && (
+                <div className="p-5 rounded-2xl bg-[#1a1a1e] border border-[#e60000]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-widest block">
+                      AI SUGGESTION • {Math.round((batchSuggestion.projectConfidence || 0.9) * 100)}% MATCH
+                    </span>
+                    <p className="font-sans text-sm text-white font-medium">
+                      Possible match with existing project: <strong>{batchSuggestion.matchedProjectName}</strong>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 font-mono text-xs shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (batchSuggestion.matchedProjectId) {
+                          setUploadQueue((prev) =>
+                            prev.map((item) => ({ ...item, projectId: batchSuggestion.matchedProjectId || null }))
+                          );
+                          notifyUser(`Assigned to ${batchSuggestion.matchedProjectName}`);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-full bg-[#e60000] text-white font-bold uppercase tracking-wider hover:bg-[#ff1a1a] cursor-pointer"
+                    >
+                      Accept Match
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadQueue((prev) => prev.map((item) => ({ ...item, projectId: null })));
+                        setBatchSuggestion((prev) => (prev ? { ...prev, matchedProjectId: null, matchedProjectName: null } : null));
+                        notifyUser('Set all as Standalone');
+                      }}
+                      className="px-4 py-2 rounded-full bg-white/[0.08] text-white hover:bg-white/[0.15] font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      Keep Standalone
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Series Grouping Prompt */}
+              {batchSuggestion?.groupSuggestion?.shouldGroup && uploadQueue.length > 1 && (
+                <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-between gap-4">
+                  <div className="font-mono text-xs text-neutral-300">
+                    These {uploadQueue.length} files share a naming rhythm. Group them as <strong>{batchSuggestion.groupSuggestion.groupTitle}</strong>?
+                  </div>
+                  <span className="font-mono text-[10px] text-emerald-400 font-bold uppercase">
+                    Auto-Group Active
+                  </span>
+                </div>
+              )}
+
+              {/* Ingested Files Preview & Adjustment Grid */}
+              {uploadQueue.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between font-mono text-xs text-neutral-400">
+                    <span>STAGED WORKS ({uploadQueue.length})</span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadQueue([])}
+                      className="text-neutral-500 hover:text-white"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {uploadQueue.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-2xl bg-[#18181c] border border-white/[0.06] flex items-center gap-4 relative"
+                      >
+                        {/* Thumbnail */}
+                        <div className="w-16 h-20 rounded-xl bg-black overflow-hidden relative shrink-0">
+                          {item.mediaType === 'video' ? (
+                            <video src={item.dataUrl} poster={item.thumbnailUrl} className="w-full h-full object-cover" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.thumbnailUrl || item.dataUrl} alt={item.title} className="w-full h-full object-cover" />
+                          )}
+                          <span className="absolute bottom-1 right-1 font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-black/80 text-white">
+                            {item.dimensions.aspectRatio}
+                          </span>
+                        </div>
+
+                        {/* Staged Details Form */}
+                        <div className="flex-1 space-y-2 min-w-0 font-mono text-xs">
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setUploadQueue((prev) =>
+                                prev.map((q, qIdx) => (qIdx === idx ? { ...q, title: val } : q))
+                              );
+                            }}
+                            className="w-full bg-transparent font-bold text-white text-xs border-b border-white/10 focus:border-white/40 outline-none pb-0.5"
+                          />
+
+                          <div className="grid grid-cols-2 gap-2">
+                            {/* Work Type */}
+                            <select
+                              value={item.workType}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setUploadQueue((prev) =>
+                                  prev.map((q, qIdx) => (qIdx === idx ? { ...q, workType: val } : q))
+                                );
+                              }}
+                              className="bg-white/[0.06] text-white border-0 rounded-lg px-2 py-1 text-[11px] outline-none cursor-pointer"
+                            >
+                              {COMMON_WORK_TYPES.map((t) => (
+                                <option key={t} value={t} className="bg-neutral-900">{t}</option>
+                              ))}
+                            </select>
+
+                            {/* Project Assignment */}
+                            <select
+                              value={item.projectId || 'standalone'}
+                              onChange={(e) => {
+                                const val = e.target.value === 'standalone' ? null : e.target.value;
+                                setUploadQueue((prev) =>
+                                  prev.map((q, qIdx) => (qIdx === idx ? { ...q, projectId: val } : q))
+                                );
+                              }}
+                              className="bg-white/[0.06] text-white border-0 rounded-lg px-2 py-1 text-[11px] outline-none cursor-pointer"
+                            >
+                              <option value="standalone" className="bg-neutral-900">None (Standalone)</option>
+                              {projects.map((p) => (
+                                <option key={p.id} value={p.id} className="bg-neutral-900">{p.title}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Remove item */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadQueue((prev) => prev.filter((_, qIdx) => qIdx !== idx));
+                          }}
+                          className="text-neutral-500 hover:text-white text-sm"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Action Bar */}
+            <div className="px-8 py-5 border-t border-white/[0.06] flex items-center justify-between shrink-0 bg-[#121214]">
+              <span className="font-mono text-xs text-neutral-400">
+                {uploadQueue.length} files ready to be saved
+              </span>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handlePublishUploadQueue('draft')}
+                  disabled={!uploadQueue.length || isPublishingBatch}
+                  className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-40 cursor-pointer"
+                >
+                  Save as Draft
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handlePublishUploadQueue('published')}
+                  disabled={!uploadQueue.length || isPublishingBatch}
+                  className="px-6 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer shadow-lg"
+                >
+                  {isPublishingBatch ? 'Publishing...' : `Publish All (${uploadQueue.length})`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: CREATE NEW PROJECT CONTAINER                          */}
+      {/* ============================================================ */}
+      {isNewProjectModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsNewProjectModalOpen(false);
+          }}
+          className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg bg-[#141416] border border-white/[0.08] rounded-3xl p-8 space-y-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                New Project Container
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsNewProjectModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 font-mono text-xs">
+              <div>
+                <label className="text-neutral-400 block pb-1">Project Title *</label>
+                <input
+                  type="text"
+                  value={newProjectTitle}
+                  onChange={(e) => setNewProjectTitle(e.target.value)}
+                  placeholder="e.g. Kaldhar Bridal Campaign"
+                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-neutral-400 block pb-1">Client / Brand</label>
+                  <input
+                    type="text"
+                    value={newProjectClient}
+                    onChange={(e) => setNewProjectClient(e.target.value)}
+                    placeholder="e.g. Kaldhar Luxury"
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-neutral-400 block pb-1">Year</label>
+                  <input
+                    type="text"
+                    value={newProjectYear}
+                    onChange={(e) => setNewProjectYear(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-neutral-400 block pb-1">Category Tag</label>
+                <input
+                  type="text"
+                  value={newProjectTag}
+                  onChange={(e) => setNewProjectTag(e.target.value)}
+                  placeholder="e.g. COMMERCIAL CAMPAIGN, BRAND IDENTITY"
+                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                />
+              </div>
+
+              <div>
+                <label className="text-neutral-400 block pb-1">Narrative / Overview</label>
+                <textarea
+                  value={newProjectOverview}
+                  onChange={(e) => setNewProjectOverview(e.target.value)}
+                  rows={3}
+                  placeholder="Editorial statement or creative treatment overview..."
+                  className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 resize-none font-sans text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsNewProjectModalOpen(false)}
+                className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-white font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreateNewProject()}
+                className="px-6 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Create Project
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* SLIDE-OVER DETAIL INSPECTOR (EDIT RELATIONSHIPS ZERO COPY)   */}
+      {/* ============================================================ */}
+      {inspectingWork && (
+        <div
+          onClick={() => setInspectingWork(null)}
+          className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-md flex justify-end animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md h-full bg-[#141416] border-l border-white/[0.08] p-8 overflow-y-auto space-y-6 flex flex-col justify-between"
+          >
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                  WORK INSPECTOR
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setInspectingWork(null)}
+                  className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Preview */}
+              <div className="w-full aspect-[4/5] rounded-2xl bg-black overflow-hidden relative">
+                {inspectingWork.mediaType === 'video' ? (
+                  <video
+                    src={inspectingWork.mediaUrl}
+                    poster={inspectingWork.thumbnailUrl}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={inspectingWork.mediaUrl}
+                    alt={inspectingWork.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+
+              {/* Editable Fields */}
+              <div className="space-y-4 font-mono text-xs">
+                <div>
+                  <label className="text-neutral-400 block pb-1">Title</label>
+                  <input
+                    type="text"
+                    value={inspectingWork.title}
+                    onChange={(e) => setInspectingWork({ ...inspectingWork, title: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white outline-none focus:border-white/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block pb-1">Work Type</label>
+                  <select
+                    value={inspectingWork.workType}
+                    onChange={(e) => setInspectingWork({ ...inspectingWork, workType: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white outline-none"
+                  >
+                    {COMMON_WORK_TYPES.map((t) => (
+                      <option key={t} value={t} className="bg-neutral-900">{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block pb-1">Project Container (Zero Duplication)</label>
+                  <select
+                    value={inspectingWork.projectId || 'standalone'}
+                    onChange={(e) => {
+                      const val = e.target.value === 'standalone' ? null : e.target.value;
+                      setInspectingWork({ ...inspectingWork, projectId: val });
+                    }}
+                    className="w-full p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white outline-none"
+                  >
+                    <option value="standalone" className="bg-neutral-900">None (Standalone Work)</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id} className="bg-neutral-900">{p.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block pb-1">Status</label>
+                  <select
+                    value={inspectingWork.status}
+                    onChange={(e) => setInspectingWork({ ...inspectingWork, status: e.target.value as any })}
+                    className="w-full p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white outline-none"
+                  >
+                    <option value="published" className="bg-neutral-900">Published</option>
+                    <option value="draft" className="bg-neutral-900">Draft</option>
+                    <option value="archived" className="bg-neutral-900">Archived</option>
+                  </select>
+                </div>
+
+                {/* Technical Media Specs */}
+                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1 text-[11px] text-neutral-400">
+                  <div className="flex justify-between">
+                    <span>Resolution:</span>
+                    <span className="text-white font-bold">{inspectingWork.dimensions.resolution || `${inspectingWork.dimensions.width}x${inspectingWork.dimensions.height}`}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Aspect Ratio:</span>
+                    <span className="text-white font-bold">{inspectingWork.dimensions.aspectRatio}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Orientation:</span>
+                    <span className="text-white font-bold capitalize">{inspectingWork.dimensions.orientation}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>File Type:</span>
+                    <span className="text-white font-bold">{inspectingWork.fileType}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3 pt-6 border-t border-white/[0.06]">
+              <button
+                type="button"
+                onClick={async () => {
+                  await saveWorkAsync(inspectingWork);
+                  await refreshData();
+                  setInspectingWork(null);
+                  notifyUser('Work updated successfully.');
+                }}
+                className="w-full py-3 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer"
+              >
+                Save Changes
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  if (confirm(`Permanently delete "${inspectingWork.title}"?`)) {
+                    await deleteWorkAsync(inspectingWork.id);
+                    await refreshData();
+                    setInspectingWork(null);
+                    notifyUser('Work deleted.');
+                  }
+                }}
+                className="w-full py-2.5 rounded-full bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Delete Work
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

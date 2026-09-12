@@ -60,6 +60,215 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, reason: 'Models unavailable for this key.' });
     }
 
+    // Action 0.5: Intelligent Upload-First Work Metadata & Relationship Suggester
+    if (action === 'suggest_work_metadata') {
+      const { files, existingProjects, existingDisciplines, existingTags } = body;
+      const fileList = Array.isArray(files) ? files : [];
+
+      if (!fileList.length) {
+        return NextResponse.json({ success: true, suggestions: [] });
+      }
+
+      // Check if files share a common filename prefix/series pattern
+      let detectedSeriesName: string | null = null;
+      let shouldGroup = false;
+      if (fileList.length > 1) {
+        const cleanedNames = fileList.map((f: any) =>
+          (f.fileName || '').replace(/\.[a-zA-Z0-9]+$/, '').replace(/[-_0-9]+$/, '').trim()
+        );
+        const first = cleanedNames[0];
+        if (first && first.length > 2 && cleanedNames.every((n: string) => n.toLowerCase() === first.toLowerCase())) {
+          shouldGroup = true;
+          detectedSeriesName = first
+            .replace(/[_-]+/g, ' ')
+            .replace(/\b\w/g, (c: string) => c.toUpperCase()) + ' Series';
+        }
+      }
+
+      // Try Gemini AI if API key available
+      if (apiKey) {
+        try {
+          const filesSummary = fileList.slice(0, 8).map((f: any, idx: number) => ({
+            index: idx,
+            fileName: f.fileName,
+            mediaType: f.mediaType || 'image',
+            aspectRatio: f.dimensions?.aspectRatio || 'auto',
+            orientation: f.dimensions?.orientation || 'auto',
+            duration: f.dimensions?.duration,
+          }));
+
+          const projectsContext = (existingProjects || []).slice(0, 20).map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            client: p.client,
+            tag: p.tag,
+          }));
+
+          const prompt = `You are the lead Art Director & Content Architect assistant for a world-class creative director portfolio.
+A creative director just dropped ${fileList.length} files.
+
+Files to analyze:
+${JSON.stringify(filesSummary, null, 2)}
+
+Existing Active Projects in the Archive:
+${JSON.stringify(projectsContext, null, 2)}
+
+Existing Disciplines:
+${JSON.stringify(existingDisciplines || ['Art Direction', 'Motion', 'Editorial', 'Branding', 'Photography'])}
+
+YOUR GOAL:
+1. Suggest whether these files belong to an EXISTING PROJECT (only if high correlation in name, brand, or concept; calculate confidence 0.0 - 1.0). If they do not match an existing project, suggest null for projectId (Standalone Work is 100% valid!).
+2. For each file, suggest its Work Type (e.g. "Reel", "Social Design", "Advertisement", "Branding", "Photography", "Print", "Horizontal Video", "Poster", "Motion Graphic", "Lookbook Frame").
+3. Suggest 1-2 primary Disciplines from the discipline vocabulary.
+4. If the files form a series/lookbook, suggest group title and type.
+
+Return ONLY raw JSON with:
+{
+  "batchSuggestion": {
+    "matchedProjectId": "project-id-or-null",
+    "matchedProjectName": "Matched Title or null",
+    "projectConfidence": 0.94,
+    "groupSuggestion": {
+      "shouldGroup": ${shouldGroup},
+      "groupTitle": "${detectedSeriesName || 'Lookbook Series'}",
+      "groupType": "lookbook"
+    }
+  },
+  "items": [
+    {
+      "index": 0,
+      "suggestedTitle": "Clean Editorial Title",
+      "suggestedType": "Reel / Lookbook Frame / etc.",
+      "suggestedDisciplines": ["Art Direction"],
+      "suggestedTags": ["Fashion", "35mm"]
+    }
+  ]
+}`;
+
+          const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-goog-api-key': apiKey,
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: 'application/json' },
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const parsed = JSON.parse(text);
+              return NextResponse.json({ success: true, ...parsed, engine: 'gemini-flash' });
+            }
+          }
+        } catch (geminiErr) {
+          console.warn('Gemini suggestion failed, using heuristic engine:', geminiErr);
+        }
+      }
+
+      // High-precision Heuristic Fallback Engine (Runs instantaneously with zero latency)
+      const projectMatches: Record<string, { count: number; project: any }> = {};
+      (existingProjects || []).forEach((p: any) => {
+        const pSlug = (p.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!pSlug) return;
+        fileList.forEach((f: any) => {
+          const fName = (f.fileName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (fName.includes(pSlug)) {
+            if (!projectMatches[p.id]) {
+              projectMatches[p.id] = { count: 0, project: p };
+            }
+            projectMatches[p.id].count += 1;
+          }
+        });
+      });
+
+      let bestMatchedProject: any = null;
+      let highestMatchCount = 0;
+      Object.values(projectMatches).forEach(({ count, project }) => {
+        if (count > highestMatchCount) {
+          highestMatchCount = count;
+          bestMatchedProject = project;
+        }
+      });
+
+      const matchedProjectId = bestMatchedProject ? bestMatchedProject.id : null;
+      const matchedProjectName = bestMatchedProject ? bestMatchedProject.title : null;
+      const projectConfidence = bestMatchedProject ? Math.min(0.7 + (highestMatchCount / fileList.length) * 0.28, 0.98) : 0;
+
+      const items = fileList.map((f: any, idx: number) => {
+        const name = (f.fileName || '').replace(/\.[a-zA-Z0-9]+$/, '');
+        const cleanTitle = name
+          .replace(/[_-]+/g, ' ')
+          .replace(/\b\w/g, (c: string) => c.toUpperCase())
+          .trim();
+
+        const isVideo = f.mediaType === 'video' || /\.(mp4|mov|webm)$/i.test(f.fileName || '');
+        const aspect = f.dimensions?.aspectRatio || 'auto';
+        const orientation = f.dimensions?.orientation || 'horizontal';
+
+        let suggestedType = 'Photography';
+        let suggestedDisciplines = ['Art Direction'];
+
+        if (isVideo) {
+          if (aspect === '9:16' || orientation === 'vertical') {
+            suggestedType = 'Reel';
+            suggestedDisciplines = ['Motion', 'Art Direction'];
+          } else {
+            suggestedType = 'Horizontal Video';
+            suggestedDisciplines = ['Cinematography', 'Motion'];
+          }
+        } else {
+          if (/print|a4|book|spread|magazine/i.test(name)) {
+            suggestedType = 'Print Artwork';
+            suggestedDisciplines = ['Editorial', 'Art Direction'];
+          } else if (/brand|logo|identity|mark/i.test(name)) {
+            suggestedType = 'Branding';
+            suggestedDisciplines = ['Branding', 'Art Direction'];
+          } else if (/ad|banner|billboard|campaign/i.test(name)) {
+            suggestedType = 'Advertisement';
+            suggestedDisciplines = ['Art Direction', 'Advertising'];
+          } else if (aspect === '4:5' || orientation === 'vertical') {
+            suggestedType = 'Lookbook Frame';
+            suggestedDisciplines = ['Art Direction', 'Photography'];
+          } else if (aspect === '1:1') {
+            suggestedType = 'Social Design';
+            suggestedDisciplines = ['Art Direction'];
+          } else {
+            suggestedType = 'Photography';
+            suggestedDisciplines = ['Art Direction', 'Photography'];
+          }
+        }
+
+        return {
+          index: idx,
+          suggestedTitle: cleanTitle,
+          suggestedType,
+          suggestedDisciplines,
+          suggestedTags: [cleanTitle.split(' ')[0] || 'Studio'],
+        };
+      });
+
+      return NextResponse.json({
+        success: true,
+        batchSuggestion: {
+          matchedProjectId,
+          matchedProjectName,
+          projectConfidence,
+          groupSuggestion: {
+            shouldGroup,
+            groupTitle: detectedSeriesName || 'Lookbook Series',
+            groupType: 'lookbook',
+          },
+        },
+        items,
+        engine: 'heuristic-studio-engine',
+      });
+    }
+
     // Action 1: Smart Multimodal Asset & Campaign Analyzer
     if (action === 'analyze_upload') {
       const preferredAspect = detectedAspect || 'aspect-[16/10]';

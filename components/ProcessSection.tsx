@@ -138,7 +138,7 @@ export default function ProcessSection() {
         {/* Giant Typographic Running Header (Page 2 Reference) */}
         <div className="overflow-hidden pb-12 sm:pb-20 select-none">
           <h2 className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[104px] tracking-tight uppercase text-black leading-none whitespace-nowrap">
-            Approach — Approac
+            Approach — Approach — Approach
           </h2>
         </div>
 
