@@ -41,7 +41,7 @@ export default function Contact() {
   return (
     <footer
       id="contact"
-      className="w-full pt-20 sm:pt-28 md:pt-36 pb-2 sm:pb-4 bg-[#efeeea] relative select-none border-none flex flex-col justify-between"
+      className="w-full pt-20 sm:pt-28 md:pt-36 pb-0 bg-[#efeeea] relative select-none border-none flex flex-col justify-between overflow-x-hidden"
     >
       {/* MAIN ARTBOARD CONTAINER (Exact layout matching Artboard 1) */}
       <div className="w-full max-w-[1700px] mx-auto px-6 sm:px-10 md:px-14 lg:px-20 flex-1 flex flex-col justify-between relative z-10 space-y-12 sm:space-y-16 md:space-y-20">
@@ -188,21 +188,20 @@ export default function Contact() {
 
       </div>
 
-      {/* MONUMENTAL WORDMARK (Exact Artboard 1 — Britti Sans Bold Edge-to-Edge Responsive) */}
-      <div className="w-full max-w-[1700px] mx-auto px-6 sm:px-10 md:px-14 lg:px-20 select-none pt-2 sm:pt-4 pb-2 sm:pb-4">
+      {/* MONUMENTAL WORDMARK — 100% EDGE-TO-EDGE FLUSH TO SCREEN BORDERS */}
+      <div className="w-full overflow-hidden select-none leading-none pt-3 sm:pt-6 pb-0">
         <svg
-          viewBox="0 0 1000 125"
+          viewBox="0 0 10607 1410"
           className="w-full h-auto block select-none overflow-visible"
-          preserveAspectRatio="none"
         >
           <text
-            x="0"
-            y="100"
-            textLength="1000"
+            x="-96"
+            y="1370"
+            textLength="10703"
             lengthAdjust="spacing"
             fontFamily="'Britti Sans', sans-serif"
             fontWeight="700"
-            fontSize="120"
+            fontSize="2048"
             fill="#000"
             className="hover:fill-[#e60000] transition-colors duration-500 cursor-default"
           >
