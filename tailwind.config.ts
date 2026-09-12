@@ -29,6 +29,8 @@ const config: Config = {
         syne: ['var(--font-syne)', 'sans-serif'],
         monument: ['var(--font-archivo-black)', 'sans-serif'],
         grotesk: ['var(--font-plus-jakarta)', 'sans-serif'],
+        dharma: ["'DharmaGothicE_Bold_R'", "'Dharma Gothic'", 'sans-serif'],
+        condensed: ["'DharmaGothicE_Bold_R'", "'Dharma Gothic'", 'sans-serif'],
       },
       aspectRatio: {
         '21/9': '21 / 9',

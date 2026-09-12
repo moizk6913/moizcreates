@@ -74,6 +74,24 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'DharmaGothicE_Bold_R';
+  src: url('/fonts/DharmaGothicE_Bold_R.otf') format('opentype'),
+       url('https://static.wfonts.com/data/2016/07/03/dharma-gothic-e/DharmaGothicE_Bold_R.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Dharma Gothic';
+  src: url('/fonts/DharmaGothicE_Bold_R.otf') format('opentype'),
+       url('https://static.wfonts.com/data/2016/07/03/dharma-gothic-e/DharmaGothicE_Bold_R.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg-canvas: #ffffff;
   --bg-subtle: #f8f7f5;

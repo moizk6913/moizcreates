@@ -39,9 +39,9 @@ export default function Contact() {
             </span>
           </div>
 
-          {/* Headline in Monument / Display Typography */}
+          {/* Headline in Dharma Gothic Condensed Typography */}
           <div className="space-y-2">
-            <h2 className="font-monument font-black text-3xl sm:text-5xl md:text-6xl uppercase text-black tracking-tight leading-[1.0]">
+            <h2 className="font-dharma font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl uppercase text-black tracking-tight leading-[0.9]">
               HAVE A PROJECT IN MIND?
             </h2>
             <p className="font-sans text-base sm:text-xl text-neutral-600 font-normal">
@@ -53,7 +53,7 @@ export default function Contact() {
           <div className="flex flex-col items-center gap-4 pt-1">
             <a
               href={`mailto:${email}`}
-              className="font-monument font-black text-2xl sm:text-4xl md:text-5xl text-black hover:text-[#e60000] transition-colors duration-300 uppercase tracking-tight break-all"
+              className="font-dharma font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-black hover:text-[#e60000] transition-colors duration-300 uppercase tracking-tight break-all"
             >
               {email}
             </a>
@@ -154,7 +154,7 @@ export default function Contact() {
 
       {/* MONUMENTAL WALL-TO-WALL WORDMARK (Baseborn & Rejouice Signature) */}
       <div className="w-full overflow-hidden select-none pt-4 sm:pt-6">
-        <h1 className="font-monument font-black text-[16.5vw] sm:text-[17.2vw] leading-[0.78] tracking-tighter uppercase text-black text-center whitespace-nowrap block w-full hover:text-[#e60000] transition-colors duration-700 cursor-default">
+        <h1 className="font-dharma font-bold text-[19vw] sm:text-[20vw] leading-[0.76] tracking-tight uppercase text-black text-center whitespace-nowrap block w-full hover:text-[#e60000] transition-colors duration-700 cursor-default">
           MOIZ KHAN
         </h1>
       </div>
