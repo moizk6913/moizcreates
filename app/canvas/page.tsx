@@ -14,6 +14,7 @@ import {
   WorkItem,
 } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData } from '@/components/ArchiveFolderCard';
+import PlaygroundCosmos from '@/components/PlaygroundCosmos';
 
 export interface ArchiveFile {
   id: string;
@@ -301,8 +302,6 @@ function InfiniteCanvasContent() {
     viewParam === 'playground' ? 'playground' : 'archive'
   );
   const [standaloneWorks, setStandaloneWorks] = useState<WorkItem[]>([]);
-  const [playgroundFilter, setPlaygroundFilter] = useState<'all' | 'reels' | 'video' | 'stills'>('all');
-  const [activePlaygroundWork, setActivePlaygroundWork] = useState<WorkItem | null>(null);
 
   useEffect(() => {
     if (viewParam === 'playground') {
@@ -366,45 +365,6 @@ function InfiniteCanvasContent() {
         console.warn('Async works hydration for playground failed:', err);
       });
   }, []);
-
-  const reelsCount = useMemo(() => {
-    return standaloneWorks.filter(
-      (w) => w.dimensions?.aspectRatio === '9:16' || (w.workType && w.workType.toLowerCase() === 'reel')
-    ).length;
-  }, [standaloneWorks]);
-
-  const videoCount = useMemo(() => {
-    return standaloneWorks.filter(
-      (w) =>
-        w.mediaType === 'video' &&
-        w.dimensions?.aspectRatio !== '9:16' &&
-        (!w.workType || w.workType.toLowerCase() !== 'reel')
-    ).length;
-  }, [standaloneWorks]);
-
-  const stillsCount = useMemo(() => {
-    return standaloneWorks.filter((w) => w.mediaType === 'image').length;
-  }, [standaloneWorks]);
-
-  const filteredPlaygroundWorks = useMemo(() => {
-    if (playgroundFilter === 'reels') {
-      return standaloneWorks.filter(
-        (w) => w.dimensions?.aspectRatio === '9:16' || (w.workType && w.workType.toLowerCase() === 'reel')
-      );
-    }
-    if (playgroundFilter === 'video') {
-      return standaloneWorks.filter(
-        (w) =>
-          w.mediaType === 'video' &&
-          w.dimensions?.aspectRatio !== '9:16' &&
-          (!w.workType || w.workType.toLowerCase() !== 'reel')
-      );
-    }
-    if (playgroundFilter === 'stills') {
-      return standaloneWorks.filter((w) => w.mediaType === 'image');
-    }
-    return standaloneWorks;
-  }, [standaloneWorks, playgroundFilter]);
 
   useEffect(() => {
     refreshCanvasFiles();
@@ -827,181 +787,9 @@ function InfiniteCanvasContent() {
         </div>
       ) : (
         /* ============================================================ */
-        /* MODE 2: PLAYGROUND LAB (STANDALONE REELS & VISUAL HEAT)      */
+        /* MODE 2: PLAYGROUND COSMOS (2.5D SPATIAL UNIVERSE & HUD)      */
         /* ============================================================ */
-        <div className="relative z-10 w-full min-h-screen px-4 sm:px-8 md:px-12 pt-28 sm:pt-32 pb-24 max-w-7xl mx-auto space-y-8 animate-fadeIn">
-          {/* Header Description */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-black/[0.08]">
-            <div className="space-y-3 max-w-2xl">
-              <div className="flex items-center gap-2 font-mono text-[11px] text-[#e60000] font-bold uppercase tracking-widest">
-                <span className="w-2 h-2 rounded-full bg-[#e60000] animate-ping shrink-0" />
-                <span>CREATIVE LAB • UNRESTRICTED EXPERIMENTS</span>
-              </div>
-              <h1 className="font-display font-black text-4xl sm:text-6xl md:text-7xl text-black uppercase tracking-tight">
-                PLAYGROUND
-              </h1>
-              <p className="font-mono text-xs sm:text-sm text-neutral-600 leading-relaxed">
-                Raw art direction, 9:16 vertical reels, kinetic typography tests, 3D motion sketches, and personal photography. Unrestricted creative obsession without commercial client briefs.
-              </p>
-            </div>
-
-            {/* Filter Tabs Bar */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 font-mono text-xs font-bold tracking-wider shrink-0">
-              <button
-                type="button"
-                onClick={() => setPlaygroundFilter('all')}
-                className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
-                  playgroundFilter === 'all'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'bg-white/80 text-neutral-600 hover:text-black border border-black/5'
-                }`}
-              >
-                ALL ({standaloneWorks.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlaygroundFilter('reels')}
-                className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
-                  playgroundFilter === 'reels'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'bg-white/80 text-neutral-600 hover:text-black border border-black/5'
-                }`}
-              >
-                REELS ({reelsCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlaygroundFilter('video')}
-                className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
-                  playgroundFilter === 'video'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'bg-white/80 text-neutral-600 hover:text-black border border-black/5'
-                }`}
-              >
-                FILMS ({videoCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlaygroundFilter('stills')}
-                className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
-                  playgroundFilter === 'stills'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'bg-white/80 text-neutral-600 hover:text-black border border-black/5'
-                }`}
-              >
-                STILLS ({stillsCount})
-              </button>
-            </div>
-          </div>
-
-          {/* Grid or Empty State */}
-          {filteredPlaygroundWorks.length === 0 ? (
-            <div className="py-24 text-center space-y-4 max-w-md mx-auto">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-black/5 text-[#e60000] flex items-center justify-center text-2xl font-bold">
-                ⚡
-              </div>
-              <h3 className="font-display font-black text-2xl text-black uppercase tracking-tight">
-                Playground Ready For Uploads
-              </h3>
-              <p className="font-mono text-xs text-neutral-500 leading-relaxed">
-                Every piece uploaded in your CMS with <strong>Project: None (Standalone)</strong> will automatically showcase here as an uncommissioned creative experiment.
-              </p>
-              <div className="pt-2 flex items-center justify-center gap-3">
-                <Link
-                  href="/admin"
-                  className="px-5 py-2.5 rounded-full bg-black text-white hover:bg-[#e60000] font-mono text-xs font-bold uppercase tracking-wider transition-colors"
-                >
-                  Open Studio Desk (/admin)
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setActiveCanvasMode('archive')}
-                  className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-neutral-100 font-mono text-xs font-bold uppercase tracking-wider transition-colors border border-black/10"
-                >
-                  Explore Archive Folders
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredPlaygroundWorks.map((work) => (
-                <div
-                  key={work.id}
-                  onClick={() => setActivePlaygroundWork(work)}
-                  className="group relative rounded-[24px] bg-white/90 backdrop-blur-md border border-black/[0.06] hover:border-black/20 hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col cursor-pointer"
-                >
-                  {/* Adaptive Media Container */}
-                  <div
-                    className={`relative bg-neutral-900 overflow-hidden ${
-                      work.dimensions?.aspectRatio === '9:16'
-                        ? 'aspect-[9/16]'
-                        : work.dimensions?.aspectRatio === '16:9'
-                        ? 'aspect-[16/9]'
-                        : work.dimensions?.aspectRatio === '4:5'
-                        ? 'aspect-[4/5]'
-                        : 'aspect-square'
-                    }`}
-                  >
-                    {work.mediaType === 'video' ? (
-                      <video
-                        src={work.mediaUrl}
-                        poster={work.thumbnailUrl}
-                        muted
-                        loop
-                        playsInline
-                        onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.pause();
-                          e.currentTarget.currentTime = 0;
-                        }}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={work.thumbnailUrl || work.mediaUrl}
-                        alt={work.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                    )}
-
-                    {/* Aspect & Type Badge */}
-                    <span className="absolute top-3 right-3 font-mono text-[9px] font-bold px-2 py-1 rounded-md bg-black/75 backdrop-blur-md text-white">
-                      {work.dimensions?.aspectRatio || work.workType}
-                    </span>
-
-                    {/* Video Indicator */}
-                    {work.mediaType === 'video' && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60 group-hover:opacity-0 transition-opacity">
-                        <span className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white text-sm">
-                          ▶
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Metadata Bar */}
-                  <div className="p-4 space-y-1">
-                    <div className="flex items-center justify-between font-mono text-[10px] text-neutral-400">
-                      <span className="text-[#e60000] font-bold uppercase tracking-wider">
-                        {work.workType}
-                      </span>
-                      <span>{work.year}</span>
-                    </div>
-                    <h4 className="font-display font-bold text-sm text-black uppercase tracking-tight line-clamp-1 group-hover:text-[#e60000] transition-colors">
-                      {work.title}
-                    </h4>
-                    {work.disciplines && work.disciplines.length > 0 && (
-                      <p className="font-mono text-[11px] text-neutral-500 line-clamp-1">
-                        {work.disciplines.join(' • ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <PlaygroundCosmos uploadedWorks={standaloneWorks} />
       )}
 
       {/* Project Detail Lightbox Modal (Expansive Luxury Masonry Showcase) */}
@@ -1563,86 +1351,6 @@ function InfiniteCanvasContent() {
         );
       })()}
 
-      {/* PLAYGROUND ASSET LIGHTBOX MODAL */}
-      {activePlaygroundWork && (
-        <div
-          onClick={() => setActivePlaygroundWork(null)}
-          className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-8 animate-fadeIn"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-4xl max-h-[92vh] flex flex-col items-center justify-center space-y-4"
-          >
-            {/* Top Bar */}
-            <div className="w-full flex items-center justify-between text-white font-mono text-xs pb-2 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-[#e60000] uppercase tracking-wider">
-                  {activePlaygroundWork.workType}
-                </span>
-                <span className="text-neutral-500">•</span>
-                <span className="text-white font-bold">{activePlaygroundWork.title}</span>
-                <span className="text-neutral-500">•</span>
-                <span className="text-neutral-400">{activePlaygroundWork.year}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActivePlaygroundWork(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Media Player */}
-            <div className="w-full flex items-center justify-center overflow-hidden max-h-[76vh]">
-              {activePlaygroundWork.mediaType === 'video' ? (
-                <video
-                  src={activePlaygroundWork.mediaUrl}
-                  poster={activePlaygroundWork.thumbnailUrl}
-                  controls
-                  autoPlay
-                  loop
-                  playsInline
-                  className="max-h-[76vh] w-auto rounded-2xl object-contain shadow-2xl"
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={activePlaygroundWork.mediaUrl}
-                  alt={activePlaygroundWork.title}
-                  className="max-h-[76vh] w-auto rounded-2xl object-contain shadow-2xl select-none"
-                />
-              )}
-            </div>
-
-            {/* Metadata Footer */}
-            <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-neutral-400 font-mono text-[11px] pt-1">
-              <div>
-                {activePlaygroundWork.disciplines && activePlaygroundWork.disciplines.length > 0 && (
-                  <span>Disciplines: <strong className="text-white">{activePlaygroundWork.disciplines.join(', ')}</strong></span>
-                )}
-                {activePlaygroundWork.caption && (
-                  <p className="font-sans text-xs text-neutral-300 pt-1 leading-relaxed">
-                    {activePlaygroundWork.caption}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="px-2.5 py-1 rounded-md bg-white/10 text-white text-[10px] font-bold">
-                  {activePlaygroundWork.dimensions?.aspectRatio || 'AUTO'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setActivePlaygroundWork(null)}
-                  className="px-4 py-1.5 rounded-full bg-white text-black font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer text-xs"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
