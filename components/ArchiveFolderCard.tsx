@@ -358,6 +358,52 @@ const FOLDER_VARIANTS: Record<FolderVariantType, FolderStyleConfig> = {
   },
 };
 
+
+export const DEFAULT_PREVIEW_PHOTOS: Record<FolderVariantType, string[]> = {
+  'amber-moov': [
+    'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&auto=format&fit=crop&q=80',
+  ],
+  'cobalt-modern': [
+    'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=600&auto=format&fit=crop&q=80',
+  ],
+  'cinema-slate': [
+    'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=600&auto=format&fit=crop&q=80',
+  ],
+  'neon-violet': [
+    'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1633167606207-d840b5070fc2?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=600&auto=format&fit=crop&q=80',
+  ],
+  'terracotta-cut': [
+    'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=600&auto=format&fit=crop&q=80',
+  ],
+  'forest-emerald': [
+    'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?w=600&auto=format&fit=crop&q=80',
+  ],
+  'frosted-photostyle': [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&auto=format&fit=crop&q=80',
+  ],
+};
+
 export default function ArchiveFolderCard({
   code,
   name,
@@ -371,12 +417,13 @@ export default function ArchiveFolderCard({
   const isSoon = isComingSoon || photoCount === 0;
   const config = FOLDER_VARIANTS[variant] || FOLDER_VARIANTS['amber-moov'];
 
-  // Ensure we have at least 4 photos for the fanned stack
+  const fallbackPhotos = DEFAULT_PREVIEW_PHOTOS[variant] || DEFAULT_PREVIEW_PHOTOS['amber-moov'];
+  const validPhotos = (photos || []).filter((p) => typeof p === 'string' && p.trim().length > 0);
   const displayPhotos = [
-    photos[0] || '',
-    photos[1] || photos[0] || '',
-    photos[2] || photos[0] || '',
-    photos[3] || photos[1] || photos[0] || '',
+    validPhotos[0] || fallbackPhotos[0],
+    validPhotos[1] || fallbackPhotos[1] || fallbackPhotos[0],
+    validPhotos[2] || fallbackPhotos[2] || fallbackPhotos[0],
+    validPhotos[3] || fallbackPhotos[3] || fallbackPhotos[1],
   ];
 
   return (
