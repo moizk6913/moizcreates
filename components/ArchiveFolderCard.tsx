@@ -435,7 +435,7 @@ export default function ArchiveFolderCard({
       className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation pointer-events-auto"
     >
       {/* 3D FOLDER STAGE: Compact, proportional headroom for fanning polaroid photo cards */}
-      <div className="relative w-[155px] sm:w-[172px] md:w-[188px] h-[142px] sm:h-[156px] md:h-[168px] flex items-end justify-center">
+      <div className="relative w-[155px] sm:w-[172px] md:w-[188px] h-[142px] sm:h-[156px] md:h-[168px] flex items-end justify-center rounded-[9px] shadow-[0_24px_45px_-12px_rgba(0,0,0,0.14),0_10px_18px_-6px_rgba(0,0,0,0.06)] group-hover:shadow-[0_36px_60px_-15px_rgba(0,0,0,0.20),0_16px_24px_-8px_rgba(0,0,0,0.08)] transition-shadow duration-300">
         
         {/* LAYER 1: BACK FOLDER PLATE & TAB */}
         <div

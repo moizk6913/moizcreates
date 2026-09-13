@@ -703,14 +703,16 @@ function InfiniteCanvasContent() {
       {/* Luxury Custom Fluid Cursor (Auto-disabled on mobile) */}
       <CustomCursor />
 
-      {/* Limitless Dotted Grid Infinite Canvas (Only for physical archive mode) */}
+      {/* Limitless Drafting Mat Infinite Canvas (Tactile creative desk texture) */}
       {activeCanvasMode === 'archive' && (
         <div
           className="fixed inset-0 pointer-events-none will-change-transform"
           style={{
-            backgroundImage: 'radial-gradient(#dcdad2 0.9px, transparent 0.9px)',
-            backgroundSize: `${(isMobile ? 22 : 28) * zoom}px ${(isMobile ? 22 : 28) * zoom}px`,
-            backgroundPosition: `${pan.x % ((isMobile ? 22 : 28) * zoom)}px ${pan.y % ((isMobile ? 22 : 28) * zoom)}px`,
+            backgroundColor: '#f7f6f2',
+            backgroundImage:
+              'radial-gradient(#111111 0.75px, transparent 0.75px), linear-gradient(to right, rgba(0,0,0,0.025) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px)',
+            backgroundSize: `${(isMobile ? 22 : 28) * zoom}px ${(isMobile ? 22 : 28) * zoom}px, ${140 * zoom}px ${140 * zoom}px, ${140 * zoom}px ${140 * zoom}px`,
+            backgroundPosition: `${pan.x % ((isMobile ? 22 : 28) * zoom)}px ${pan.y % ((isMobile ? 22 : 28) * zoom)}px, ${pan.x % (140 * zoom)}px ${pan.y % (140 * zoom)}px, ${pan.x % (140 * zoom)}px ${pan.y % (140 * zoom)}px`,
           }}
         />
       )}
@@ -788,6 +790,95 @@ function InfiniteCanvasContent() {
               transformStyle: 'preserve-3d',
             }}
           >
+            {/* 1. FAINT ARCHITECTURAL WATERMARK (Anchors the canvas, removes the empty void) */}
+            <div className="absolute inset-0 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[900px] flex flex-col items-center justify-center pointer-events-none select-none -z-20">
+              <span className="text-[130px] sm:text-[190px] md:text-[240px] font-black tracking-tighter text-neutral-900/[0.035] leading-none uppercase select-none">
+                ARCHIVE
+              </span>
+              <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-neutral-900/[0.07] uppercase -mt-4 sm:-mt-8 select-none">
+                Director Repertory // 2024–2026
+              </span>
+            </div>
+
+            {/* 2. DRAFTING MAT RULER TICKS & COORDINATE CROSSHAIRS */}
+            <div className="absolute -translate-x-1/2 -translate-y-1/2 w-[1280px] h-[820px] pointer-events-none border border-neutral-300/40 rounded-3xl -z-10">
+              <div className="absolute top-2 inset-x-8 flex justify-between font-mono text-[9px] text-neutral-400/80 select-none">
+                <span>+000 MM</span>
+                <span>+250 MM</span>
+                <span>+500 MM</span>
+                <span>+750 MM</span>
+                <span>+1000 MM</span>
+              </div>
+              <div className="absolute top-5 left-5 font-mono text-neutral-300 text-xs select-none">+</div>
+              <div className="absolute top-5 right-5 font-mono text-neutral-300 text-xs select-none">+</div>
+              <div className="absolute bottom-5 left-5 font-mono text-neutral-300 text-xs select-none">+</div>
+              <div className="absolute bottom-5 right-5 font-mono text-neutral-300 text-xs select-none">+</div>
+              <div className="absolute bottom-2 inset-x-8 flex justify-between font-mono text-[9px] text-neutral-400/80 select-none">
+                <span>GRID: 28MM</span>
+                <span>SCALE: 1:1</span>
+                <span>DIR // DESK.01</span>
+              </div>
+            </div>
+
+            {/* 3. SCATTERED TACTILE ARCHIVAL EPHEMERA */}
+            {/* Ephemera 1: 35mm Celluloid Film Contact Sheet Strip */}
+            <div
+              style={{
+                left: '-140px',
+                top: '-320px',
+                transform: 'translate(-50%, -50%) rotate(-12deg)',
+              }}
+              className="absolute z-0 bg-neutral-950 p-2 rounded-sm shadow-md border border-neutral-800 pointer-events-none select-none hover:scale-105 transition-transform"
+            >
+              <div className="flex items-center justify-between pb-1 px-1 border-b border-neutral-800 text-[6px] font-mono text-neutral-400">
+                <span>KODAK 5219</span>
+                <span>FRAME 24A</span>
+              </div>
+              <div className="flex gap-1.5 py-1">
+                <div className="w-10 h-7 bg-neutral-800 rounded-sm overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/40 via-purple-500/20 to-transparent" />
+                </div>
+                <div className="w-10 h-7 bg-neutral-800 rounded-sm overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/40 via-blue-500/20 to-transparent" />
+                </div>
+                <div className="w-10 h-7 bg-neutral-800 rounded-sm overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/40 via-rose-500/20 to-transparent" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-1 px-1 border-t border-neutral-800 text-[6px] font-mono text-neutral-500">
+                <span>35MM ANAMORPHIC</span>
+                <span>● REC</span>
+              </div>
+            </div>
+
+            {/* Ephemera 2: Swiss Pantone Color Swatch Chip */}
+            <div
+              style={{
+                left: '120px',
+                top: '380px',
+                transform: 'translate(-50%, -50%) rotate(7deg)',
+              }}
+              className="absolute z-0 bg-white p-2.5 rounded-sm shadow-md border border-black/10 pointer-events-none select-none hover:scale-105 transition-transform"
+            >
+              <div className="w-14 h-16 bg-[#ff3300] rounded-[2px] mb-2 shadow-inner" />
+              <span className="block font-black text-[9px] tracking-tight">PANTONE®</span>
+              <span className="block font-mono text-[7px] text-neutral-500">Warm Red C</span>
+            </div>
+
+            {/* Ephemera 3: Washi Drafting Tape with Archival Note */}
+            <div
+              style={{
+                left: '420px',
+                top: '-150px',
+                transform: 'translate(-50%, -50%) rotate(3deg)',
+              }}
+              className="absolute z-0 bg-amber-100/90 backdrop-blur-sm border border-amber-300/50 px-3 py-1.5 shadow-sm rounded-sm pointer-events-none select-none hover:scale-105 transition-transform"
+            >
+              <span className="font-mono text-[8px] font-bold text-amber-900 tracking-wider uppercase">
+                *DIRECTOR MASTER CUTS // 2026
+              </span>
+            </div>
+
             {/* Archival Frosted-Glass 3D Folders */}
             {allFiles.map((file) => (
               <div
