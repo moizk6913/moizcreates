@@ -26,377 +26,557 @@ export interface PlaygroundTile {
   y: number;
 }
 
-// Master grid layout for 1 seamless block (2800px wide x 2100px high)
-// Designed like Hamza Tariq / modern editorial portfolios with rhythmically mixed aspect ratios
+// Master grid layout for 1 seamless block (2184px wide x 1764px high)
+// Dense 6-column interlocking mosaic with ZERO gaps (Omri Malka style)
+export const BLOCK_WIDTH = 2184;
+export const BLOCK_HEIGHT = 1764;
+
 export const BASE_TILES_LAYOUT: Omit<PlaygroundTile, 'id' | 'code'>[] = [
-  // ROW 1
   {
-    title: 'KINETIC CHROME & SOUND TRANSIENTS',
-    category: 'reels',
-    aspect: '9:16',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-01.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'DIRECTORIAL LAB',
-    role: 'Motion Director',
-    fps: '60 FPS',
-    resolution: '4K PRORES',
-    tags: ['Kinetic Typography', 'Chrome 3D', 'Sound Design'],
-    desc: 'High-frequency kinetic typography synced to sub-bass transients for 9:16 vertical commercial reveal.',
-    x: 60,
-    y: 60,
-    width: 360,
-    height: 640,
+    "title": "KINETIC CHROME & SOUND TRANSIENTS",
+    "category": "reels",
+    "aspect": "9:16",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-01.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "DIRECTORIAL LAB",
+    "role": "Motion Director",
+    "fps": "60 FPS",
+    "resolution": "4K PRORES",
+    "tags": [
+      "Kinetic Typography",
+      "Chrome 3D",
+      "Sound Design"
+    ],
+    "desc": "High-frequency kinetic typography synced to sub-bass transients for 9:16 vertical commercial reveal.",
+    "x": 0,
+    "y": 0,
+    "width": 350,
+    "height": 622
   },
   {
-    title: 'ANALOGUE 35MM NIGHT DRIVE',
-    category: 'films',
-    aspect: '16:9',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-02.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'CINEMA LAB',
-    role: 'Director of Photography',
-    fps: '24 FPS',
-    resolution: '4K DCI',
-    tags: ['Tungsten 35mm', 'Automotive Cinema', 'Anamorphic Flare'],
-    desc: 'Sodium-vapor streetlighting emulation on vintage anamorphic glass. Low-key handheld reflections.',
-    x: 460,
-    y: 60,
-    width: 680,
-    height: 382,
+    "title": "HAUTE COUTURE EDITORIAL SILHOUETTE",
+    "category": "stills",
+    "aspect": "4:5",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "LOOKBOOK LAB",
+    "role": "Art Director",
+    "fps": "STILL",
+    "resolution": "MEDIUM FORMAT",
+    "tags": [
+      "Fashion Editorial",
+      "Hasselblad Stills",
+      "Subtle Grain"
+    ],
+    "desc": "Sculptural model staging with hard rim lighting and tactile fabric texture.",
+    "x": 0,
+    "y": 636,
+    "width": 350,
+    "height": 438
   },
   {
-    title: 'HAUTE COUTURE EDITORIAL SILHOUETTE',
-    category: 'stills',
-    aspect: '4:5',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop',
-    year: '2026',
-    client: 'LOOKBOOK LAB',
-    role: 'Art Director',
-    fps: 'STILL',
-    resolution: 'MEDIUM FORMAT',
-    tags: ['Fashion Editorial', 'Hasselblad Stills', 'Subtle Grain'],
-    desc: 'Sculptural model staging with hard rim lighting and tactile fabric texture.',
-    x: 1180,
-    y: 60,
-    width: 380,
-    height: 475,
+    "title": "ANALOGUE 35MM NIGHT DRIVE",
+    "category": "films",
+    "aspect": "16:9",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-02.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "CINEMA LAB",
+    "role": "Director of Photography",
+    "fps": "24 FPS",
+    "resolution": "4K DCI",
+    "tags": [
+      "Tungsten 35mm",
+      "Automotive Cinema",
+      "Anamorphic Flare"
+    ],
+    "desc": "Sodium-vapor streetlighting emulation on vintage anamorphic glass. Low-key handheld reflections.",
+    "x": 0,
+    "y": 1088,
+    "width": 350,
+    "height": 197
   },
   {
-    title: 'DISTORTED MONOLITH 3D',
-    category: 'kinetic',
-    aspect: '1:1',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-04.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'KINETIC LAB',
-    role: '3D Artist',
-    fps: '60 FPS',
-    resolution: '2160x2160',
-    tags: ['Procedural Shaders', 'Brutalist Monolith', 'Raytracing'],
-    desc: 'Procedural metal extrusion deformed by auditory pulse signals.',
-    x: 1600,
-    y: 60,
-    width: 420,
-    height: 420,
+    "title": "DISTORTED MONOLITH 3D",
+    "category": "kinetic",
+    "aspect": "1:1",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-04.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "KINETIC LAB",
+    "role": "3D Artist",
+    "fps": "60 FPS",
+    "resolution": "2160x2160",
+    "tags": [
+      "Procedural Shaders",
+      "Brutalist Monolith",
+      "Raytracing"
+    ],
+    "desc": "Procedural metal extrusion deformed by auditory pulse signals.",
+    "x": 0,
+    "y": 1299,
+    "width": 350,
+    "height": 451
   },
   {
-    title: 'SWISS TYPOGRAPHIC GRID MATRIX',
-    category: 'kinetic',
-    aspect: '1:1',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-01.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'TYPE LAB',
-    role: 'Creative Coder',
-    fps: '60 FPS',
-    resolution: '1080x1080',
-    tags: ['Variable Font Matrix', 'Interactive Canvas', 'Audio FFT'],
-    desc: 'Dynamic variable font weight oscillations reacting to frequency waveforms.',
-    x: 2060,
-    y: 60,
-    width: 440,
-    height: 440,
-  },
-
-  // ROW 2
-  {
-    title: 'SWISS ARCHITECTURAL CONCRETE STUDY',
-    category: 'films',
-    aspect: '16:9',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-05.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'SPATIAL LAB',
-    role: 'Director',
-    fps: '24 FPS',
-    resolution: '4K CINEMA',
-    tags: ['Swiss Architecture', 'Slow Dolly', 'Tonal Balance'],
-    desc: 'Monumental raw concrete facades under overcast European lighting. Linear geometric stillness.',
-    x: 460,
-    y: 470,
-    width: 680,
-    height: 382,
+    "title": "WARM ANALOGUE PORTRAIT 35MM",
+    "category": "stills",
+    "aspect": "4:5",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "PORTRAIT LAB",
+    "role": "Photographer",
+    "fps": "STILL",
+    "resolution": "35MM GRAIN",
+    "tags": [
+      "Film Grain",
+      "Portra 400",
+      "Natural Window"
+    ],
+    "desc": "Natural window lighting on Kodak Portra 400 emulation with delicate optical softness.",
+    "x": 364,
+    "y": 0,
+    "width": 350,
+    "height": 438
   },
   {
-    title: 'HYPER-PACE EDITORIAL RHYTHM',
-    category: 'reels',
-    aspect: '9:16',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-03.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'DIRECTORIAL CUT',
-    role: 'Lead Video Editor',
-    fps: '60 FPS',
-    resolution: '9:16 VERTICAL',
-    tags: ['Micro-Cuts', 'Split Screen', 'Fashion Reel'],
-    desc: 'Multi-frame vertical storytelling with 12fps rhythmic jump cuts tailored for luxury campaigns.',
-    x: 1180,
-    y: 565,
-    width: 360,
-    height: 640,
+    "title": "VERTICAL LUXURY FASHION CUT",
+    "category": "reels",
+    "aspect": "9:16",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-03.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "FASHION LAB",
+    "role": "Commercial Director",
+    "fps": "60 FPS",
+    "resolution": "9:16 PRORES",
+    "tags": [
+      "Haute Couture",
+      "Color Grading",
+      "Speed Ramps"
+    ],
+    "desc": "High-energy fashion editorial featuring accelerated speed ramps and saturated warm tones.",
+    "x": 364,
+    "y": 452,
+    "width": 350,
+    "height": 622
   },
   {
-    title: 'MINIMAL ARCHITECTURAL SILHOUETTE',
-    category: 'stills',
-    aspect: '4:5',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop',
-    year: '2026',
-    client: 'MONO LAB',
-    role: 'Photographer',
-    fps: 'STILL',
-    resolution: 'HIGH-RES 8K',
-    tags: ['Monochrome', 'Geometric Contrast', 'Negative Space'],
-    desc: 'High-contrast black-and-white architectural geometry with extreme vertical tension.',
-    x: 1580,
-    y: 510,
-    width: 440,
-    height: 550,
+    "title": "SWISS TYPOGRAPHIC GRID MATRIX",
+    "category": "kinetic",
+    "aspect": "1:1",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-01.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "TYPE LAB",
+    "role": "Creative Coder",
+    "fps": "60 FPS",
+    "resolution": "1080x1080",
+    "tags": [
+      "Variable Font Matrix",
+      "Interactive Canvas",
+      "Audio FFT"
+    ],
+    "desc": "Responsive typography reacting in real-time to synthetic frequency oscillations.",
+    "x": 364,
+    "y": 1088,
+    "width": 350,
+    "height": 350
   },
   {
-    title: 'STUDIO LIGHTING CHOREOGRAPHY',
-    category: 'reels',
-    aspect: '9:16',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-07.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'LIGHTING LAB',
-    role: 'Gaffer & Director',
-    fps: '60 FPS',
-    resolution: '9:16 PRORES',
-    tags: ['Motorized Rig', 'Strobe Sequencing', 'Commercial Teaser'],
-    desc: 'Synchronized motorized lighting grid testing aggressive shadows and strobe reveals.',
-    x: 2060,
-    y: 530,
-    width: 360,
-    height: 640,
+    "title": "COASTAL BRUTALISM & TIDES",
+    "category": "films",
+    "aspect": "16:9",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-06.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "NATURE LAB",
+    "role": "Director",
+    "fps": "24 FPS",
+    "resolution": "4K DCI",
+    "tags": [
+      "Coastal Waves",
+      "Monolithic Seawall",
+      "Ambient Sound"
+    ],
+    "desc": "Massive weathered concrete seawalls enduring North Sea tidal surges.",
+    "x": 364,
+    "y": 1452,
+    "width": 350,
+    "height": 298
   },
   {
-    title: 'METALLIC LIQUID SPECULAR STUDY',
-    category: 'stills',
-    aspect: '4:5',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop',
-    year: '2026',
-    client: 'CGI LAB',
-    role: 'Look Development',
-    fps: 'STILL',
-    resolution: '6000x8000',
-    tags: ['Liquid Mercury', 'Reflective Surface', 'Studio Strobe'],
-    desc: 'Distorted reflection on viscous chrome surface with high-contrast specular highlights.',
-    x: 60,
-    y: 730,
-    width: 360,
-    height: 450,
-  },
-
-  // ROW 3
-  {
-    title: 'DESERT MIRAGE 65MM PANORAMA',
-    category: 'films',
-    aspect: '16:9',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-08.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'DIRECTOR CUT',
-    role: 'Director',
-    fps: '24 FPS',
-    resolution: '65MM EQUIVALENT',
-    tags: ['Dubai Dunes', 'Golden Hour Mirage', 'Drone Tracking'],
-    desc: 'Infinite dune ridgelines shimmering in 45-degree desert heat. Ultra-smooth camera glide.',
-    x: 460,
-    y: 880,
-    width: 680,
-    height: 382,
+    "title": "METALLIC LIQUID SPECULAR STUDY",
+    "category": "kinetic",
+    "aspect": "1:1",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "CGI LAB",
+    "role": "Look Development",
+    "fps": "STILL",
+    "resolution": "6000x8000",
+    "tags": [
+      "Liquid Mercury",
+      "Reflective Surface",
+      "Studio Strobe"
+    ],
+    "desc": "Distorted reflection on viscous chrome surface with high-contrast specular highlights.",
+    "x": 728,
+    "y": 0,
+    "width": 350,
+    "height": 350
   },
   {
-    title: 'TOKYO KINETIC STREETSCAPE',
-    category: 'reels',
-    aspect: '9:16',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-06.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'STREET LAB',
-    role: 'Cinematographer',
-    fps: '120 FPS',
-    resolution: '9:16 4K',
-    tags: ['Rain Emulsion', 'Shinjuku Neon', 'Slow Motion'],
-    desc: 'Raindrops reflecting neon signage captured at 120 frames per second.',
-    x: 60,
-    y: 1210,
-    width: 360,
-    height: 640,
+    "title": "DESERT MIRAGE 65MM PANORAMA",
+    "category": "films",
+    "aspect": "16:9",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-08.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "DIRECTOR CUT",
+    "role": "Director",
+    "fps": "24 FPS",
+    "resolution": "65MM EQUIVALENT",
+    "tags": [
+      "Dubai Dunes",
+      "Golden Hour Mirage",
+      "Drone Tracking"
+    ],
+    "desc": "Infinite dune ridgelines shimmering in 45-degree desert heat. Ultra-smooth camera glide.",
+    "x": 728,
+    "y": 364,
+    "width": 350,
+    "height": 197
   },
   {
-    title: 'ABSTRACT OPTICAL REFRACTION',
-    category: 'kinetic',
-    aspect: '1:1',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-04.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'OPTICS LAB',
-    role: '3D Artist',
-    fps: '60 FPS',
-    resolution: '2048x2048',
-    tags: ['Caustics', 'Prism Refraction', 'Spectral Waves'],
-    desc: 'Simulated prismatic caustics and glass refraction reacting to procedural turbulence.',
-    x: 1580,
-    y: 1090,
-    width: 440,
-    height: 440,
+    "title": "STUDIO LIGHTING CHOREOGRAPHY",
+    "category": "reels",
+    "aspect": "9:16",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-07.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "LIGHTING LAB",
+    "role": "Gaffer & Director",
+    "fps": "60 FPS",
+    "resolution": "9:16 PRORES",
+    "tags": [
+      "Motorized Rig",
+      "Strobe Sequencing",
+      "Commercial Teaser"
+    ],
+    "desc": "Synchronized motorized lighting grid testing aggressive shadows and strobe reveals.",
+    "x": 728,
+    "y": 575,
+    "width": 350,
+    "height": 622
   },
   {
-    title: 'NOCTURNAL TOKYO ARCHITECTURE',
-    category: 'films',
-    aspect: '16:9',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-02.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'CITY LAB',
-    role: 'Director',
-    fps: '24 FPS',
-    resolution: '4K CINEMA',
-    tags: ['Metropolis', 'Ginza Strobe', 'Midnight Anamorphic'],
-    desc: 'Dense vertical skyscraper architecture contrasting against nocturnal fog and reflections.',
-    x: 460,
-    y: 1290,
-    width: 680,
-    height: 382,
+    "title": "MINIMAL ARCHITECTURAL SILHOUETTE",
+    "category": "stills",
+    "aspect": "4:5",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "MONO LAB",
+    "role": "Photographer",
+    "fps": "STILL",
+    "resolution": "HIGH-RES 8K",
+    "tags": [
+      "Monochrome",
+      "Geometric Contrast",
+      "Negative Space"
+    ],
+    "desc": "High-contrast black-and-white architectural geometry with extreme vertical tension.",
+    "x": 728,
+    "y": 1211,
+    "width": 350,
+    "height": 539
   },
   {
-    title: 'WARM ANALOGUE PORTRAIT 35MM',
-    category: 'stills',
-    aspect: '4:5',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop',
-    year: '2026',
-    client: 'PORTRAIT LAB',
-    role: 'Photographer',
-    fps: 'STILL',
-    resolution: '35MM GRAIN',
-    tags: ['Film Grain', 'Portra 400', 'Natural Window'],
-    desc: 'Natural window lighting on Kodak Portra 400 emulation with delicate optical softness.',
-    x: 1180,
-    y: 1235,
-    width: 360,
-    height: 450,
+    "title": "TOKYO KINETIC STREETSCAPE",
+    "category": "reels",
+    "aspect": "9:16",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-06.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "URBAN LAB",
+    "role": "Visual Director",
+    "fps": "60 FPS",
+    "resolution": "9:16 4K",
+    "tags": [
+      "Tokyo Shibuya",
+      "Rain Reflections",
+      "Anamorphic Flares"
+    ],
+    "desc": "Handheld 9:16 sprint through Shibuya crossing after a torrential monsoon downpour.",
+    "x": 1092,
+    "y": 0,
+    "width": 350,
+    "height": 622
   },
   {
-    title: 'VERTICAL LUXURY FASHION CUT',
-    category: 'reels',
-    aspect: '9:16',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-03.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'FASHION LAB',
-    role: 'Commercial Director',
-    fps: '60 FPS',
-    resolution: '9:16 PRORES',
-    tags: ['Haute Couture', 'Color Grading', 'Speed Ramps'],
-    desc: 'High-energy fashion editorial featuring accelerated speed ramps and saturated warm tones.',
-    x: 2060,
-    y: 1200,
-    width: 360,
-    height: 640,
-  },
-
-  // ROW 4 (Bottom filler to complete seamless wrapping block)
-  {
-    title: 'TACTILE PRODUCT MACRO REVEAL',
-    category: 'reels',
-    aspect: '9:16',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-05.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'COMMERCIAL LAB',
-    role: 'Macro Director',
-    fps: '120 FPS',
-    resolution: '9:16 4K',
-    tags: ['Probe Lens', 'Macro Textures', 'Product Teaser'],
-    desc: 'Ultra-close probe lens tracking through intricate mechanical details.',
-    x: 460,
-    y: 1700,
-    width: 320,
-    height: 568,
+    "title": "SUB-ZERO GLACIAL OPTICS",
+    "category": "kinetic",
+    "aspect": "1:1",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-05.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "GLACIER LAB",
+    "role": "Visual Effects",
+    "fps": "60 FPS",
+    "resolution": "2048x2048",
+    "tags": [
+      "Refraction",
+      "Ice Crystals",
+      "Raymarching"
+    ],
+    "desc": "Internal light scattering within sub-zero crystalline glacial formations.",
+    "x": 1092,
+    "y": 636,
+    "width": 350,
+    "height": 350
   },
   {
-    title: 'COASTAL BRUTALISM & TIDES',
-    category: 'films',
-    aspect: '16:9',
-    mediaType: 'video',
-    mediaUrl: '/assets/bts/bts-06.mp4',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop',
-    year: '2026',
-    client: 'NATURE LAB',
-    role: 'Director',
-    fps: '24 FPS',
-    resolution: '4K DCI',
-    tags: ['Coastal Waves', 'Monolithic Seawall', 'Ambient Sound'],
-    desc: 'Massive weathered concrete seawalls enduring North Sea tidal surges.',
-    x: 820,
-    y: 1700,
-    width: 680,
-    height: 382,
+    "title": "BRUTALIST MONOCHROME COUTURE",
+    "category": "stills",
+    "aspect": "4:5",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "FASHION HOUSE",
+    "role": "Lead Director",
+    "fps": "STILL",
+    "resolution": "STUDIO 8K",
+    "tags": [
+      "High Fashion",
+      "Studio Lighting",
+      "Brutalism"
+    ],
+    "desc": "Stripped-back wardrobe staging against unpolished cast-concrete architecture.",
+    "x": 1092,
+    "y": 1000,
+    "width": 350,
+    "height": 438
   },
   {
-    title: 'SCULPTURAL MONOCHROME DRAPING',
-    category: 'stills',
-    aspect: '4:5',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop',
-    year: '2026',
-    client: 'DRAPE LAB',
-    role: 'Art Director',
-    fps: 'STILL',
-    resolution: 'STUDIO 8K',
-    tags: ['Monochrome', 'Draping', 'Textile Sculpture'],
-    desc: 'Fine wool and silk textures draped over cast plaster mannequins.',
-    x: 1540,
-    y: 1560,
-    width: 480,
-    height: 600,
+    "title": "HIGH-ALTITUDE PEAK SHADOWS",
+    "category": "films",
+    "aspect": "16:9",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-02.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "SUMMIT LAB",
+    "role": "Cinematographer",
+    "fps": "24 FPS",
+    "resolution": "4K DCI",
+    "tags": [
+      "Alpine Ridges",
+      "Shadow Movement",
+      "Time Lapse"
+    ],
+    "desc": "Rapid cloud shadows sweeping across jagged limestone needles in the Dolomites.",
+    "x": 1092,
+    "y": 1452,
+    "width": 350,
+    "height": 298
   },
+  {
+    "title": "CIRCUITRY & MICROPROCESSOR MACRO",
+    "category": "films",
+    "aspect": "16:9",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-04.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "TECH LAB",
+    "role": "Macro Cinematographer",
+    "fps": "120 FPS",
+    "resolution": "4K PRORES",
+    "tags": [
+      "Probe Lens",
+      "Silicon Wafers",
+      "Industrial Macro"
+    ],
+    "desc": "Ultra-close probe lens glide through complex layered microchip architectures.",
+    "x": 1456,
+    "y": 0,
+    "width": 350,
+    "height": 197
+  },
+  {
+    "title": "SCULPTURAL MONOCHROME DRAPING",
+    "category": "stills",
+    "aspect": "4:5",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "DRAPE LAB",
+    "role": "Art Director",
+    "fps": "STILL",
+    "resolution": "STUDIO 8K",
+    "tags": [
+      "Monochrome",
+      "Draping",
+      "Textile Sculpture"
+    ],
+    "desc": "Fine wool and silk textures draped over cast plaster mannequins.",
+    "x": 1456,
+    "y": 211,
+    "width": 350,
+    "height": 438
+  },
+  {
+    "title": "TACTILE PRODUCT MACRO REVEAL",
+    "category": "reels",
+    "aspect": "9:16",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-05.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "COMMERCIAL LAB",
+    "role": "Macro Director",
+    "fps": "120 FPS",
+    "resolution": "9:16 4K",
+    "tags": [
+      "Probe Lens",
+      "Macro Textures",
+      "Product Teaser"
+    ],
+    "desc": "Ultra-close probe lens tracking through intricate mechanical watch movements.",
+    "x": 1456,
+    "y": 663,
+    "width": 350,
+    "height": 622
+  },
+  {
+    "title": "PRISM OPTICAL REFRACTION",
+    "category": "kinetic",
+    "aspect": "1:1",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "OPTIC LAB",
+    "role": "Lighting Designer",
+    "fps": "STILL",
+    "resolution": "MEDIUM FORMAT",
+    "tags": [
+      "Prism Glass",
+      "Spectral Rainbow",
+      "Dark Studio"
+    ],
+    "desc": "Clean white light split into pure spectrum colors through a dense borosilicate prism.",
+    "x": 1456,
+    "y": 1299,
+    "width": 350,
+    "height": 451
+  },
+  {
+    "title": "EDITORIAL GAZE & RIM LIGHT",
+    "category": "stills",
+    "aspect": "4:5",
+    "mediaType": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop",
+    "year": "2026",
+    "client": "LOOKBOOK LAB",
+    "role": "Photographer",
+    "fps": "STILL",
+    "resolution": "8K PRORES",
+    "tags": [
+      "Editorial Lookbook",
+      "Soft Lighting",
+      "Rim Light"
+    ],
+    "desc": "Warm cinematic rim lighting with deep, intimate shadow gradients across facial features.",
+    "x": 1820,
+    "y": 0,
+    "width": 350,
+    "height": 438
+  },
+  {
+    "title": "NEON VELOCITY SPEED RUN",
+    "category": "reels",
+    "aspect": "9:16",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-07.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "MOTOR LAB",
+    "role": "Action Director",
+    "fps": "60 FPS",
+    "resolution": "9:16 PRORES",
+    "tags": [
+      "Night Racing",
+      "Neon Trails",
+      "High Speed"
+    ],
+    "desc": "Vertical high-octane tracking shot through underground highway tunnels under fluorescent lights.",
+    "x": 1820,
+    "y": 452,
+    "width": 350,
+    "height": 622
+  },
+  {
+    "title": "OCEAN TRENCH AMBIENT TONES",
+    "category": "films",
+    "aspect": "16:9",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-08.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "DEEP LAB",
+    "role": "Director",
+    "fps": "24 FPS",
+    "resolution": "4K DCI",
+    "tags": [
+      "Submersible",
+      "Ambient Deep",
+      "Bioluminescence"
+    ],
+    "desc": "Dark ambient underwater currents with soft bioluminescent particle drift.",
+    "x": 1820,
+    "y": 1088,
+    "width": 350,
+    "height": 197
+  },
+  {
+    "title": "CHROME SPHERE SOUND WAVE",
+    "category": "kinetic",
+    "aspect": "1:1",
+    "mediaType": "video",
+    "mediaUrl": "/assets/bts/bts-03.mp4",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
+    "year": "2026",
+    "client": "SOUND LAB",
+    "role": "Sound Artist",
+    "fps": "60 FPS",
+    "resolution": "1080x1080",
+    "tags": [
+      "3D Waveform",
+      "Chrome Sphere",
+      "Bass Transient"
+    ],
+    "desc": "Auditory frequency ripple traveling through a liquid mercury spherical body.",
+    "x": 1820,
+    "y": 1299,
+    "width": 350,
+    "height": 451
+  }
 ];
-
-// Block dimensions for mathematical wrapping
-const BLOCK_WIDTH = 2500;
-const BLOCK_HEIGHT = 2200;
 
 interface PlaygroundCosmosProps {
   uploadedWorks?: WorkItem[];
@@ -406,7 +586,6 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
   // Merge uploaded works into the base tiles, dynamically appending any extra uploads
   const masterTiles = useMemo<PlaygroundTile[]>(() => {
     const tiles: PlaygroundTile[] = BASE_TILES_LAYOUT.map((base, idx) => {
-      // If user has an uploaded work for this slot, override
       const userWork = uploadedWorks[idx];
       if (userWork) {
         const isVideo = userWork.mediaType === 'video';
@@ -435,16 +614,15 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       };
     });
 
-    // If user has uploaded more than BASE_TILES_LAYOUT.length, append them with sensible positions
     if (uploadedWorks.length > BASE_TILES_LAYOUT.length) {
       const extraWorks = uploadedWorks.slice(BASE_TILES_LAYOUT.length);
       extraWorks.forEach((uw, extraIdx) => {
         const isVideo = uw.mediaType === 'video';
         const aspect = (uw.dimensions?.aspectRatio || (isVideo ? '16:9' : '4:5')) as any;
-        const col = extraIdx % 3;
-        const row = Math.floor(extraIdx / 3);
-        const w = aspect === '9:16' ? 360 : aspect === '16:9' ? 680 : aspect === '1:1' ? 420 : 400;
-        const h = aspect === '9:16' ? 640 : aspect === '16:9' ? 382 : aspect === '1:1' ? 420 : 500;
+        const col = extraIdx % 6;
+        const row = Math.floor(extraIdx / 6);
+        const w = 350;
+        const h = aspect === '9:16' ? 622 : aspect === '16:9' ? 197 : aspect === '1:1' ? 350 : 438;
         tiles.push({
           id: uw.id,
           code: `WORK // ${String(BASE_TILES_LAYOUT.length + extraIdx + 1).padStart(2, '0')}`,
@@ -458,8 +636,8 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
           role: uw.workType || 'Directorial Experiment',
           tags: uw.disciplines?.length ? uw.disciplines : ['Playground', 'Lab'],
           desc: uw.caption || 'Directorial uncommissioned experiment.',
-          x: 60 + col * 760,
-          y: 2200 + row * 620,
+          x: col * (350 + 14),
+          y: BLOCK_HEIGHT + row * 450,
           width: w,
           height: h,
         });
@@ -469,15 +647,34 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
     return tiles;
   }, [uploadedWorks]);
 
-  // Filters & Selected Modal State
+  // Filters & Interaction State
   const [activeFilter, setActiveFilter] = useState<'all' | 'reels' | 'films' | 'stills'>('all');
-  const [hoveredTile, setHoveredTile] = useState<PlaygroundTile | null>(null);
+  const [hoveredTileId, setHoveredTileId] = useState<string | null>(null);
+  const [focusedTileId, setFocusedTileId] = useState<string | null>(null);
   const [selectedTile, setSelectedTile] = useState<PlaygroundTile | null>(null);
   const [isModalMuted, setIsModalMuted] = useState<boolean>(true);
 
+  // Hamza Tariq Feature: Discovered Tiles tracking & Ambient Blur Toggle
+  const [discoveredTiles, setDiscoveredTiles] = useState<Set<string>>(new Set());
+  const [isGloballyUnblurred, setIsGloballyUnblurred] = useState<boolean>(false);
+
   // 360-Degree Continuous Coordinates (Infinite Torus)
-  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 800, y: 700 });
-  const [zoom, setZoom] = useState<number>(0.88);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 900, y: 700 });
+  const [zoom, setZoom] = useState<number>(0.86);
+
+  // Viewport tracking for 3D fisheye calculation
+  const [viewportSize, setViewportSize] = useState<{ width: number; height: number }>({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Physics & Gestures
   const stageRef = useRef<HTMLDivElement>(null);
@@ -492,14 +689,6 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
 
   // Cursor Steering Tracking (Mouse position relative to center of screen)
   const mouseSteerRef = useRef({ vx: 0, vy: 0, isHoveringTile: false });
-
-  // Stop physics loop
-  const stopPhysics = useCallback(() => {
-    if (animFrameRef.current !== null) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = null;
-    }
-  }, []);
 
   // 360-Degree Cursor Steering & Inertia Master Animation Loop
   useEffect(() => {
@@ -563,8 +752,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       }
 
       // Continuous 360-degree drift vector
-      // Moving cursor left moves camera left; moving up moves camera up
-      const intensity = Math.min((dist - 0.18) * 3.8, 5.2);
+      const intensity = Math.min((dist - 0.18) * 3.6, 5.0);
       const angle = Math.atan2(normY, normX);
 
       mouseSteerRef.current.vx = Math.cos(angle) * intensity;
@@ -601,38 +789,34 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
     } catch {}
   };
 
-  // Pointer Move (Drag Pan)
+  // Pointer Move (Smooth Panning & Velocity calculation)
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDraggingRef.current) return;
 
-    const now = performance.now();
-    const dt = Math.max(1, now - lastTimeRef.current);
     const deltaX = e.clientX - dragStartRef.current.x;
     const deltaY = e.clientY - dragStartRef.current.y;
 
-    if (Math.hypot(deltaX, deltaY) > 8) {
+    if (Math.hypot(deltaX, deltaY) > 6) {
       hasMovedRef.current = true;
     }
 
-    const instVx = (e.clientX - lastPosRef.current.x) / dt;
-    const instVy = (e.clientY - lastPosRef.current.y) / dt;
-
-    velocityRef.current = {
-      vx: velocityRef.current.vx * 0.5 + instVx * 0.5 * 16,
-      vy: velocityRef.current.vy * 0.5 + instVy * 0.5 * 16,
-    };
-
-    lastPosRef.current = { x: e.clientX, y: e.clientY };
-    lastTimeRef.current = now;
-
-    // Moving pointer left pans camera left
     setPan({
       x: panStartRef.current.x - deltaX,
       y: panStartRef.current.y - deltaY,
     });
+
+    const now = performance.now();
+    const dt = now - lastTimeRef.current;
+    if (dt > 16) {
+      const vx = (e.clientX - lastPosRef.current.x) / dt;
+      const vy = (e.clientY - lastPosRef.current.y) / dt;
+      velocityRef.current = { vx: -vx * 16, vy: -vy * 16 };
+      lastPosRef.current = { x: e.clientX, y: e.clientY };
+      lastTimeRef.current = now;
+    }
   };
 
-  // Pointer Up
+  // Pointer Up (Release with Momentum)
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
@@ -646,59 +830,69 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
     }, 120);
   };
 
-  // Wheel Zoom
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (e.ctrlKey || Math.abs(e.deltaY) > 40) {
-      e.preventDefault();
-      const zoomDelta = -e.deltaY * 0.0012;
-      setZoom((z) => {
-        const next = Math.min(Math.max(0.45, z + zoomDelta), 1.5);
-        return parseFloat(next.toFixed(3));
-      });
+  // Trackpad / Wheel Scroll & Pinch Zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      // Zoom
+      const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+      setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.65), 1.3));
     } else {
-      // Two-finger trackpad drag
+      // Pan
       setPan((prev) => ({
         x: prev.x + e.deltaX * 0.9,
         y: prev.y + e.deltaY * 0.9,
       }));
     }
-  }, []);
+  };
 
-  // Keyboard navigation
+  // Keyboard navigation & ESC
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedTile(null);
-      } else if (selectedTile && (e.key === 'ArrowRight' || e.key === 'ArrowDown')) {
-        const currIdx = masterTiles.findIndex((t) => t.id === selectedTile.id);
-        setSelectedTile(masterTiles[(currIdx + 1) % masterTiles.length]);
-      } else if (selectedTile && (e.key === 'ArrowLeft' || e.key === 'ArrowUp')) {
-        const currIdx = masterTiles.findIndex((t) => t.id === selectedTile.id);
-        setSelectedTile(masterTiles[(currIdx - 1 + masterTiles.length) % masterTiles.length]);
+        if (selectedTile) {
+          setSelectedTile(null);
+        } else if (focusedTileId) {
+          setFocusedTileId(null);
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedTile, masterTiles]);
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [selectedTile, focusedTileId]);
 
-  // Mathematical Wrapping Coordinates (Torus Offset)
+  // Mark discovered tiles
+  const markDiscovered = useCallback((id: string) => {
+    setDiscoveredTiles((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Compute wrapped camera coordinates
   const wrappedX = ((pan.x % BLOCK_WIDTH) + BLOCK_WIDTH) % BLOCK_WIDTH;
   const wrappedY = ((pan.y % BLOCK_HEIGHT) + BLOCK_HEIGHT) % BLOCK_HEIGHT;
 
-  // 3x3 Block Grid Offsets to guarantee zero visual seam in all directions
+  // 3x3 Continuous Torus Offsets
   const blockOffsets = useMemo(() => {
-    const offsets: { ox: number; oy: number; key: string }[] = [];
-    for (let row = -1; row <= 1; row++) {
-      for (let col = -1; col <= 1; col++) {
-        offsets.push({
-          ox: col * BLOCK_WIDTH,
-          oy: row * BLOCK_HEIGHT,
-          key: `${col}_${row}`,
-        });
-      }
-    }
-    return offsets;
+    return [
+      { ox: -BLOCK_WIDTH, oy: -BLOCK_HEIGHT, key: 'nw' },
+      { ox: 0, oy: -BLOCK_HEIGHT, key: 'n' },
+      { ox: BLOCK_WIDTH, oy: -BLOCK_HEIGHT, key: 'ne' },
+      { ox: -BLOCK_WIDTH, oy: 0, key: 'w' },
+      { ox: 0, oy: 0, key: 'c' },
+      { ox: BLOCK_WIDTH, oy: 0, key: 'e' },
+      { ox: -BLOCK_WIDTH, oy: BLOCK_HEIGHT, key: 'sw' },
+      { ox: 0, oy: BLOCK_HEIGHT, key: 's' },
+      { ox: BLOCK_WIDTH, oy: BLOCK_HEIGHT, key: 'se' },
+    ];
   }, []);
+
+  // Center of viewport for 3D Fisheye Globe Curvature
+  const halfW = viewportSize.width / 2;
+  const halfH = viewportSize.height / 2;
 
   return (
     <div
@@ -706,29 +900,39 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onWheel={handleWheel}
-      className="relative w-screen h-screen overflow-hidden bg-[#f4f3ef] select-none touch-none"
-      style={{ cursor: isDraggingRef.current ? 'grabbing' : 'grab' }}
+      onClick={(e) => {
+        // Clicking the background canvas clears the focused card
+        if (e.target === stageRef.current || (e.target as HTMLElement).id === 'world-plane') {
+          setFocusedTileId(null);
+        }
+      }}
+      className="relative w-screen h-screen overflow-hidden bg-[#f3f2ee] select-none touch-none"
+      style={{
+        perspective: '1050px',
+        perspectiveOrigin: '50% 50%',
+        cursor: isDraggingRef.current ? 'grabbing' : 'grab',
+      }}
       data-cursor="grab"
     >
-      {/* Subtle Studio Lighting Glow */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.7)_0%,rgba(240,238,232,0.95)_100%)] z-10" />
-
       {/* ================================================================= */}
-      {/* 360-DEGREE SEAMLESS ENDLESS WRAPPING WORLD PLANE                  */}
+      {/* 360-DEGREE SEAMLESS TORUS GLOBE PLANE                             */}
       {/* ================================================================= */}
       <div
+        id="world-plane"
         className="w-full h-full relative flex items-center justify-center pointer-events-none"
-        style={{ perspective: '1600px' }}
+        style={{ transformStyle: 'preserve-3d' }}
       >
         <div
           className="absolute will-change-transform pointer-events-auto"
           style={{
             transform: `translate3d(${-wrappedX}px, ${-wrappedY}px, 0) scale(${zoom})`,
             transformOrigin: '0 0',
+            transformStyle: 'preserve-3d',
           }}
         >
-          {/* 3x3 Continuous Torus Tiles */}
+          {/* 3x3 Continuous Torus Tiles with 360° Fisheye Globe Curvature */}
           {blockOffsets.map(({ ox, oy, key }) => (
             <div
               key={key}
@@ -738,44 +942,80 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                 top: `${oy}px`,
                 width: `${BLOCK_WIDTH}px`,
                 height: `${BLOCK_HEIGHT}px`,
+                transformStyle: 'preserve-3d',
               }}
             >
               {masterTiles.map((tile) => {
                 const isFilteredOut = activeFilter !== 'all' && tile.category !== activeFilter;
-                const isHovered = hoveredTile?.id === tile.id;
+                const isHovered = hoveredTileId === tile.id;
+                const isFocused = focusedTileId === tile.id;
+                const isUnblurred = isGloballyUnblurred || isHovered || isFocused;
+
+                // Mathematical Screen Coordinates for 3D Globe Curvature
+                const cardScreenX = ox + tile.x + tile.width / 2 - wrappedX;
+                const cardScreenY = oy + tile.y + tile.height / 2 - wrappedY;
+
+                // Normalized displacement from viewport center (-1 to +1)
+                const dx = (cardScreenX - halfW) / (halfW * 0.88);
+                const dy = (cardScreenY - halfH) / (halfH * 0.88);
+                const distSq = dx * dx + dy * dy;
+
+                // Fisheye 360 Camera Spherical Angles
+                const rotY = Math.max(Math.min(dx * 20, 32), -32);
+                const rotX = Math.max(Math.min(-dy * 15, 26), -26);
+                const zDepth = -Math.min(distSq * 85, 220);
+                const globeScale = Math.max(1 - distSq * 0.02, 0.92);
 
                 return (
                   <div
                     key={`${key}_${tile.id}`}
                     onMouseEnter={() => {
-                      setHoveredTile(tile);
+                      setHoveredTileId(tile.id);
                       mouseSteerRef.current.isHoveringTile = true;
+                      markDiscovered(tile.id);
                     }}
                     onMouseLeave={() => {
-                      setHoveredTile((curr) => (curr?.id === tile.id ? null : curr));
+                      setHoveredTileId((curr) => (curr === tile.id ? null : curr));
                       mouseSteerRef.current.isHoveringTile = false;
                     }}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (hasMovedRef.current) return;
-                      setSelectedTile(tile);
+                      markDiscovered(tile.id);
+
+                      if (focusedTileId === tile.id) {
+                        // Second click opens the cinema lightbox viewer
+                        setSelectedTile(tile);
+                      } else {
+                        // First click locks focus and unblurs this card!
+                        setFocusedTileId(tile.id);
+                      }
                     }}
                     data-cursor="view"
-                    data-cursor-text="EXPAND ↗"
+                    data-cursor-text={isFocused ? 'EXPAND ↗' : 'FOCUS ⊙'}
                     style={{
                       position: 'absolute',
                       left: `${tile.x}px`,
                       top: `${tile.y}px`,
                       width: `${tile.width}px`,
                       height: `${tile.height}px`,
-                      transform: isHovered ? 'scale(1.04) translateZ(30px)' : 'scale(1) translateZ(0px)',
-                      transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, filter 0.3s ease',
-                      opacity: isFilteredOut ? 0.15 : 1.0,
-                      filter: isFilteredOut ? 'grayscale(80%) blur(1px)' : 'none',
-                      zIndex: isHovered ? 40 : 10,
+                      // 360 Globe Fisheye 3D Curvature
+                      transform: `translate3d(0, 0, ${isUnblurred ? zDepth + 45 : zDepth}px) rotateX(${isUnblurred ? rotX * 0.35 : rotX}deg) rotateY(${isUnblurred ? rotY * 0.35 : rotY}deg) scale(${isUnblurred ? globeScale * 1.04 : globeScale})`,
+                      // Hamza Tariq Ambient Dream Blur vs Crisp Unblur
+                      filter: isFilteredOut
+                        ? 'grayscale(90%) blur(12px) opacity(0.2)'
+                        : isUnblurred
+                        ? 'blur(0px) brightness(1.0) saturate(1.0) contrast(1.0)'
+                        : 'blur(20px) brightness(0.93) saturate(1.15) contrast(1.04)',
+                      opacity: isFilteredOut ? 0.18 : isUnblurred ? 1.0 : 0.88,
+                      transition: isDraggingRef.current
+                        ? 'filter 0.3s ease, opacity 0.3s ease'
+                        : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease',
+                      zIndex: isUnblurred ? 45 : 10,
                     }}
-                    className="rounded-[22px] overflow-hidden bg-white border border-black/[0.07] shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.14)] cursor-pointer group"
+                    className="rounded-[20px] overflow-hidden bg-white border border-black/[0.08] shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)] cursor-pointer group will-change-transform"
                   >
-                    {/* Media Display */}
+                    {/* Media Display (Video loop or High-res Still) */}
                     {tile.mediaType === 'video' ? (
                       <video
                         src={tile.mediaUrl}
@@ -797,19 +1037,44 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                       />
                     )}
 
-                    {/* Clean Aspect Badge on Hover */}
-                    <span className="absolute top-3 right-3 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 tracking-wider pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                      {tile.aspect}
-                    </span>
-
-                    {/* Subtle Luxury Hover Footer Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex flex-col justify-end p-4 text-white">
-                      <span className="font-mono text-[9px] font-bold text-[#e60000] uppercase tracking-wider">
-                        {tile.role}
+                    {/* Format Badge (Hamza Tariq Style) */}
+                    <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-white font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10 shadow-sm">
+                        {tile.mediaType === 'video' ? '▶ ' : ''}{tile.aspect}
                       </span>
-                      <h4 className="font-display font-bold text-sm uppercase leading-tight line-clamp-1">
+                    </div>
+
+                    {/* Unblurred Active Badge: Shows when card is focused or hovered */}
+                    {isUnblurred && (
+                      <div className="absolute top-3 right-3 z-20 animate-fadeIn">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTile(tile);
+                          }}
+                          className="px-3 py-1 rounded-full bg-white/95 hover:bg-[#e60000] hover:text-white text-black font-mono text-[9px] font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <span>EXPAND</span>
+                          <span>↗</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Hover & Focus Bottom Drawer */}
+                    <div className={`absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 pointer-events-none flex flex-col justify-end space-y-1 ${
+                      isUnblurred ? 'opacity-100' : 'opacity-0'
+                    }`}>
+                      <div className="flex items-center justify-between text-white font-mono text-[9px] font-bold text-neutral-300 uppercase">
+                        <span>{tile.code}</span>
+                        <span>{tile.year}</span>
+                      </div>
+                      <h3 className="font-sans font-black text-xs text-white uppercase tracking-tight line-clamp-1">
                         {tile.title}
-                      </h4>
+                      </h3>
+                      <p className="font-mono text-[10px] text-neutral-300 line-clamp-1">
+                        {tile.role}
+                      </p>
                     </div>
                   </div>
                 );
@@ -820,10 +1085,10 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       </div>
 
       {/* ================================================================= */}
-      {/* ULTRA-CLEAN MINIMAL UI (NO CLUTTER, NO SHUFFLE, NO TELEMETRY)      */}
+      {/* MINIMAL BOTTOM CONTROLS DOCK (HAMZA TARIQ STYLE)                  */}
       {/* ================================================================= */}
 
-      {/* Bottom Center: Minimal Clean Category Filter Pills */}
+      {/* Bottom Center: Clean Category Filter Pills */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
         <div className="pointer-events-auto flex items-center gap-1 p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-black">
           <button
@@ -865,11 +1130,25 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
         </div>
       </div>
 
-      {/* Bottom Right: Clean Minimal Counter Pill (Hamza Tariq Style) */}
-      <div className="fixed bottom-6 right-6 z-40 pointer-events-none hidden md:block">
-        <div className="pointer-events-auto px-4 py-2 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_25px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800 flex items-center gap-2">
+      {/* Bottom Right: Hamza Tariq Style Discovered Counter & Blur Mode Toggle */}
+      <div className="fixed bottom-6 right-6 z-40 pointer-events-none hidden sm:block">
+        <div className="pointer-events-auto flex items-center gap-2 p-1 pl-3 pr-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_25px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{masterTiles.length} PIECES • 360° CANVAS</span>
+          <span>{discoveredTiles.size}/{masterTiles.length} DISCOVERED</span>
+
+          {/* Toggle All Unblur / Ambient Blur */}
+          <button
+            type="button"
+            onClick={() => setIsGloballyUnblurred((prev) => !prev)}
+            className={`ml-1 px-3 py-1 rounded-full font-mono text-[10px] font-bold uppercase transition-all cursor-pointer ${
+              isGloballyUnblurred
+                ? 'bg-black text-white shadow-xs'
+                : 'bg-black/5 text-neutral-600 hover:bg-black/10 hover:text-black'
+            }`}
+            title={isGloballyUnblurred ? 'Enable Ambient Dream Blur' : 'Unblur All Tiles'}
+          >
+            {isGloballyUnblurred ? '✨ AMBIENT BLUR' : '👁️ UNBLUR ALL'}
+          </button>
         </div>
       </div>
 
