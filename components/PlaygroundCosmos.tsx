@@ -26,7 +26,7 @@ export interface PlaygroundTile {
 }
 
 // Master grid layout for 1 seamless block (2184px wide x 1764px high)
-// Dense 6-column interlocking mosaic with uniform 14px gaps (Omri Malka style)
+// Dense 6-column interlocking mosaic with uniform 14px gaps
 export const BLOCK_WIDTH = 2184;
 export const BLOCK_HEIGHT = 1764;
 
@@ -646,18 +646,33 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
     return tiles;
   }, [uploadedWorks]);
 
-  // Filters & Modal State
+  // Filters & Interaction State
   const [activeFilter, setActiveFilter] = useState<'all' | 'reels' | 'films' | 'stills' | 'kinetic'>('all');
   const [hoveredTileId, setHoveredTileId] = useState<string | null>(null);
   const [selectedTile, setSelectedTile] = useState<PlaygroundTile | null>(null);
   const [isModalMuted, setIsModalMuted] = useState<boolean>(true);
 
+  // Hamza Tariq Feature: Single-single items blur & discovery!
+  // Seed the center anchor items as discovered so the canvas is NEVER washed-out or completely blurred
+  const [discoveredTiles, setDiscoveredTiles] = useState<Set<string>>(
+    () => new Set(['tile-1', 'tile-5', 'tile-11', 'tile-14'])
+  );
+  const [isGloballyUnblurred, setIsGloballyUnblurred] = useState<boolean>(false);
+
+  const markDiscovered = useCallback((id: string) => {
+    setDiscoveredTiles((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
   // 360-Degree Continuous Coordinates (Infinite Torus)
-  // Default camera position is centered in the master block
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(0.92);
 
-  // Viewport tracking for robust dynamic block tiling
+  // Viewport tracking for symmetrical 3D Fisheye Globe calculation
   const [viewportSize, setViewportSize] = useState<{ width: number; height: number }>({
     width: typeof window !== 'undefined' ? window.innerWidth : 1920,
     height: typeof window !== 'undefined' ? window.innerHeight : 1080,
@@ -686,7 +701,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
   // Cursor Steering Tracking (Mouse relative to viewport center)
   const mouseSteerRef = useRef({ vx: 0, vy: 0, isHoveringTile: false });
 
-  // 360-Degree Cursor Steering & Momentum Loop
+  // 360-Degree Cursor Steering & Momentum Master Loop
   useEffect(() => {
     let lastTick = performance.now();
 
@@ -699,7 +714,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
         return;
       }
 
-      // Cursor Steering velocity
+      // Cursor steering velocity
       const steerVx = mouseSteerRef.current.vx;
       const steerVy = mouseSteerRef.current.vy;
 
@@ -739,7 +754,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       const normY = (e.clientY - cY) / cY;
       const dist = Math.hypot(normX, normY);
 
-      // Dead zone near center so card hovering is rock-stable
+      // Dead zone near center so card hovering is stable
       if (dist < 0.16 || mouseSteerRef.current.isHoveringTile) {
         mouseSteerRef.current.vx = 0;
         mouseSteerRef.current.vy = 0;
@@ -854,17 +869,21 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
   const wrappedX = ((pan.x % BLOCK_WIDTH) + BLOCK_WIDTH) % BLOCK_WIDTH;
   const wrappedY = ((pan.y % BLOCK_HEIGHT) + BLOCK_HEIGHT) % BLOCK_HEIGHT;
 
-  // Dynamically calculate visible blocks ensuring 100% solid edge-to-edge coverage
-  // with ZERO gaps on left, right, top, or bottom on any screen size.
-  const visibleBlocks = useMemo(() => {
-    const halfW = viewportSize.width / (2 * zoom);
-    const halfH = viewportSize.height / (2 * zoom);
+  // Viewport half-dimensions
+  const halfW = viewportSize.width / 2;
+  const halfH = viewportSize.height / 2;
 
-    // Buffer of 400px so cards gracefully slide in before entering screen
-    const minX = wrappedX - halfW - 400;
-    const maxX = wrappedX + halfW + 400;
-    const minY = wrappedY - halfH - 400;
-    const maxY = wrappedY + halfH + 400;
+  // Dynamically calculate visible blocks ensuring 100% solid edge-to-edge coverage
+  // with ZERO gaps on left, right, top, or bottom.
+  const visibleBlocks = useMemo(() => {
+    const worldHalfW = halfW / zoom;
+    const worldHalfH = halfH / zoom;
+
+    // Buffer of 450px so cards gracefully curve in without edge popping
+    const minX = wrappedX - worldHalfW - 450;
+    const maxX = wrappedX + worldHalfW + 450;
+    const minY = wrappedY - worldHalfH - 450;
+    const maxY = wrappedY + worldHalfH + 450;
 
     const minBx = Math.floor(minX / BLOCK_WIDTH);
     const maxBx = Math.floor(maxX / BLOCK_WIDTH);
@@ -884,7 +903,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       }
     }
     return blocks;
-  }, [wrappedX, wrappedY, viewportSize.width, viewportSize.height, zoom]);
+  }, [wrappedX, wrappedY, halfW, halfH, zoom]);
 
   return (
     <div
@@ -896,20 +915,23 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       onWheel={handleWheel}
       className="relative w-screen h-screen overflow-hidden bg-[#f3f2ee] select-none touch-none"
       style={{
+        perspective: '2200px',
+        perspectiveOrigin: '50% 50%',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
       }}
       data-cursor="grab"
     >
       {/* ================================================================= */}
-      {/* SEAMLESS 360° CONTINUOUS MOSAIC WALL (ZERO BLUR • FLUSH EDGE-TO-EDGE) */}
+      {/* 360° FISHEYE GLOBE CURVATURE MOSAIC PLANE                         */}
       {/* ================================================================= */}
       <div
         className="absolute will-change-transform pointer-events-auto"
         style={{
-          left: `${viewportSize.width / 2}px`,
-          top: `${viewportSize.height / 2}px`,
+          left: `${halfW}px`,
+          top: `${halfH}px`,
           transform: `scale(${zoom}) translate3d(${-wrappedX}px, ${-wrappedY}px, 0)`,
           transformOrigin: '0 0',
+          transformStyle: 'preserve-3d',
         }}
       >
         {visibleBlocks.map(({ ox, oy, key }) => (
@@ -921,11 +943,38 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
               top: `${oy}px`,
               width: `${BLOCK_WIDTH}px`,
               height: `${BLOCK_HEIGHT}px`,
+              transformStyle: 'preserve-3d',
             }}
           >
             {masterTiles.map((tile) => {
               const isFilteredOut = activeFilter !== 'all' && tile.category !== activeFilter;
               const isHovered = hoveredTileId === tile.id;
+              const isDiscovered = discoveredTiles.has(tile.id);
+              const isUnblurred = isGloballyUnblurred || isDiscovered || isHovered;
+
+              // Card center in world coordinates
+              const cardWorldCenterX = ox + tile.x + tile.width / 2;
+              const cardWorldCenterY = oy + tile.y + tile.height / 2;
+
+              // Card center on screen (accounting for viewport center, wrapped camera, and zoom)
+              const cardScreenX = halfW + (cardWorldCenterX - wrappedX) * zoom;
+              const cardScreenY = halfH + (cardWorldCenterY - wrappedY) * zoom;
+
+              // Normalized displacement from screen center (-1 to +1)
+              const dx = (cardScreenX - halfW) / (halfW * 0.92);
+              const dy = (cardScreenY - halfH) / (halfH * 0.92);
+              const distSq = dx * dx + dy * dy;
+
+              // Authentic Fisheye / 360 Camera Spherical Curvature
+              // Calibrated angles keep gaps between 10px and 20px with ZERO edge voids
+              const rotY = Math.max(Math.min(dx * 9.5, 15), -15);
+              const rotX = Math.max(Math.min(-dy * 7.5, 12), -12);
+              const zDepth = -Math.min(distSq * 42, 110);
+              const globeScale = Math.max(1 - distSq * 0.015, 0.95);
+
+              // 3D card elevation when hovered
+              const activeZ = isHovered ? zDepth + 36 : zDepth;
+              const activeScale = isHovered ? globeScale * 1.035 : globeScale;
 
               return (
                 <div
@@ -933,6 +982,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                   onMouseEnter={() => {
                     setHoveredTileId(tile.id);
                     mouseSteerRef.current.isHoveringTile = true;
+                    markDiscovered(tile.id);
                   }}
                   onMouseLeave={() => {
                     setHoveredTileId((curr) => (curr === tile.id ? null : curr));
@@ -941,70 +991,89 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                   onClick={(e) => {
                     e.stopPropagation();
                     if (hasMovedRef.current) return;
+                    markDiscovered(tile.id);
                     setSelectedTile(tile);
                   }}
                   data-cursor="view"
-                  data-cursor-text="EXPAND ↗"
+                  data-cursor-text={isUnblurred ? 'EXPAND ↗' : 'UNBLUR 👁️'}
                   style={{
                     position: 'absolute',
                     left: `${tile.x}px`,
                     top: `${tile.y}px`,
                     width: `${tile.width}px`,
                     height: `${tile.height}px`,
-                    // Razor-sharp: ZERO BLUR!
-                    filter: isFilteredOut ? 'grayscale(90%) opacity(0.2)' : 'none',
+                    // 3D Fisheye Globe Curvature with Card Lift
+                    transform: `translate3d(0, 0, ${activeZ}px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${activeScale})`,
+                    transformStyle: 'preserve-3d',
+                    zIndex: isHovered ? 60 : 10,
                     opacity: isFilteredOut ? 0.2 : 1.0,
-                    transform: isHovered ? 'scale(1.035) translateZ(0px)' : 'scale(1) translateZ(0px)',
-                    zIndex: isHovered ? 50 : 10,
-                    transition: 'transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease, opacity 0.3s ease',
+                    transition: isDraggingRef.current
+                      ? 'opacity 0.2s ease'
+                      : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease',
                   }}
+                  // The card frame itself has crisp rounded borders and drop shadow (NEVER blurred)
                   className="rounded-[18px] overflow-hidden bg-white border border-black/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.18)] cursor-pointer group will-change-transform"
                 >
-                  {/* Media (Autoplay loop or Sharp High-Res Still) */}
-                  {tile.mediaType === 'video' ? (
-                    <video
-                      src={tile.mediaUrl}
-                      poster={tile.thumbnailUrl}
-                      muted
-                      loop
-                      playsInline
-                      autoPlay
-                      preload="metadata"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={tile.thumbnailUrl || tile.mediaUrl}
-                      alt={tile.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                  )}
+                  {/* Inner Media: Card-by-Card Single Item Blur Discovery */}
+                  <div
+                    className="w-full h-full relative overflow-hidden will-change-transform"
+                    style={{
+                      // Blur only the media inside the card, maintaining crisp 10-20px gaps and sharp outer borders!
+                      filter: isFilteredOut
+                        ? 'grayscale(90%) opacity(0.3)'
+                        : isUnblurred
+                        ? 'blur(0px) brightness(1.0) saturate(1.0)'
+                        : 'blur(16px) brightness(0.96) saturate(1.12)',
+                      transform: isUnblurred ? 'scale(1.0)' : 'scale(1.14)',
+                      transition: 'filter 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  >
+                    {tile.mediaType === 'video' ? (
+                      <video
+                        src={tile.mediaUrl}
+                        poster={tile.thumbnailUrl}
+                        muted
+                        loop
+                        playsInline
+                        autoPlay
+                        preload="metadata"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={tile.thumbnailUrl || tile.mediaUrl}
+                        alt={tile.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    )}
+                  </div>
 
-                  {/* Format Aspect Badge */}
+                  {/* Format Aspect Badge (Always Sharp) */}
                   <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 pointer-events-none">
                     <span className="px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-white font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10 shadow-sm">
                       {tile.mediaType === 'video' ? '▶ ' : ''}{tile.aspect}
                     </span>
                   </div>
 
-                  {/* Expand Badge on Hover */}
+                  {/* Hover Badge: Shows 'EXPAND ↗' when unblurred, or 'UNBLUR 👁️' */}
                   <div className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        markDiscovered(tile.id);
                         setSelectedTile(tile);
                       }}
                       className="px-3 py-1 rounded-full bg-white/95 hover:bg-[#e60000] hover:text-white text-black font-mono text-[9px] font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center gap-1"
                     >
-                      <span>EXPAND</span>
-                      <span>↗</span>
+                      <span>{isUnblurred ? 'EXPAND' : 'UNBLUR'}</span>
+                      <span>{isUnblurred ? '↗' : '👁️'}</span>
                     </button>
                   </div>
 
-                  {/* Hover Drawer with Project Info */}
+                  {/* Hover Drawer with Project Title & Role */}
                   <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/90 via-black/45 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex flex-col justify-end space-y-1">
                     <div className="flex items-center justify-between text-white font-mono text-[9px] font-bold text-neutral-300 uppercase">
                       <span>{tile.code}</span>
@@ -1025,7 +1094,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       </div>
 
       {/* ================================================================= */}
-      {/* MINIMAL BOTTOM CONTROLS DOCK (OMRI MALKA STYLE)                   */}
+      {/* MINIMAL BOTTOM CONTROLS DOCK (HAMZA TARIQ & OMRI MALKA STYLE)     */}
       {/* ================================================================= */}
 
       {/* Bottom Center: Clean Category Filter Pills */}
@@ -1079,11 +1148,25 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
         </div>
       </div>
 
-      {/* Bottom Right: Clean Minimal Status Pill */}
+      {/* Bottom Right: Hamza Tariq Discovery Pill & Global Unblur Toggle */}
       <div className="fixed bottom-6 right-6 z-40 pointer-events-none hidden sm:block">
-        <div className="pointer-events-auto flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_25px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
+        <div className="pointer-events-auto flex items-center gap-2 p-1 pl-3 pr-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_25px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{masterTiles.length} PIECES • 360° INFINITE CANVAS</span>
+          <span>{discoveredTiles.size}/{masterTiles.length} DISCOVERED</span>
+
+          {/* Toggle All Unblur / Ambient Blur Mode */}
+          <button
+            type="button"
+            onClick={() => setIsGloballyUnblurred((prev) => !prev)}
+            className={`ml-1 px-3 py-1 rounded-full font-mono text-[10px] font-bold uppercase transition-all cursor-pointer ${
+              isGloballyUnblurred
+                ? 'bg-black text-white shadow-xs'
+                : 'bg-black/5 text-neutral-600 hover:bg-black/10 hover:text-black'
+            }`}
+            title={isGloballyUnblurred ? 'Re-enable Discovery Blur' : 'Unblur All Pieces'}
+          >
+            {isGloballyUnblurred ? '✨ AMBIENT BLUR' : '👁️ UNBLUR ALL'}
+          </button>
         </div>
       </div>
 
@@ -1158,7 +1241,9 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                 type="button"
                 onClick={() => {
                   const currIdx = masterTiles.findIndex((t) => t.id === selectedTile.id);
-                  setSelectedTile(masterTiles[(currIdx - 1 + masterTiles.length) % masterTiles.length]);
+                  const nextTile = masterTiles[(currIdx - 1 + masterTiles.length) % masterTiles.length];
+                  markDiscovered(nextTile.id);
+                  setSelectedTile(nextTile);
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center font-mono text-sm border border-white/15 cursor-pointer"
                 title="Previous (Left Arrow)"
@@ -1169,7 +1254,9 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                 type="button"
                 onClick={() => {
                   const currIdx = masterTiles.findIndex((t) => t.id === selectedTile.id);
-                  setSelectedTile(masterTiles[(currIdx + 1) % masterTiles.length]);
+                  const nextTile = masterTiles[(currIdx + 1) % masterTiles.length];
+                  markDiscovered(nextTile.id);
+                  setSelectedTile(nextTile);
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center font-mono text-sm border border-white/15 cursor-pointer"
                 title="Next (Right Arrow)"
