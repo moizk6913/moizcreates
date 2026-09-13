@@ -699,32 +699,30 @@ function InfiniteCanvasContent() {
         </div>
       </header>
 
-      {/* Bottom Center Floating Mode Switcher (Pure Black & White • No Red) */}
+      {/* Bottom Center Floating Mode Switcher (Pure Black & White • No Red • Clean Text) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
         <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
           <button
             type="button"
             onClick={() => setActiveCanvasMode('archive')}
-            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'archive'
                 ? 'bg-black text-white shadow-sm'
                 : 'text-neutral-500 hover:text-black'
             }`}
           >
-            <span>📁</span>
-            <span>ARCHIVE</span>
+            ARCHIVE
           </button>
           <button
             type="button"
             onClick={() => setActiveCanvasMode('playground')}
-            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'playground'
                 ? 'bg-black text-white shadow-sm'
                 : 'text-neutral-500 hover:text-black'
             }`}
           >
-            <span>⚡</span>
-            <span>PLAYGROUND</span>
+            PLAYGROUND
           </button>
         </div>
       </div>
