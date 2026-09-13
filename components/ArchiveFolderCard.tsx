@@ -2,6 +2,15 @@
 
 import React from 'react';
 
+export type FolderVariantType =
+  | 'amber-moov'
+  | 'cobalt-modern'
+  | 'cinema-slate'
+  | 'neon-violet'
+  | 'terracotta-cut'
+  | 'forest-emerald'
+  | 'frosted-photostyle';
+
 export interface FolderStickerData {
   stamp?: {
     flag?: string;
@@ -38,10 +47,11 @@ export interface ArchiveFolderProps {
   stickers?: FolderStickerData;
   colorTag?: string;
   isComingSoon?: boolean;
+  variant?: FolderVariantType;
   onClick: () => void;
 }
 
-// Scalloped perforated postage stamp component (Image 1 & 3 reference)
+// Compact Perforated Postage Stamp (Reference image tactile touch)
 function PostageStamp({
   flag = '🇯🇵',
   countryCode = 'JPN',
@@ -53,28 +63,27 @@ function PostageStamp({
 }) {
   return (
     <div
-      className="relative w-11 h-13 sm:w-13 sm:h-15 p-1 flex flex-col items-center justify-between rounded-sm select-none shadow-[0_3px_10px_rgba(0,0,0,0.12)] border border-black/10 transition-transform duration-300 group-hover:scale-105"
+      className="relative w-7 h-9 sm:w-8 sm:h-10 p-0.5 flex flex-col items-center justify-between rounded-sm select-none shadow-[0_2px_6px_rgba(0,0,0,0.12)] border border-black/10 transition-transform duration-300 group-hover:scale-105"
       style={{
         backgroundColor: bgColor,
-        boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
       }}
     >
-      {/* Postage Stamp Perforations along edges */}
-      <div className="absolute inset-0 pointer-events-none border-[3px] border-dashed border-[#ddd9d0] rounded-sm opacity-60" />
+      {/* Postage Stamp Perforations */}
+      <div className="absolute inset-0 pointer-events-none border-[2px] border-dashed border-[#ddd9d0] rounded-sm opacity-60" />
 
       {/* Flag / Graphic Inset */}
-      <div className="w-full h-full flex flex-col items-center justify-center bg-white/90 rounded-[2px] overflow-hidden p-1">
-        <span className="text-lg sm:text-xl leading-none filter drop-shadow-sm select-none">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-white/90 rounded-[2px] overflow-hidden p-0.5">
+        <span className="text-xs sm:text-sm leading-none filter drop-shadow-sm select-none">
           {flag}
         </span>
-        <span className="font-mono text-[7px] sm:text-[8px] font-black text-black/60 tracking-wider uppercase mt-1">
+        <span className="font-mono text-[5.5px] sm:text-[6.5px] font-black text-black/60 tracking-wider uppercase mt-0.5">
           {countryCode}
         </span>
       </div>
 
       {/* Faint cancellation stamp curve */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-25">
-        <svg viewBox="0 0 40 40" className="w-8 h-8 stroke-black fill-none stroke-[1.2]">
+        <svg viewBox="0 0 40 40" className="w-5 h-5 stroke-black fill-none stroke-[1.2]">
           <path d="M2,20 Q12,12 20,20 T38,20" />
           <path d="M2,26 Q12,18 20,26 T38,26" />
         </svg>
@@ -83,142 +92,74 @@ function PostageStamp({
   );
 }
 
-// High-end tactile die-cut sticker component with white vinyl outline & drop shadow (Image 1, 3, 4 reference)
+// Compact Die-Cut Vinyl Sticker Component
 function DieCutSticker({ type = 'lemon' }: { type?: string }) {
   const renderStickerGraphic = () => {
     switch (type) {
       case 'torii':
         return (
-          /* Red Japanese Torii Gate */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
             <path
               d="M6 14 Q32 10 58 14 L56 22 L50 21 L52 56 L42 56 L44 32 L20 32 L22 56 L12 56 L14 21 L8 22 Z"
               fill="#ffffff"
               stroke="#ffffff"
-              strokeWidth="5"
+              strokeWidth="4"
               strokeLinejoin="round"
             />
             <path d="M8 15 Q32 11 56 15 L54 21 L10 21 Z" fill="#222" />
             <path d="M12 25 L52 25 L50 30 L14 30 Z" fill="#ff3823" />
             <rect x="16" y="21" width="6" height="35" fill="#ff3823" rx="1" />
             <rect x="42" y="21" width="6" height="35" fill="#ff3823" rx="1" />
-            <rect x="15" y="52" width="8" height="5" fill="#222" rx="1" />
-            <rect x="41" y="52" width="8" height="5" fill="#222" rx="1" />
           </svg>
         );
 
       case 'lemon':
         return (
-          /* Juicy Yellow Lemon with Green Leaf (Image 1 reference) */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <ellipse cx="32" cy="36" rx="20" ry="16" fill="#ffffff" stroke="#ffffff" strokeWidth="5" />
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
+            <ellipse cx="32" cy="36" rx="20" ry="16" fill="#ffffff" stroke="#ffffff" strokeWidth="4" />
             <ellipse cx="32" cy="36" rx="18" ry="14" fill="#ffcc00" />
             <ellipse cx="30" cy="34" rx="14" ry="10" fill="#fed836" />
-            <path d="M14 36 Q10 36 12 34 Q14 36 14 36" stroke="#ffcc00" strokeWidth="4" />
-            <path d="M50 36 Q54 36 52 38 Q50 36 50 36" stroke="#ffcc00" strokeWidth="4" />
-            <path
-              d="M36 24 Q48 14 44 26 Q36 28 36 24 Z"
-              fill="#22c55e"
-              stroke="#ffffff"
-              strokeWidth="3"
-            />
-          </svg>
-        );
-
-      case 'eiffel':
-        return (
-          /* Eiffel Tower Silhouette (Image 4 reference) */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <path
-              d="M32 6 L35 22 L40 40 L46 54 L38 54 Q32 46 26 54 L18 54 L24 40 L29 22 Z"
-              fill="#ffffff"
-              stroke="#ffffff"
-              strokeWidth="4"
-              strokeLinejoin="round"
-            />
-            <path d="M32 8 L34 22 L39 40 L44 52 L37 52 Q32 45 27 52 L20 52 L25 40 L30 22 Z" fill="#64748b" />
-            <rect x="27" y="24" width="10" height="2" fill="#334155" />
-            <rect x="24" y="38" width="16" height="3" fill="#334155" />
-          </svg>
-        );
-
-      case 'tulip':
-        return (
-          /* Dutch Tulip Blossom (Image 4 reference) */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <path
-              d="M22 20 Q32 10 42 20 Q44 34 32 38 Q20 34 22 20 Z"
-              fill="#ffffff"
-              stroke="#ffffff"
-              strokeWidth="5"
-            />
-            <path d="M24 22 Q32 14 40 22 Q42 32 32 36 Q22 32 24 22 Z" fill="#f97316" />
-            <path d="M32 22 Q32 34 32 36" stroke="#ea580c" strokeWidth="2" />
-            <path d="M32 36 L32 54" stroke="#22c55e" strokeWidth="4" strokeLinecap="round" />
-            <path d="M32 46 Q24 44 26 38" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" />
+            <path d="M36 24 Q48 14 44 26 Q36 28 36 24 Z" fill="#22c55e" stroke="#ffffff" strokeWidth="2.5" />
           </svg>
         );
 
       case 'camera':
         return (
-          /* Rangefinder Analog Camera (Image 4 reference) */
-          <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <rect x="10" y="20" width="44" height="30" rx="6" fill="#ffffff" stroke="#ffffff" strokeWidth="5" />
-            <rect x="12" y="22" width="40" height="26" rx="4" fill="#262626" />
-            <rect x="12" y="22" width="40" height="8" rx="2" fill="#94a3b8" />
-            <circle cx="32" cy="37" r="9" fill="#171717" stroke="#94a3b8" strokeWidth="2" />
-            <circle cx="32" cy="37" r="5" fill="#38bdf8" opacity="0.85" />
-            <circle cx="46" cy="26" r="2.5" fill="#ef4444" />
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
+            <rect x="10" y="20" width="44" height="30" rx="5" fill="#ffffff" stroke="#ffffff" strokeWidth="4" />
+            <rect x="12" y="22" width="40" height="26" rx="3" fill="#262626" />
+            <rect x="12" y="22" width="40" height="7" rx="2" fill="#94a3b8" />
+            <circle cx="32" cy="37" r="8" fill="#171717" stroke="#94a3b8" strokeWidth="1.5" />
+            <circle cx="32" cy="37" r="4.5" fill="#38bdf8" opacity="0.85" />
+            <circle cx="45" cy="26" r="2" fill="#ef4444" />
           </svg>
         );
 
       case 'film':
         return (
-          /* 35mm Celluloid Film Frame (Image 4 reference) */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <rect x="12" y="16" width="40" height="32" rx="4" fill="#ffffff" stroke="#ffffff" strokeWidth="5" />
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
+            <rect x="12" y="16" width="40" height="32" rx="4" fill="#ffffff" stroke="#ffffff" strokeWidth="4" />
             <rect x="14" y="18" width="36" height="28" rx="3" fill="#b45309" />
             <rect x="20" y="23" width="24" height="18" rx="2" fill="#78350f" />
-            <rect x="16" y="20" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="16" y="26" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="16" y="32" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="16" y="38" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="45" y="20" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="45" y="26" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="45" y="32" width="3" height="3" rx="0.5" fill="#ffffff" />
-            <rect x="45" y="38" width="3" height="3" rx="0.5" fill="#ffffff" />
-          </svg>
-        );
-
-      case 'car':
-        return (
-          /* High-Performance Sports Coupe Silhouette */
-          <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <path
-              d="M10 40 L16 30 Q28 26 42 28 L54 36 L56 42 L52 44 L48 44 Q46 38 40 38 Q34 38 32 44 L26 44 Q24 38 18 38 Q12 38 10 44 Z"
-              fill="#ffffff"
-              stroke="#ffffff"
-              strokeWidth="5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 40 L17 31 Q28 27 41 29 L52 36 L54 42 L12 42 Z"
-              fill="#e11d48"
-            />
-            <circle cx="19" cy="42" r="5" fill="#18181b" stroke="#e2e8f0" strokeWidth="2" />
-            <circle cx="43" cy="42" r="5" fill="#18181b" stroke="#e2e8f0" strokeWidth="2" />
+            <rect x="16" y="20" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="16" y="26" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="16" y="32" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="16" y="38" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="45" y="20" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="45" y="26" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="45" y="32" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
+            <rect x="45" y="38" width="2.5" height="2.5" rx="0.5" fill="#ffffff" />
           </svg>
         );
 
       case 'airplane':
         return (
-          /* Modern Commercial Jetliner */
-          <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
             <path
               d="M32 10 L35 26 L52 36 L52 40 L35 34 L34 48 L40 52 L40 55 L32 53 L24 55 L24 52 L30 48 L29 34 L12 40 L12 36 L29 26 Z"
               fill="#ffffff"
               stroke="#ffffff"
-              strokeWidth="4"
+              strokeWidth="3.5"
               strokeLinejoin="round"
             />
             <path
@@ -230,71 +171,43 @@ function DieCutSticker({ type = 'lemon' }: { type?: string }) {
 
       case 'flame':
         return (
-          /* Red Hot Kinetic Flame */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
             <path
               d="M32 10 Q40 22 46 32 Q50 42 42 50 Q34 56 24 50 Q16 42 22 32 Q26 26 28 20 Q30 14 32 10 Z"
               fill="#ffffff"
               stroke="#ffffff"
-              strokeWidth="5"
+              strokeWidth="4"
             />
             <path
               d="M32 13 Q39 24 44 33 Q48 42 41 49 Q34 54 25 49 Q18 42 23 33 Q27 28 29 22 Q30 17 32 13 Z"
               fill="#ea580c"
             />
-            <path
-              d="M32 28 Q36 34 38 40 Q40 46 35 50 Q30 53 26 49 Q22 44 25 38 Z"
-              fill="#facc15"
-            />
-          </svg>
-        );
-
-      case 'sneaker':
-        return (
-          /* Streetwear Sneaker */
-          <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <path
-              d="M12 40 L16 26 L26 26 L30 32 L46 34 L54 40 L52 46 L14 46 Z"
-              fill="#ffffff"
-              stroke="#ffffff"
-              strokeWidth="5"
-              strokeLinejoin="round"
-            />
-            <path d="M14 39 L17 28 L25 28 L29 34 L45 36 L52 41 L14 41 Z" fill="#1e293b" />
-            <path d="M12 42 L53 42 L51 45 L14 45 Z" fill="#ef4444" />
+            <path d="M32 28 Q36 34 38 40 Q40 46 35 50 Q30 53 26 49 Q22 44 25 38 Z" fill="#facc15" />
           </svg>
         );
 
       case 'diamond':
         return (
-          /* Brilliant Cut Diamond */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
             <path
               d="M20 18 L44 18 L54 30 L32 52 L10 30 Z"
               fill="#ffffff"
               stroke="#ffffff"
-              strokeWidth="5"
+              strokeWidth="4"
               strokeLinejoin="round"
             />
             <path d="M22 20 L42 20 L50 30 L32 48 L14 30 Z" fill="#06b6d4" />
-            <path d="M22 20 L32 48 L42 20" stroke="#cffafe" strokeWidth="2" fill="none" />
-            <path d="M14 30 L50 30" stroke="#cffafe" strokeWidth="2" />
+            <path d="M22 20 L32 48 L42 20" stroke="#cffafe" strokeWidth="1.5" fill="none" />
+            <path d="M14 30 L50 30" stroke="#cffafe" strokeWidth="1.5" />
           </svg>
         );
 
       default:
         return (
-          /* Default Lemon Sticker */
-          <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-11 sm:h-11 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-            <ellipse cx="32" cy="36" rx="20" ry="16" fill="#ffffff" stroke="#ffffff" strokeWidth="5" />
+          <svg viewBox="0 0 64 64" className="w-6 h-6 sm:w-7 sm:h-7 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.18)]">
+            <ellipse cx="32" cy="36" rx="20" ry="16" fill="#ffffff" stroke="#ffffff" strokeWidth="4" />
             <ellipse cx="32" cy="36" rx="18" ry="14" fill="#ffcc00" />
             <ellipse cx="30" cy="34" rx="14" ry="10" fill="#fed836" />
-            <path
-              d="M36 24 Q48 14 44 26 Q36 28 36 24 Z"
-              fill="#22c55e"
-              stroke="#ffffff"
-              strokeWidth="3"
-            />
           </svg>
         );
     }
@@ -307,17 +220,158 @@ function DieCutSticker({ type = 'lemon' }: { type?: string }) {
   );
 }
 
+// Visual theme configurations for the 7 distinct folder archetypes
+interface FolderStyleConfig {
+  backPlate: string;
+  tabStyle: {
+    bg: string;
+    position: string;
+    width: string;
+    shape: string;
+  };
+  frontFlap: string;
+  border: string;
+  shadow: string;
+  titleColor: string;
+  subtitleColor: string;
+  badgeType: 'arrow-moov' | 'arrow-photostyle' | 'pill-code' | 'gear-tag';
+}
+
+const FOLDER_VARIANTS: Record<FolderVariantType, FolderStyleConfig> = {
+  // 1. Warm Golden Amber with Frosted Glass Flap (Reference 1: "PROJECT MOOV")
+  'amber-moov': {
+    backPlate: 'bg-gradient-to-b from-[#fbbf24] to-[#f59e0b]',
+    tabStyle: {
+      bg: 'bg-[#f59e0b]',
+      position: 'left-2.5',
+      width: 'w-14 sm:w-16',
+      shape: 'rounded-t-[8px]',
+    },
+    frontFlap: 'bg-gradient-to-b from-[#fef3c7]/95 via-[#fde68a]/90 to-[#f59e0b]/90 backdrop-blur-md',
+    border: 'border-[#f59e0b]/40',
+    shadow: 'shadow-[0_10px_24px_rgba(245,158,11,0.22)]',
+    titleColor: 'text-[#78350f]',
+    subtitleColor: 'text-[#92400e]',
+    badgeType: 'arrow-moov',
+  },
+
+  // 2. Royal Cobalt Blue Modernist Folder (Reference 3: Folder 2/6)
+  'cobalt-modern': {
+    backPlate: 'bg-gradient-to-b from-[#2563eb] to-[#1d4ed8]',
+    tabStyle: {
+      bg: 'bg-[#1d4ed8]',
+      position: 'left-2.5',
+      width: 'w-16 sm:w-18',
+      shape: 'rounded-tl-[8px] rounded-tr-[2px]',
+    },
+    frontFlap: 'bg-gradient-to-b from-[#3b82f6]/95 via-[#2563eb]/95 to-[#1d4ed8]/95 backdrop-blur-md',
+    border: 'border-blue-300/40',
+    shadow: 'shadow-[0_10px_24px_rgba(29,78,216,0.25)]',
+    titleColor: 'text-white',
+    subtitleColor: 'text-blue-100',
+    badgeType: 'pill-code',
+  },
+
+  // 3. Dark Titanium Slate 35mm Film Noir (Reference 3: Folder 7)
+  'cinema-slate': {
+    backPlate: 'bg-gradient-to-b from-[#27272a] to-[#18181b]',
+    tabStyle: {
+      bg: 'bg-[#18181b]',
+      position: 'left-3',
+      width: 'w-14 sm:w-16',
+      shape: 'rounded-t-[6px] border-t border-l border-r border-white/10',
+    },
+    frontFlap: 'bg-gradient-to-b from-[#27272a]/95 via-[#1e1e22]/95 to-[#141416]/98 backdrop-blur-md',
+    border: 'border-white/10',
+    shadow: 'shadow-[0_12px_28px_rgba(0,0,0,0.4)]',
+    titleColor: 'text-neutral-100',
+    subtitleColor: 'text-neutral-400',
+    badgeType: 'arrow-photostyle',
+  },
+
+  // 4. Vibrant Electric Violet / Kinetic (Reference 3: Folder 11)
+  'neon-violet': {
+    backPlate: 'bg-gradient-to-b from-[#8b5cf6] to-[#7c3aed]',
+    tabStyle: {
+      bg: 'bg-[#7c3aed]',
+      position: 'left-1/2 -translate-x-1/2',
+      width: 'w-14 sm:w-16',
+      shape: 'rounded-t-[10px]',
+    },
+    frontFlap: 'bg-gradient-to-b from-[#a78bfa]/95 via-[#8b5cf6]/95 to-[#7c3aed]/95 backdrop-blur-md',
+    border: 'border-purple-300/40',
+    shadow: 'shadow-[0_10px_24px_rgba(124,58,237,0.25)]',
+    titleColor: 'text-white',
+    subtitleColor: 'text-purple-100',
+    badgeType: 'pill-code',
+  },
+
+  // 5. Warm Terracotta Burnt Sienna with Chamfered Tab (Reference 3: Folder 12)
+  'terracotta-cut': {
+    backPlate: 'bg-gradient-to-b from-[#f97316] to-[#c2410c]',
+    tabStyle: {
+      bg: 'bg-[#c2410c]',
+      position: 'right-2.5',
+      width: 'w-14 sm:w-16',
+      shape: 'rounded-tr-[10px] rounded-tl-[2px]',
+    },
+    frontFlap: 'bg-gradient-to-b from-[#fb923c]/95 via-[#ea580c]/95 to-[#c2410c]/95 backdrop-blur-md',
+    border: 'border-orange-300/40',
+    shadow: 'shadow-[0_10px_24px_rgba(234,88,12,0.25)]',
+    titleColor: 'text-white',
+    subtitleColor: 'text-orange-100',
+    badgeType: 'gear-tag',
+  },
+
+  // 6. Deep Forest Emerald / Stepped Notch (Reference 3: Folder 5)
+  'forest-emerald': {
+    backPlate: 'bg-gradient-to-b from-[#059669] to-[#064e3b]',
+    tabStyle: {
+      bg: 'bg-[#064e3b]',
+      position: 'left-3',
+      width: 'w-16 sm:w-18',
+      shape: 'rounded-t-[8px]',
+    },
+    frontFlap: 'bg-gradient-to-b from-[#10b981]/95 via-[#059669]/95 to-[#047857]/95 backdrop-blur-md',
+    border: 'border-emerald-300/40',
+    shadow: 'shadow-[0_10px_24px_rgba(5,150,105,0.25)]',
+    titleColor: 'text-white',
+    subtitleColor: 'text-emerald-100',
+    badgeType: 'pill-code',
+  },
+
+  // 7. Frosted Crystal Ice Sleeve (Reference 2: "PHOTOSTYLE 2026")
+  'frosted-photostyle': {
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
+    tabStyle: {
+      bg: 'bg-[#cbd5e1]',
+      position: 'left-2.5',
+      width: 'w-14 sm:w-16',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
+    },
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
+    badgeType: 'arrow-photostyle',
+  },
+};
+
 export default function ArchiveFolderCard({
+  code,
   name,
   photos = [],
-  photoCount = 42,
+  photoCount = 0,
   stickers,
   isComingSoon,
+  variant = 'amber-moov',
   onClick,
 }: ArchiveFolderProps) {
   const isSoon = isComingSoon || photoCount === 0;
+  const config = FOLDER_VARIANTS[variant] || FOLDER_VARIANTS['amber-moov'];
 
-  // Ensure we have at least 4 photos for the fanned stack (or Coming Soon graphic placeholders)
+  // Ensure we have at least 4 photos for the fanned stack
   const displayPhotos = [
     photos[0] || '',
     photos[1] || photos[0] || '',
@@ -334,88 +388,92 @@ export default function ArchiveFolderCard({
       }}
       className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation pointer-events-auto"
     >
-      {/* 3D FOLDER STAGE: Headroom for upward peeking polaroid photo cards */}
-      <div className="relative w-[215px] sm:w-[245px] md:w-[265px] h-[200px] sm:h-[225px] md:h-[240px] flex items-end justify-center">
+      {/* 3D FOLDER STAGE: Compact, proportional headroom for fanning polaroid photo cards */}
+      <div className="relative w-[155px] sm:w-[172px] md:w-[188px] h-[142px] sm:h-[156px] md:h-[168px] flex items-end justify-center">
         
-        {/* LAYER 1: Back Folder Plate (Solid ivory folder back with top-left folder tab, 10px roundness) */}
-        <div className="absolute inset-x-0 bottom-0 h-[135px] sm:h-[150px] md:h-[160px] bg-gradient-to-b from-[#ece8df] to-[#ded9ce] rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-black/[0.04]">
-          {/* Top Folder Tab (Apple macOS style 10px roundness) */}
-          <div className="absolute -top-2.5 left-3 w-20 sm:w-24 h-3.5 bg-[#ded8cc] rounded-t-[8px] border-t border-l border-r border-black/[0.04]" />
+        {/* LAYER 1: BACK FOLDER PLATE & TAB */}
+        <div
+          className={`absolute inset-x-0 bottom-0 h-[96px] sm:h-[106px] md:h-[114px] ${config.backPlate} rounded-[9px] shadow-[0_4px_14px_rgba(0,0,0,0.08)]`}
+        >
+          {/* Top Folder Tab */}
+          <div
+            className={`absolute -top-2.5 ${config.tabStyle.position} ${config.tabStyle.width} h-3 ${config.tabStyle.bg} ${config.tabStyle.shape}`}
+          />
         </div>
 
-        {/* LAYER 2: FANNED POLAROID PHOTO STACK (Tucked inside folder, peeking HIGH above flap with crisp borders) */}
-        <div className="absolute inset-x-0 bottom-6 flex items-end justify-center pointer-events-none">
+        {/* LAYER 2: FANNED POLAROID PHOTO STACK (Tucked inside folder, peeking above flap) */}
+        <div className="absolute inset-x-0 bottom-4 flex items-end justify-center pointer-events-none">
           
-          {/* Card 1: Far Left (-16deg resting, peeking up -> -24deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform -rotate-[16deg] -translate-x-[42px] -translate-y-[68px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[58px] group-hover:-translate-y-[96px] group-hover:scale-105 z-10">
+          {/* Card 1: Far Left (-15deg resting -> -24deg hover bloom) */}
+          <div className="absolute w-[62px] sm:w-[68px] md:w-[74px] h-[76px] sm:h-[84px] md:h-[92px] p-1 sm:p-1.2 bg-white rounded-[7px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] ring-1 ring-black/5 transform -rotate-[15deg] -translate-x-[26px] -translate-y-[46px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[24deg] group-hover:-translate-x-[38px] group-hover:-translate-y-[70px] group-hover:scale-105 z-10">
             {isSoon || !displayPhotos[0] ? (
-              <div className="w-full h-full bg-[#161618] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
-                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">ARCHIVE</span>
-                <span className="font-display font-black text-[10px] text-accent-red tracking-wider uppercase">01</span>
+              <div className="w-full h-full bg-[#161618] rounded-[5px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[6px] tracking-widest text-neutral-400 uppercase">ARCHIVE</span>
+                <span className="font-display font-black text-[9px] text-accent-red tracking-wider uppercase">01</span>
               </div>
             ) : (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={displayPhotos[0]}
-                alt="Archive photo 1"
-                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                alt={`${name} 1`}
+                className="w-full h-full object-cover rounded-[5px] block pointer-events-none"
                 loading="lazy"
                 draggable={false}
               />
             )}
           </div>
 
-          {/* Card 2: Center Left (-5deg resting, peeking up -> -8deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[15px] -translate-y-[84px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[20px] group-hover:-translate-y-[115px] group-hover:scale-110 z-20">
+          {/* Card 2: Center Left (-5deg resting -> -8deg hover bloom) */}
+          <div className="absolute w-[66px] sm:w-[72px] md:w-[78px] h-[80px] sm:h-[88px] md:h-[96px] p-1 sm:p-1.2 bg-white rounded-[7px] shadow-[0_8px_18px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform -rotate-[5deg] -translate-x-[9px] -translate-y-[56px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-[8deg] group-hover:-translate-x-[12px] group-hover:-translate-y-[84px] group-hover:scale-110 z-20">
             {isSoon || !displayPhotos[1] ? (
-              <div className="w-full h-full bg-[#1b1b1f] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
-                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">STUDIO</span>
-                <span className="font-display font-black text-[10px] text-white tracking-wider uppercase">SOON</span>
+              <div className="w-full h-full bg-[#1b1b1f] rounded-[5px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[6px] tracking-widest text-neutral-400 uppercase">STUDIO</span>
+                <span className="font-display font-black text-[9px] text-white tracking-wider uppercase">2026</span>
               </div>
             ) : (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={displayPhotos[1]}
-                alt="Archive photo 2"
-                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                alt={`${name} 2`}
+                className="w-full h-full object-cover rounded-[5px] block pointer-events-none"
                 loading="lazy"
                 draggable={false}
               />
             )}
           </div>
 
-          {/* Card 3: Center Right (+6deg resting, peeking up -> +8deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[92px] sm:w-[104px] md:w-[114px] h-[112px] sm:h-[126px] md:h-[138px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[15px] -translate-y-[80px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[20px] group-hover:-translate-y-[110px] group-hover:scale-110 z-20">
+          {/* Card 3: Center Right (+6deg resting -> +8deg hover bloom) */}
+          <div className="absolute w-[66px] sm:w-[72px] md:w-[78px] h-[80px] sm:h-[88px] md:h-[96px] p-1 sm:p-1.2 bg-white rounded-[7px] shadow-[0_8px_18px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform rotate-[6deg] translate-x-[9px] -translate-y-[54px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[8deg] group-hover:translate-x-[12px] group-hover:-translate-y-[82px] group-hover:scale-110 z-20">
             {isSoon || !displayPhotos[2] ? (
-              <div className="w-full h-full bg-[#1b1b1f] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
-                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">IN PROD</span>
-                <span className="font-display font-black text-[10px] text-white tracking-wider uppercase">2026</span>
+              <div className="w-full h-full bg-[#1b1b1f] rounded-[5px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[6px] tracking-widest text-neutral-400 uppercase">DIRECT</span>
+                <span className="font-display font-black text-[9px] text-white tracking-wider uppercase">CUT</span>
               </div>
             ) : (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={displayPhotos[2]}
-                alt="Archive photo 3"
-                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                alt={`${name} 3`}
+                className="w-full h-full object-cover rounded-[5px] block pointer-events-none"
                 loading="lazy"
                 draggable={false}
               />
             )}
           </div>
 
-          {/* Card 4: Far Right (+18deg resting, peeking up -> +24deg hover bloom, peeking up even higher) */}
-          <div className="absolute w-[86px] sm:w-[98px] md:w-[108px] h-[106px] sm:h-[120px] md:h-[132px] p-1.5 sm:p-2 bg-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transform rotate-[18deg] translate-x-[42px] -translate-y-[66px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[58px] group-hover:-translate-y-[94px] group-hover:scale-105 z-10">
+          {/* Card 4: Far Right (+16deg resting -> +24deg hover bloom) */}
+          <div className="absolute w-[62px] sm:w-[68px] md:w-[74px] h-[76px] sm:h-[84px] md:h-[92px] p-1 sm:p-1.2 bg-white rounded-[7px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] ring-1 ring-black/5 transform rotate-[16deg] translate-x-[26px] -translate-y-[44px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[24deg] group-hover:translate-x-[38px] group-hover:-translate-y-[68px] group-hover:scale-105 z-10">
             {isSoon || !displayPhotos[3] ? (
-              <div className="w-full h-full bg-[#161618] rounded-[7px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
-                <span className="font-mono text-[7px] tracking-widest text-neutral-400 uppercase">DIRECT</span>
-                <span className="font-display font-black text-[10px] text-accent-red tracking-wider uppercase">CUT</span>
+              <div className="w-full h-full bg-[#161618] rounded-[5px] flex flex-col items-center justify-center text-center p-1 text-white select-none">
+                <span className="font-mono text-[6px] tracking-widest text-neutral-400 uppercase">VISION</span>
+                <span className="font-display font-black text-[9px] text-accent-red tracking-wider uppercase">PROD</span>
               </div>
             ) : (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={displayPhotos[3]}
-                alt="Archive photo 4"
-                className="w-full h-full object-cover rounded-[7px] block pointer-events-none"
+                alt={`${name} 4`}
+                className="w-full h-full object-cover rounded-[5px] block pointer-events-none"
                 loading="lazy"
                 draggable={false}
               />
@@ -424,55 +482,105 @@ export default function ArchiveFolderCard({
 
         </div>
 
-        {/* LAYER 3: FRONT OPAQUE/TRANSLUCENT IVORY FLAP (Crisp, ZERO backdrop-blur smudge, 10px Apple radius) */}
-        <div className="relative w-full h-[135px] sm:h-[150px] md:h-[160px] rounded-[10px] bg-gradient-to-b from-[#fbf9f4] via-[#f7f4ed] to-[#eee8dd] border border-black/[0.08] shadow-[0_12px_28px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 z-30 transition-shadow duration-300 group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.12)]">
-          
-          {/* Subtle Clean Highlight Gradient across the top lip */}
-          <div className="absolute inset-x-0 top-0 h-[28%] bg-gradient-to-b from-white/90 via-white/40 to-transparent pointer-events-none" />
+        {/* LAYER 3: FRONT FLAP (Distinctive Material, Cut & Frosted Envelope Styling) */}
+        <div
+          className={`relative w-full h-[96px] sm:h-[106px] md:h-[114px] rounded-[9px] ${config.frontFlap} border ${config.border} ${config.shadow} overflow-hidden flex flex-col justify-between p-2.5 sm:p-3 z-30 transition-all duration-300 group-hover:shadow-[0_16px_32px_rgba(0,0,0,0.16)]`}
+        >
+          {/* Subtle Top Gloss Highlight */}
+          <div className="absolute inset-x-0 top-0 h-[28%] bg-gradient-to-b from-white/60 via-white/20 to-transparent pointer-events-none" />
 
-          {/* STICKERS & POSTAGE STAMPS ROW (Images 1, 3, 4 reference) */}
-          <div className="relative z-10 flex justify-between items-start pt-0.5">
-            
-            {/* Stamp 1: Perforated Postage Stamp (Left) */}
-            <div className="transform -rotate-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-105">
-              <PostageStamp
-                flag={isSoon ? '⚡' : stickers?.stamp?.flag || '🇮🇹'}
-                countryCode={isSoon ? 'SOON' : stickers?.stamp?.countryCode || 'IT'}
-                bgColor={stickers?.stamp?.bgColor || '#ffffff'}
-              />
-            </div>
+          {/* TOP ROW: STAMP & STICKER ACCENTS */}
+          <div className="relative z-10 flex justify-between items-start">
+            {stickers?.stamp ? (
+              <div className="transform -rotate-4 transition-transform duration-300 group-hover:-rotate-8 group-hover:scale-105">
+                <PostageStamp
+                  flag={stickers.stamp.flag || '🇯🇵'}
+                  countryCode={stickers.stamp.countryCode || 'JPN'}
+                  bgColor={stickers.stamp.bgColor || '#ffffff'}
+                />
+              </div>
+            ) : (
+              <span className={`font-mono text-[8px] sm:text-[9px] font-bold tracking-widest uppercase opacity-75 ${config.subtitleColor}`}>
+                {code.split('/')[0]?.trim() || 'PROJ'}
+              </span>
+            )}
 
-            {/* Sticker 2: Die-Cut Glossy Sticker with White Vinyl Border (Right) */}
-            <div className="transform rotate-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 pt-1 pr-1">
-              <DieCutSticker type={isSoon ? 'film' : stickers?.sticker?.type || 'lemon'} />
-            </div>
-
+            {stickers?.sticker ? (
+              <div className="transform rotate-4 transition-transform duration-300 group-hover:rotate-8 group-hover:scale-105">
+                <DieCutSticker type={stickers.sticker.type || 'lemon'} />
+              </div>
+            ) : (
+              <span className={`font-mono text-[7px] sm:text-[8px] tracking-wider uppercase opacity-60 ${config.subtitleColor}`}>
+                *SERIES.26
+              </span>
+            )}
           </div>
 
-          {/* Debossed Bottom Grip Ridges (Iconic tactile folder detail from reference images) */}
-          <div className="relative z-10 w-full flex flex-col gap-1 items-center pb-0.5 opacity-40 group-hover:opacity-60 transition-opacity">
-            <div className="w-10/12 h-[2px] rounded-full bg-black/15 shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)]" />
-            <div className="w-10/12 h-[2px] rounded-full bg-black/15 shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)]" />
+          {/* BOTTOM ROW: TYPOGRAPHY & ARROW BADGE */}
+          <div className="relative z-10 flex items-end justify-between">
+            <div className="flex flex-col">
+              <span className={`font-mono text-[7px] sm:text-[8px] tracking-wider uppercase font-semibold opacity-75 ${config.subtitleColor}`}>
+                {code}
+              </span>
+              <span className={`font-display font-black text-xs sm:text-sm tracking-tight leading-tight line-clamp-1 ${config.titleColor}`}>
+                {name}
+              </span>
+            </div>
+
+            {/* BADGES */}
+            {config.badgeType === 'arrow-photostyle' && (
+              /* Reference 2: Circular dark button with white upward-right arrow */
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
+                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                </svg>
+              </div>
+            )}
+
+            {config.badgeType === 'arrow-moov' && (
+              /* Reference 1: Clean right arrow */
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/90 text-[#b45309] flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:translate-x-0.5">
+                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            )}
+
+            {config.badgeType === 'pill-code' && (
+              /* Pill style count or year indicator */
+              <span className="font-mono text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white backdrop-blur-sm border border-white/20">
+                {photoCount > 0 ? `${photoCount}P` : '2026'}
+              </span>
+            )}
+
+            {config.badgeType === 'gear-tag' && (
+              /* Gear/setting icon like Reference 3 Folder 3 */
+              <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-white/80 transition-transform duration-300 group-hover:rotate-45">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            )}
           </div>
 
         </div>
 
       </div>
 
-      {/* TYPOGRAPHY UNDERNEATH FOLDER (10px Apple radius count pill) */}
-      <div className="mt-3 flex flex-col items-center justify-center text-center gap-1 max-w-[240px]">
-        <h3 className="font-display font-black text-sm sm:text-base text-primary tracking-tight leading-snug group-hover:text-accent-red transition-colors line-clamp-1">
+      {/* TYPOGRAPHY UNDERNEATH FOLDER (Reference 2 style: Clean bold title & minimal pill) */}
+      <div className="mt-2.5 flex flex-col items-center justify-center text-center gap-0.5 max-w-[170px]">
+        <h3 className="font-display font-black text-xs sm:text-sm text-neutral-900 tracking-tight leading-snug group-hover:text-accent-red transition-colors line-clamp-1">
           {name}
         </h3>
         
-        {/* Soft Count Pill Badge */}
         {isSoon ? (
-          <span className="font-mono text-[9px] sm:text-[10px] font-bold tracking-wider text-accent-red bg-accent-red/10 border border-accent-red/20 px-2.5 py-0.5 rounded-[10px] transition-colors uppercase">
-            Coming Soon • In Production
+          <span className="font-mono text-[8px] sm:text-[9px] font-bold tracking-wider text-accent-red bg-accent-red/10 border border-accent-red/20 px-2 py-0.5 rounded-full uppercase">
+            In Production
           </span>
         ) : (
-          <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wide text-secondary/80 bg-black/[0.05] group-hover:bg-black/[0.08] px-3 py-0.5 rounded-[10px] transition-colors">
-            {photoCount} photos
+          <span className="font-mono text-[9px] sm:text-[10px] font-medium tracking-wide text-neutral-500 bg-black/[0.04] group-hover:bg-black/[0.08] px-2.5 py-0.5 rounded-full transition-colors">
+            {photoCount} items
           </span>
         )}
       </div>
