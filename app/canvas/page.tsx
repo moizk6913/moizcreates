@@ -678,7 +678,7 @@ function InfiniteCanvasContent() {
           className="group pointer-events-auto inline-flex items-center gap-2 px-4 sm:px-4 py-2.5 sm:py-2.5 bg-white/95 text-neutral-900 hover:text-[#e60000] backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
-          <span className="font-bold uppercase tracking-wider">PORTFOLIO</span>
+          <span className="font-bold uppercase tracking-wider">BACK</span>
         </Link>
 
         {/* View Mode Switcher Pill (Archive vs Playground) */}
@@ -722,14 +722,7 @@ function InfiniteCanvasContent() {
               <span className="font-bold uppercase tracking-wider">CENTER</span>
             </button>
           ) : (
-            <Link
-              href="/admin"
-              className="group inline-flex items-center gap-1.5 px-4 py-2.5 bg-white/95 hover:bg-[#e60000] hover:text-white text-neutral-900 backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs font-bold uppercase tracking-wider transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10"
-              title="Manage uncommissioned playground experiments"
-            >
-              <span className="text-[#e60000] group-hover:text-white">＋</span>
-              <span className="hidden sm:inline">STUDIO DESK</span>
-            </Link>
+            <div className="w-[84px] sm:w-[94px] pointer-events-none" />
           )}
         </div>
       </header>
