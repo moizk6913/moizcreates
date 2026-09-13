@@ -238,109 +238,109 @@ interface FolderStyleConfig {
 }
 
 const FOLDER_VARIANTS: Record<FolderVariantType, FolderStyleConfig> = {
-  // 1. Warm Golden Amber with Frosted Glass Flap (Reference 1: "PROJECT MOOV")
+  // 1. Art Direction - Clean Frosted Crystal Sleeve (Left Tab)
   'amber-moov': {
-    backPlate: 'bg-gradient-to-b from-[#fbbf24] to-[#f59e0b]',
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
     tabStyle: {
-      bg: 'bg-[#f59e0b]',
+      bg: 'bg-[#cbd5e1]',
       position: 'left-2.5',
       width: 'w-14 sm:w-16',
-      shape: 'rounded-t-[8px]',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
     },
-    frontFlap: 'bg-gradient-to-b from-[#fef3c7]/95 via-[#fde68a]/90 to-[#f59e0b]/90 backdrop-blur-md',
-    border: 'border-[#f59e0b]/40',
-    shadow: 'shadow-[0_10px_24px_rgba(245,158,11,0.22)]',
-    titleColor: 'text-[#78350f]',
-    subtitleColor: 'text-[#92400e]',
-    badgeType: 'arrow-moov',
-  },
-
-  // 2. Royal Cobalt Blue Modernist Folder (Reference 3: Folder 2/6)
-  'cobalt-modern': {
-    backPlate: 'bg-gradient-to-b from-[#2563eb] to-[#1d4ed8]',
-    tabStyle: {
-      bg: 'bg-[#1d4ed8]',
-      position: 'left-2.5',
-      width: 'w-16 sm:w-18',
-      shape: 'rounded-tl-[8px] rounded-tr-[2px]',
-    },
-    frontFlap: 'bg-gradient-to-b from-[#3b82f6]/95 via-[#2563eb]/95 to-[#1d4ed8]/95 backdrop-blur-md',
-    border: 'border-blue-300/40',
-    shadow: 'shadow-[0_10px_24px_rgba(29,78,216,0.25)]',
-    titleColor: 'text-white',
-    subtitleColor: 'text-blue-100',
-    badgeType: 'pill-code',
-  },
-
-  // 3. Dark Titanium Slate 35mm Film Noir (Reference 3: Folder 7)
-  'cinema-slate': {
-    backPlate: 'bg-gradient-to-b from-[#27272a] to-[#18181b]',
-    tabStyle: {
-      bg: 'bg-[#18181b]',
-      position: 'left-3',
-      width: 'w-14 sm:w-16',
-      shape: 'rounded-t-[6px] border-t border-l border-r border-white/10',
-    },
-    frontFlap: 'bg-gradient-to-b from-[#27272a]/95 via-[#1e1e22]/95 to-[#141416]/98 backdrop-blur-md',
-    border: 'border-white/10',
-    shadow: 'shadow-[0_12px_28px_rgba(0,0,0,0.4)]',
-    titleColor: 'text-neutral-100',
-    subtitleColor: 'text-neutral-400',
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
     badgeType: 'arrow-photostyle',
   },
 
-  // 4. Vibrant Electric Violet / Kinetic (Reference 3: Folder 11)
-  'neon-violet': {
-    backPlate: 'bg-gradient-to-b from-[#8b5cf6] to-[#7c3aed]',
+  // 2. Brand Identity - Clean Frosted Crystal Sleeve (Left-Center Tab)
+  'cobalt-modern': {
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
     tabStyle: {
-      bg: 'bg-[#7c3aed]',
+      bg: 'bg-[#cbd5e1]',
+      position: 'left-3 sm:left-4',
+      width: 'w-16 sm:w-18',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
+    },
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
+    badgeType: 'arrow-photostyle',
+  },
+
+  // 3. Cinematography - Clean Frosted Crystal Sleeve (Left Tab)
+  'cinema-slate': {
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
+    tabStyle: {
+      bg: 'bg-[#cbd5e1]',
+      position: 'left-2.5',
+      width: 'w-14 sm:w-16',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
+    },
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
+    badgeType: 'arrow-photostyle',
+  },
+
+  // 4. Motion Graphics - Clean Frosted Crystal Sleeve (Center Tab)
+  'neon-violet': {
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
+    tabStyle: {
+      bg: 'bg-[#cbd5e1]',
       position: 'left-1/2 -translate-x-1/2',
       width: 'w-14 sm:w-16',
-      shape: 'rounded-t-[10px]',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
     },
-    frontFlap: 'bg-gradient-to-b from-[#a78bfa]/95 via-[#8b5cf6]/95 to-[#7c3aed]/95 backdrop-blur-md',
-    border: 'border-purple-300/40',
-    shadow: 'shadow-[0_10px_24px_rgba(124,58,237,0.25)]',
-    titleColor: 'text-white',
-    subtitleColor: 'text-purple-100',
-    badgeType: 'pill-code',
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
+    badgeType: 'arrow-photostyle',
   },
 
-  // 5. Warm Terracotta Burnt Sienna with Chamfered Tab (Reference 3: Folder 12)
+  // 5. Video Editing - Clean Frosted Crystal Sleeve (Right Tab)
   'terracotta-cut': {
-    backPlate: 'bg-gradient-to-b from-[#f97316] to-[#c2410c]',
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
     tabStyle: {
-      bg: 'bg-[#c2410c]',
+      bg: 'bg-[#cbd5e1]',
       position: 'right-2.5',
       width: 'w-14 sm:w-16',
-      shape: 'rounded-tr-[10px] rounded-tl-[2px]',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
     },
-    frontFlap: 'bg-gradient-to-b from-[#fb923c]/95 via-[#ea580c]/95 to-[#c2410c]/95 backdrop-blur-md',
-    border: 'border-orange-300/40',
-    shadow: 'shadow-[0_10px_24px_rgba(234,88,12,0.25)]',
-    titleColor: 'text-white',
-    subtitleColor: 'text-orange-100',
-    badgeType: 'gear-tag',
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
+    badgeType: 'arrow-photostyle',
   },
 
-  // 6. Deep Forest Emerald / Stepped Notch (Reference 3: Folder 5)
+  // 6. Colour Grading - Clean Frosted Crystal Sleeve (Left Tab)
   'forest-emerald': {
-    backPlate: 'bg-gradient-to-b from-[#059669] to-[#064e3b]',
+    backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
     tabStyle: {
-      bg: 'bg-[#064e3b]',
-      position: 'left-3',
+      bg: 'bg-[#cbd5e1]',
+      position: 'left-2.5',
       width: 'w-16 sm:w-18',
-      shape: 'rounded-t-[8px]',
+      shape: 'rounded-t-[8px] border-t border-l border-r border-white/60',
     },
-    frontFlap: 'bg-gradient-to-b from-[#10b981]/95 via-[#059669]/95 to-[#047857]/95 backdrop-blur-md',
-    border: 'border-emerald-300/40',
-    shadow: 'shadow-[0_10px_24px_rgba(5,150,105,0.25)]',
-    titleColor: 'text-white',
-    subtitleColor: 'text-emerald-100',
-    badgeType: 'pill-code',
+    frontFlap: 'bg-white/75 backdrop-blur-lg',
+    border: 'border-white/80',
+    shadow: 'shadow-[0_8px_24px_rgba(0,0,0,0.08)]',
+    titleColor: 'text-neutral-900',
+    subtitleColor: 'text-neutral-500',
+    badgeType: 'arrow-photostyle',
   },
 
-  // 7. Frosted Crystal Ice Sleeve (Reference 2: "PHOTOSTYLE 2026")
+  // 7. Photography - Clean Frosted Crystal Sleeve (Exact match to Reference 2)
   'frosted-photostyle': {
     backPlate: 'bg-gradient-to-b from-[#f1f5f9] to-[#cbd5e1]',
     tabStyle: {
@@ -357,7 +357,6 @@ const FOLDER_VARIANTS: Record<FolderVariantType, FolderStyleConfig> = {
     badgeType: 'arrow-photostyle',
   },
 };
-
 
 export const DEFAULT_PREVIEW_PHOTOS: Record<FolderVariantType, string[]> = {
   'amber-moov': [
