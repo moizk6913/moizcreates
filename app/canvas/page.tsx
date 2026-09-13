@@ -675,32 +675,20 @@ function InfiniteCanvasContent() {
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className={`group pointer-events-auto inline-flex items-center gap-2 px-4 sm:px-4 py-2.5 sm:py-2.5 backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs active:scale-95 transition-all shadow-sm border ${
-            activeCanvasMode === 'playground'
-              ? 'bg-black/75 text-white hover:text-accent-red border-white/15'
-              : 'bg-white/95 text-primary hover:text-accent-red border-black/5'
-          }`}
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 sm:px-4 py-2.5 sm:py-2.5 bg-white/95 text-neutral-900 hover:text-[#e60000] backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold uppercase tracking-wider">PORTFOLIO</span>
         </Link>
 
         {/* View Mode Switcher Pill (Archive vs Playground) */}
-        <div
-          className={`pointer-events-auto flex items-center p-1 rounded-full backdrop-blur-xl border shadow-sm font-mono text-[11px] font-bold ${
-            activeCanvasMode === 'playground'
-              ? 'bg-black/75 border-white/15 text-white'
-              : 'bg-white/95 border-black/5 text-primary'
-          }`}
-        >
+        <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] font-mono text-[11px] font-bold text-neutral-800">
           <button
             type="button"
             onClick={() => setActiveCanvasMode('archive')}
             className={`px-3.5 sm:px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               activeCanvasMode === 'archive'
                 ? 'bg-black text-white shadow-sm'
-                : activeCanvasMode === 'playground'
-                ? 'text-neutral-400 hover:text-white'
                 : 'text-neutral-500 hover:text-black'
             }`}
           >
@@ -727,7 +715,7 @@ function InfiniteCanvasContent() {
             <button
               type="button"
               onClick={handleRecenter}
-              className="group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-3.5 py-2.5 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[12px] font-mono text-[10.5px] sm:text-xs text-primary hover:text-[#e60000] active:scale-95 transition-all shadow-sm border border-black/5 cursor-pointer"
+              className="group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-3.5 py-2.5 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[12px] font-mono text-[10.5px] sm:text-xs text-neutral-900 hover:text-[#e60000] active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10 cursor-pointer"
               title="Reset canvas view to center"
             >
               <span className="text-xs transition-transform duration-300 group-hover:rotate-90">⌖</span>
@@ -736,10 +724,10 @@ function InfiniteCanvasContent() {
           ) : (
             <Link
               href="/admin"
-              className="group inline-flex items-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-[#e60000] text-white backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs font-bold uppercase tracking-wider transition-colors shadow-sm border border-white/15"
-              title="Upload new standalone experiment"
+              className="group inline-flex items-center gap-1.5 px-4 py-2.5 bg-white/95 hover:bg-[#e60000] hover:text-white text-neutral-900 backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs font-bold uppercase tracking-wider transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10"
+              title="Manage uncommissioned playground experiments"
             >
-              <span>＋</span>
+              <span className="text-[#e60000] group-hover:text-white">＋</span>
               <span className="hidden sm:inline">STUDIO DESK</span>
             </Link>
           )}

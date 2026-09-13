@@ -37,7 +37,7 @@ import {
 } from '@/lib/contentStore';
 import { BlogPost } from '@/lib/blogData';
 
-type AdminView = 'all_work' | 'projects' | 'single_project' | 'collections' | 'journal' | 'settings';
+type AdminView = 'all_work' | 'projects' | 'single_project' | 'playground' | 'collections' | 'journal' | 'settings';
 
 // ==========================================
 // CLIENT-SIDE ASSET INSPECTOR (AUTO-DETECTS DIMENSIONS & RATIOS)
@@ -337,6 +337,19 @@ export default function AdminPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Dedicated Playground Lab State & Uploader
+  const [isPlaygroundUploadOpen, setIsPlaygroundUploadOpen] = useState(false);
+  const [pgAsset, setPgAsset] = useState<InspectedAsset | null>(null);
+  const [pgFormat, setPgFormat] = useState<'9:16' | '16:9' | '4:5' | '1:1'>('9:16');
+  const [pgTitle, setPgTitle] = useState('');
+  const [pgRole, setPgRole] = useState('');
+  const [pgYear, setPgYear] = useState(new Date().getFullYear().toString());
+  const [pgDesc, setPgDesc] = useState('');
+  const [pgTags, setPgTags] = useState('');
+  const [isPublishingPg, setIsPublishingPg] = useState(false);
+  const [pgFilterFormat, setPgFilterFormat] = useState<'all' | '9:16' | '16:9' | '4:5' | '1:1'>('all');
+  const pgFileInputRef = useRef<HTMLInputElement>(null);
+
   const notifyUser = (msg: string) => {
     setStatusNotification(msg);
     setTimeout(() => setStatusNotification(null), 4000);
@@ -580,6 +593,88 @@ export default function AdminPage() {
     notifyUser(`"${work.title}" is now a Standalone Work.`);
   };
 
+  const handlePlaygroundFileSelect = async (files: FileList | File[]) => {
+    if (!files || !files.length) return;
+    const file = files[0];
+    try {
+      const inspected = await inspectMediaFile(file);
+      setPgAsset(inspected);
+      setPgTitle(inspected.title);
+      const suggestedAspect =
+        inspected.dimensions.aspectRatio === '9:16'
+          ? '9:16'
+          : inspected.dimensions.aspectRatio === '16:9'
+          ? '16:9'
+          : inspected.dimensions.aspectRatio === '1:1'
+          ? '1:1'
+          : '4:5';
+      setPgFormat(suggestedAspect);
+      setPgRole(
+        inspected.mediaType === 'video'
+          ? (suggestedAspect === '9:16' ? 'Reel Director' : 'Cinematographer')
+          : (suggestedAspect === '1:1' ? '3D Kinetic Artist' : 'Art Director')
+      );
+    } catch (err) {
+      console.error('Failed to inspect playground asset:', err);
+    }
+  };
+
+  const handlePublishPlaygroundExperiment = async () => {
+    if (!pgAsset) {
+      alert('Please choose an image or video file first.');
+      return;
+    }
+    setIsPublishingPg(true);
+    try {
+      const now = Date.now();
+      const customTags = pgTags.split(',').map((t) => t.trim()).filter(Boolean);
+      const allTags = Array.from(new Set(['playground', 'lab', pgFormat, ...customTags]));
+
+      const newWork: WorkItem = {
+        id: `pg-${now}-${Math.random().toString(36).slice(2, 6)}`,
+        title: pgTitle.trim() || pgAsset.title || 'Untitled Experiment',
+        mediaUrl: pgAsset.dataUrl,
+        thumbnailUrl: pgAsset.thumbnailUrl || pgAsset.dataUrl,
+        mediaType: pgAsset.mediaType,
+        fileType: pgAsset.fileType,
+        fileName: pgAsset.fileName,
+        fileSize: pgAsset.fileSize,
+        dimensions: {
+          ...pgAsset.dimensions,
+          aspectRatio: pgFormat,
+          orientation: pgFormat === '9:16' ? 'vertical' : pgFormat === '16:9' ? 'horizontal' : pgFormat === '1:1' ? 'square' : 'vertical',
+        },
+        workType: pgRole.trim() || (pgAsset.mediaType === 'video' ? 'Kinetic Reel' : 'Editorial Still'),
+        disciplines: ['Playground', 'Lab'],
+        tags: allTags,
+        projectId: null,
+        collectionIds: [],
+        seriesId: null,
+        client: 'DIRECTORIAL LAB',
+        year: pgYear || new Date().getFullYear().toString(),
+        caption: pgDesc.trim() || 'Uncommissioned directorial experiment.',
+        status: 'published',
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      await saveWorkAsync(newWork);
+      await refreshData();
+      setIsPlaygroundUploadOpen(false);
+      setPgAsset(null);
+      setPgTitle('');
+      setPgRole('');
+      setPgDesc('');
+      setPgTags('');
+      notifyUser(`Published "${newWork.title}" to Playground Lab!`);
+    } catch (err) {
+      console.error('Failed to publish playground experiment:', err);
+      alert('Error saving experiment to database.');
+    } finally {
+      setIsPublishingPg(false);
+    }
+  };
+
   const handleCreateNewProject = async (): Promise<string | null> => {
     if (!newProjectTitle.trim()) {
       alert('Project title is required.');
@@ -757,6 +852,36 @@ export default function AdminPage() {
     });
   }, [works, searchQuery, filterProject, filterType, filterOrientation, filterStatus]);
 
+  // Playground Lab works memo
+  const playgroundWorks = useMemo(() => {
+    return works.filter((w) => {
+      const isTaggedPg =
+        w.tags &&
+        w.tags.some(
+          (t) =>
+            t.toLowerCase().includes('playground') ||
+            t.toLowerCase().includes('lab') ||
+            t.toLowerCase().includes('experiment')
+        );
+      const isPgType =
+        w.workType?.toLowerCase().includes('playground') ||
+        w.workType?.toLowerCase().includes('experiment');
+      return !w.projectId || isTaggedPg || isPgType;
+    });
+  }, [works]);
+
+  const filteredPlaygroundWorks = useMemo(() => {
+    if (pgFilterFormat === 'all') return playgroundWorks;
+    return playgroundWorks.filter((w) => {
+      const aspect = w.dimensions?.aspectRatio;
+      if (pgFilterFormat === '9:16') return aspect === '9:16' || w.dimensions?.orientation === 'vertical';
+      if (pgFilterFormat === '16:9') return aspect === '16:9' || w.dimensions?.orientation === 'horizontal';
+      if (pgFilterFormat === '1:1') return aspect === '1:1' || w.dimensions?.orientation === 'square';
+      if (pgFilterFormat === '4:5') return aspect === '4:5';
+      return true;
+    });
+  }, [playgroundWorks, pgFilterFormat]);
+
   // Current project for single project detail view
   const currentProject = useMemo(() => {
     return projects.find((p) => p.id === selectedProjectId) || null;
@@ -820,6 +945,18 @@ export default function AdminPage() {
             }`}
           >
             Projects ({projects.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveView('playground'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold flex items-center gap-1.5 ${
+              activeView === 'playground'
+                ? 'bg-[#e60000] text-white shadow-xs'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>⚡</span>
+            <span>Playground ({playgroundWorks.length})</span>
           </button>
           <button
             type="button"
@@ -1526,6 +1663,246 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* VIEW 3.5: PLAYGROUND LAB (360° INFINITE CANVAS ASSETS)        */}
+      {/* ============================================================ */}
+      {activeView === 'playground' && (
+        <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          {/* Header Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="w-3 h-3 rounded-full bg-[#e60000] animate-pulse" />
+                <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
+                  Playground Lab • 360° Canvas ({playgroundWorks.length})
+                </h2>
+              </div>
+              <p className="font-mono text-xs text-neutral-400 pt-1.5 max-w-2xl">
+                Uncommissioned directorial experiments, kinetic 3D typography, 9:16 vertical reels, and 35mm stills.
+                Everything uploaded here is instantly live in the infinite 360° wrapping canvas.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/canvas?view=playground"
+                target="_blank"
+                className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all duration-300 border border-white/15 flex items-center gap-2"
+              >
+                <span>↗</span>
+                <span>Open 360° Playground</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPgAsset(null);
+                  setPgTitle('');
+                  setPgRole('');
+                  setPgDesc('');
+                  setPgTags('');
+                  setIsPlaygroundUploadOpen(true);
+                }}
+                className="px-5 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>+</span>
+                <span>Upload Experiment</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Format Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPgFilterFormat('all')}
+              className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                pgFilterFormat === 'all'
+                  ? 'bg-white text-black shadow-sm'
+                  : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
+              }`}
+            >
+              All ({playgroundWorks.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setPgFilterFormat('9:16')}
+              className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                pgFilterFormat === '9:16'
+                  ? 'bg-[#e60000] text-white shadow-sm'
+                  : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
+              }`}
+            >
+              📱 Reels 9:16
+            </button>
+            <button
+              type="button"
+              onClick={() => setPgFilterFormat('16:9')}
+              className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                pgFilterFormat === '16:9'
+                  ? 'bg-[#e60000] text-white shadow-sm'
+                  : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
+              }`}
+            >
+              🎬 Films 16:9
+            </button>
+            <button
+              type="button"
+              onClick={() => setPgFilterFormat('4:5')}
+              className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                pgFilterFormat === '4:5'
+                  ? 'bg-[#e60000] text-white shadow-sm'
+                  : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
+              }`}
+            >
+              📷 Stills 4:5
+            </button>
+            <button
+              type="button"
+              onClick={() => setPgFilterFormat('1:1')}
+              className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                pgFilterFormat === '1:1'
+                  ? 'bg-[#e60000] text-white shadow-sm'
+                  : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
+              }`}
+            >
+              🌀 Kinetic 1:1
+            </button>
+          </div>
+
+          {/* Grid of Playground Works */}
+          {filteredPlaygroundWorks.length === 0 ? (
+            <div className="p-16 rounded-3xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.05] flex items-center justify-center text-3xl">
+                ⚡
+              </div>
+              <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                No Playground Experiments Found
+              </h3>
+              <p className="font-mono text-xs text-neutral-400 max-w-md">
+                Upload your uncommissioned motion reels, 3D kinetic loops, cinema frames, and photography stills. They will be rendered on the seamless 360° torus canvas.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPgAsset(null);
+                  setIsPlaygroundUploadOpen(true);
+                }}
+                className="px-6 py-3 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#ff1a1a] transition-all cursor-pointer"
+              >
+                + Upload First Experiment
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredPlaygroundWorks.map((work) => {
+                const aspect = work.dimensions?.aspectRatio || (work.mediaType === 'video' ? '16:9' : '4:5');
+                const isVideo = work.mediaType === 'video';
+
+                return (
+                  <div
+                    key={work.id}
+                    className="group bg-[#121214] rounded-2xl border border-white/[0.08] overflow-hidden flex flex-col transition-all duration-300 hover:border-white/20 hover:shadow-xl"
+                  >
+                    {/* Media Thumbnail */}
+                    <div className="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
+                      {isVideo ? (
+                        <video
+                          src={work.mediaUrl}
+                          poster={work.thumbnailUrl}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={work.thumbnailUrl || work.mediaUrl}
+                          alt={work.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                      )}
+
+                      {/* Aspect Badge */}
+                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-[#e60000] font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10">
+                        {aspect}
+                      </span>
+
+                      {/* Media Type Badge */}
+                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-neutral-300 font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10">
+                        {isVideo ? 'VIDEO' : 'IMAGE'}
+                      </span>
+                    </div>
+
+                    {/* Meta & Info */}
+                    <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-sans font-bold text-sm text-white line-clamp-1 group-hover:text-[#e60000] transition-colors">
+                            {work.title}
+                          </h4>
+                          <span className="font-mono text-[10px] text-neutral-500 shrink-0">
+                            {work.year || '2026'}
+                          </span>
+                        </div>
+                        <p className="font-mono text-[11px] text-neutral-400">
+                          {work.workType || 'Directorial Experiment'}
+                        </p>
+                        {work.caption && (
+                          <p className="font-sans text-xs text-neutral-500 line-clamp-2 pt-1">
+                            {work.caption}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Tags */}
+                      {work.tags && work.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {work.tags.slice(0, 3).map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              className="px-2 py-0.5 rounded bg-white/[0.04] text-neutral-400 font-mono text-[9px]"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                        <Link
+                          href="/canvas?view=playground"
+                          target="_blank"
+                          className="px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-neutral-300 hover:text-white font-mono text-[10px] font-bold uppercase transition-colors"
+                        >
+                          ↗ Canvas
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (confirm(`Permanently delete "${work.title}" from Playground Lab?`)) {
+                              await deleteWorkAsync(work.id);
+                              await refreshData();
+                              notifyUser(`Deleted "${work.title}".`);
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-red-500/10 font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
 
@@ -2545,6 +2922,214 @@ export default function AdminPage() {
                 className="px-5 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-neutral-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* PLAYGROUND LAB EXPERIMENT UPLOAD MODAL                         */}
+      {/* ============================================================ */}
+      {isPlaygroundUploadOpen && (
+        <div
+          onClick={() => setIsPlaygroundUploadOpen(false)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-2xl max-h-[92vh] bg-[#121214] border border-white/[0.08] rounded-[28px] overflow-hidden flex flex-col shadow-[0_30px_90px_rgba(0,0,0,0.85)]"
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-[#121214]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#e60000]" />
+                <h3 className="font-display font-black text-lg text-white uppercase tracking-tight">
+                  Upload Playground Experiment
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPlaygroundUploadOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1 font-mono text-xs text-neutral-300">
+              {/* File Dropzone */}
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer.files) handlePlaygroundFileSelect(e.dataTransfer.files);
+                }}
+                onClick={() => pgFileInputRef.current?.click()}
+                className="p-6 rounded-2xl border-2 border-dashed border-white/15 hover:border-[#e60000] hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-2 cursor-pointer transition-all group"
+              >
+                <input
+                  ref={pgFileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) handlePlaygroundFileSelect(e.target.files);
+                  }}
+                />
+                <div className="w-12 h-12 rounded-xl bg-white/[0.06] group-hover:bg-[#e60000] text-white flex items-center justify-center text-xl transition-all">
+                  📁
+                </div>
+                <div className="text-white font-bold font-sans text-sm">
+                  {pgAsset ? `Selected: ${pgAsset.fileName}` : 'Drag & drop video (MP4/WebM) or high-res image'}
+                </div>
+                <p className="text-[11px] text-neutral-500">
+                  Auto-extracts video duration, aspect ratio, and generates instant thumbnail.
+                </p>
+              </div>
+
+              {/* Preview Thumbnail if selected */}
+              {pgAsset && (
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-4">
+                  <div className="w-16 h-20 rounded-lg bg-black overflow-hidden relative shrink-0">
+                    {pgAsset.mediaType === 'video' ? (
+                      <video src={pgAsset.dataUrl} poster={pgAsset.thumbnailUrl} className="w-full h-full object-cover" />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pgAsset.thumbnailUrl || pgAsset.dataUrl} alt={pgAsset.title} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-white font-bold block">{pgAsset.title}</span>
+                    <span className="text-neutral-500 text-[10px] block">
+                      {pgAsset.dimensions.resolution} • {(pgAsset.fileSize / (1024 * 1024)).toFixed(1)} MB • {pgAsset.mediaType.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Format Selector */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-bold block">
+                  Canvas Aspect Format
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: '9:16', label: '📱 Reel (9:16)' },
+                    { id: '16:9', label: '🎬 Film (16:9)' },
+                    { id: '4:5', label: '📷 Still (4:5)' },
+                    { id: '1:1', label: '🌀 Kinetic (1:1)' },
+                  ].map((fmt) => (
+                    <button
+                      key={fmt.id}
+                      type="button"
+                      onClick={() => setPgFormat(fmt.id as any)}
+                      className={`py-2 px-3 rounded-xl border text-center font-bold text-xs transition-all cursor-pointer ${
+                        pgFormat === fmt.id
+                          ? 'bg-[#e60000] border-[#e60000] text-white shadow-sm'
+                          : 'bg-white/[0.04] border-white/10 text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      {fmt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Title & Role */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-bold block">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={pgTitle}
+                    onChange={(e) => setPgTitle(e.target.value)}
+                    placeholder="e.g. KINETIC CHROME & TRANSIENTS"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-bold block">
+                    Role / Category Medium
+                  </label>
+                  <input
+                    type="text"
+                    value={pgRole}
+                    onChange={(e) => setPgRole(e.target.value)}
+                    placeholder="e.g. Motion Director / 3D Loop"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Year & Tags */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-bold block">
+                    Year
+                  </label>
+                  <input
+                    type="text"
+                    value={pgYear}
+                    onChange={(e) => setPgYear(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:border-[#e60000] focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-bold block">
+                    Tags (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={pgTags}
+                    onChange={(e) => setPgTags(e.target.value)}
+                    placeholder="Kinetic, 3D, Chrome, Sound"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-bold block">
+                  Director Note / Technical Narrative
+                </label>
+                <textarea
+                  rows={2}
+                  value={pgDesc}
+                  onChange={(e) => setPgDesc(e.target.value)}
+                  placeholder="Notes about lenses, framerates, sound synchronization, or procedural shaders."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 py-4 border-t border-white/[0.06] flex items-center justify-end gap-3 shrink-0 bg-[#121214]">
+              <button
+                type="button"
+                onClick={() => setIsPlaygroundUploadOpen(false)}
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-neutral-400 hover:text-white font-mono text-xs uppercase cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!pgAsset || isPublishingPg}
+                onClick={handlePublishPlaygroundExperiment}
+                className="px-6 py-2 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] disabled:opacity-40 disabled:cursor-not-allowed text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2"
+              >
+                {isPublishingPg ? (
+                  <>
+                    <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <span>Publish to 360° Canvas</span>
+                )}
               </button>
             </div>
           </div>
