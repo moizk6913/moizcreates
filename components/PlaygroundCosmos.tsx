@@ -1005,26 +1005,23 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                     transform: `translate3d(0, 0, ${activeZ}px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${activeScale})`,
                     transformStyle: 'preserve-3d',
                     zIndex: isHovered ? 60 : 10,
-                    transition: isDraggingRef.current
-                      ? 'none'
-                      : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                   // Crisp frame with 10-20px gaps (never blurred)
-                  className="rounded-[18px] overflow-hidden bg-white border border-black/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.18)] cursor-pointer group will-change-transform"
+                  className="rounded-[18px] overflow-hidden bg-white border border-black/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.18)] cursor-pointer group"
                 >
                   {/* Inner Media: Clean Soft Bokeh Blur (9px) - Zero Lag Optimization */}
                   <div
-                    className="w-full h-full relative overflow-hidden will-change-transform"
+                    className="w-full h-full relative overflow-hidden"
                     style={{
                       filter: isUnblurred
-                        ? 'blur(0px) brightness(1.0) saturate(1.0)'
+                        ? 'none'
                         : 'blur(8px) brightness(0.98) saturate(1.04)',
-                      transform: isUnblurred ? 'scale(1.0)' : 'scale(1.10)',
-                      transition: 'filter 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transform: isUnblurred ? 'scale(1.0)' : 'scale(1.08)',
+                      transition: 'filter 0.35s ease, transform 0.35s ease',
                     }}
                   >
-                    {/* PERFORMANCE FIX: ONLY decode active video when card is UNBLURRED! */}
-                    {tile.mediaType === 'video' && isUnblurred ? (
+                    {/* ZERO-LAG PERFORMANCE FIX: ONLY decode video stream on HOVER or in MODAL! */}
+                    {tile.mediaType === 'video' && isHovered ? (
                       <video
                         src={tile.mediaUrl}
                         poster={tile.thumbnailUrl}
@@ -1088,30 +1085,6 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
             })}
           </div>
         ))}
-      </div>
-
-      {/* ================================================================= */}
-      {/* MINIMAL BOTTOM BAR: DISCOVERY PROGRESS & UNBLUR ALL (NO REELS DOCK) */}
-      {/* ================================================================= */}
-      <div className="fixed bottom-6 right-6 z-40 pointer-events-none hidden sm:block">
-        <div className="pointer-events-auto flex items-center gap-2 p-1 pl-3 pr-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_25px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{discoveredTiles.size}/{masterTiles.length} DISCOVERED</span>
-
-          {/* Toggle All Unblur / Ambient Blur Mode */}
-          <button
-            type="button"
-            onClick={() => setIsGloballyUnblurred((prev) => !prev)}
-            className={`ml-1 px-3 py-1 rounded-full font-mono text-[10px] font-bold uppercase transition-all cursor-pointer ${
-              isGloballyUnblurred
-                ? 'bg-black text-white shadow-xs'
-                : 'bg-black/5 text-neutral-600 hover:bg-black/10 hover:text-black'
-            }`}
-            title={isGloballyUnblurred ? 'Re-enable Soft Bokeh Blur' : 'Unblur All Pieces'}
-          >
-            {isGloballyUnblurred ? '✨ AMBIENT BLUR' : '👁️ UNBLUR ALL'}
-          </button>
-        </div>
       </div>
 
       {/* ================================================================= */}

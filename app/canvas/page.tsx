@@ -671,7 +671,7 @@ function InfiniteCanvasContent() {
         />
       )}
 
-      {/* Floating Minimalist Header: Back on Left, Mode Switcher in Center, Context Action on Top-Right */}
+      {/* Floating Minimalist Header: Back on Left, Context Action on Top-Right */}
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
@@ -680,34 +680,6 @@ function InfiniteCanvasContent() {
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold uppercase tracking-wider">BACK</span>
         </Link>
-
-        {/* View Mode Switcher Pill (Archive vs Playground) */}
-        <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] font-mono text-[11px] font-bold text-neutral-800">
-          <button
-            type="button"
-            onClick={() => setActiveCanvasMode('archive')}
-            className={`px-3.5 sm:px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeCanvasMode === 'archive'
-                ? 'bg-black text-white shadow-sm'
-                : 'text-neutral-500 hover:text-black'
-            }`}
-          >
-            <span>📁</span>
-            <span>ARCHIVE</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveCanvasMode('playground')}
-            className={`px-3.5 sm:px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeCanvasMode === 'playground'
-                ? 'bg-[#e60000] text-white shadow-sm'
-                : 'text-neutral-500 hover:text-black'
-            }`}
-          >
-            <span>⚡</span>
-            <span>PLAYGROUND</span>
-          </button>
-        </div>
 
         {/* Top-Right Contextual Action */}
         <div className="pointer-events-auto flex items-center gap-2">
@@ -726,6 +698,36 @@ function InfiniteCanvasContent() {
           )}
         </div>
       </header>
+
+      {/* Bottom Center Floating Mode Switcher (Pure Black & White • No Red) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
+          <button
+            type="button"
+            onClick={() => setActiveCanvasMode('archive')}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeCanvasMode === 'archive'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-neutral-500 hover:text-black'
+            }`}
+          >
+            <span>📁</span>
+            <span>ARCHIVE</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveCanvasMode('playground')}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeCanvasMode === 'playground'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-neutral-500 hover:text-black'
+            }`}
+          >
+            <span>⚡</span>
+            <span>PLAYGROUND</span>
+          </button>
+        </div>
+      </div>
 
       {/* ============================================================ */}
       {/* MODE 1: 3D SPATIAL ARCHIVE FOLDER STAGE                      */}
