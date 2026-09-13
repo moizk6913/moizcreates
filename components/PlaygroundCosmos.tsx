@@ -920,7 +920,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
       onWheel={handleWheel}
       className="relative w-screen h-screen overflow-hidden bg-[#f3f2ee] select-none touch-none"
       style={{
-        perspective: '2200px',
+        perspective: '1650px',
         perspectiveOrigin: '50% 50%',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
       }}
@@ -966,14 +966,14 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
               const dy = (cardScreenY - halfH) / (halfH * 0.92);
               const distSq = dx * dx + dy * dy;
 
-              // Authentic Fisheye Globe Curvature with 10-20px Gaps Everywhere
-              const rotY = Math.max(Math.min(dx * 9.5, 15), -15);
-              const rotX = Math.max(Math.min(-dy * 7.5, 12), -12);
-              const zDepth = -Math.min(distSq * 42, 110);
-              const globeScale = Math.max(1 - distSq * 0.015, 0.95);
+              // Enhanced Barrel Distortion: pronounced optical fisheye globe curvature
+              const rotY = Math.max(Math.min(dx * 13.5, 18), -18);
+              const rotX = Math.max(Math.min(-dy * 10.5, 14.5), -14.5);
+              const zDepth = -Math.min(distSq * 68, 160);
+              const globeScale = Math.max(1.03 - distSq * 0.035, 0.93);
 
-              const activeZ = isHovered ? zDepth + 36 : zDepth;
-              const activeScale = isHovered ? globeScale * 1.035 : globeScale;
+              const activeZ = isHovered ? zDepth + 40 : zDepth;
+              const activeScale = isHovered ? globeScale * 1.04 : globeScale;
 
               return (
                 <div
