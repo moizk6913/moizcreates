@@ -86,13 +86,19 @@ export default function CustomCursor() {
     document.addEventListener('mouseenter', onMouseEnter);
     document.addEventListener('mouseover', handleElementHover, { passive: true });
 
-    let animId: number;
-    const animate = () => {
-      dotPos.current.x += (mousePos.current.x - dotPos.current.x) * 0.45;
-      dotPos.current.y += (mousePos.current.y - dotPos.current.y) * 0.45;
+    let animId: number | null = null;
 
-      ringPos.current.x += (mousePos.current.x - ringPos.current.x) * 0.16;
-      ringPos.current.y += (mousePos.current.y - ringPos.current.y) * 0.16;
+    const animate = () => {
+      const diffDotX = mousePos.current.x - dotPos.current.x;
+      const diffDotY = mousePos.current.y - dotPos.current.y;
+      const diffRingX = mousePos.current.x - ringPos.current.x;
+      const diffRingY = mousePos.current.y - ringPos.current.y;
+
+      dotPos.current.x += diffDotX * 0.45;
+      dotPos.current.y += diffDotY * 0.45;
+
+      ringPos.current.x += diffRingX * 0.16;
+      ringPos.current.y += diffRingY * 0.16;
 
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${dotPos.current.x}px, ${dotPos.current.y}px, 0)`;
@@ -101,41 +107,59 @@ export default function CustomCursor() {
         ringRef.current.style.transform = `translate3d(${ringPos.current.x}px, ${ringPos.current.y}px, 0)`;
       }
 
-      animId = requestAnimationFrame(animate);
+      // Put RAF to sleep if cursor has caught up and settled (zero idle CPU waste)
+      if (Math.abs(diffRingX) > 0.1 || Math.abs(diffRingY) > 0.1) {
+        animId = requestAnimationFrame(animate);
+      } else {
+        animId = null;
+      }
     };
+
+    const wakeCursor = () => {
+      if (!animId) {
+        animId = requestAnimationFrame(animate);
+      }
+    };
+
+    const onMouseMoveWithWake = (e: MouseEvent) => {
+      onMouseMove(e);
+      wakeCursor();
+    };
+
+    window.removeEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMoveWithWake, { passive: true });
 
     animId = requestAnimationFrame(animate);
 
     return () => {
       document.documentElement.classList.remove('has-custom-cursor');
-      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mousemove', onMouseMoveWithWake);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('mouseleave', onMouseLeave);
       document.removeEventListener('mouseenter', onMouseEnter);
       document.removeEventListener('mouseover', handleElementHover);
-      cancelAnimationFrame(animId);
+      if (animId) cancelAnimationFrame(animId);
     };
   }, []);
 
   if (isTouchDevice) return null;
 
   // Determine ring styling and dimensions based on state
-  // Default: Ring is hidden/scaled to dot so no hollow circle floats awkwardly over text
   let ringStyle = 'w-2 h-2 -ml-1 -mt-1 border-transparent bg-transparent opacity-0 scale-50';
-  let dotStyle = 'w-2.5 h-2.5 -ml-[5px] -mt-[5px] bg-accent-red opacity-100 shadow-[0_0_8px_rgba(255,42,42,0.4)]';
+  let dotStyle = 'w-2.5 h-2.5 -ml-[5px] -mt-[5px] bg-[#1b00ff] opacity-100 shadow-[0_0_8px_rgba(27,0,255,0.4)]';
 
   if (variant === 'link') {
     ringStyle = 'w-12 h-12 -ml-6 -mt-6 border border-black/15 bg-black/[0.04] opacity-100 scale-100';
-    dotStyle = 'w-1.5 h-1.5 -ml-[3px] -mt-[3px] bg-accent-red opacity-60';
+    dotStyle = 'w-1.5 h-1.5 -ml-[3px] -mt-[3px] bg-[#1b00ff] opacity-60';
   } else if (variant === 'view') {
-    ringStyle = 'w-24 h-24 -ml-12 -mt-12 border-transparent bg-accent-red text-white shadow-2xl opacity-100 scale-100';
+    ringStyle = 'w-24 h-24 -ml-12 -mt-12 border-transparent bg-[#1b00ff] text-white shadow-2xl opacity-100 scale-100';
     dotStyle = 'opacity-0';
   } else if (variant === 'shuffle') {
-    ringStyle = 'w-28 h-28 -ml-14 -mt-14 border-transparent bg-primary text-white shadow-2xl opacity-100 scale-100';
+    ringStyle = 'w-28 h-28 -ml-14 -mt-14 border-transparent bg-black text-white shadow-2xl opacity-100 scale-100';
     dotStyle = 'opacity-0';
   } else if (variant === 'drag') {
-    ringStyle = 'w-20 h-20 -ml-10 -mt-10 border-transparent bg-primary/90 backdrop-blur-sm text-white opacity-100 scale-100';
+    ringStyle = 'w-20 h-20 -ml-10 -mt-10 border-transparent bg-[#1b00ff]/90 backdrop-blur-sm text-white opacity-100 scale-100';
     dotStyle = 'opacity-0';
   }
 

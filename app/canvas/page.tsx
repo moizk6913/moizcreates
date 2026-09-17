@@ -13,9 +13,8 @@ import {
   getStoredWorksAsync,
   WorkItem,
 } from '@/lib/contentStore';
-import ArchiveFolderCard, { FolderStickerData, FolderVariantType } from '@/components/ArchiveFolderCard';
 import PlaygroundCosmos from '@/components/PlaygroundCosmos';
-import ArchiveFlatFileVault from '@/components/ArchiveFlatFileVault';
+import ArchiveEditorialRepertory from '@/components/ArchiveEditorialRepertory';
 
 export interface ArchiveFile {
   id: string;
@@ -34,9 +33,9 @@ export interface ArchiveFile {
   deliverables: string[];
   photos?: string[];
   photoCount?: number;
-  stickers?: FolderStickerData;
+  stickers?: any;
   isComingSoon?: boolean;
-  variant?: FolderVariantType;
+  variant?: string;
 }
 
 const DEFAULT_DISCIPLINE_FOLDERS: ArchiveFile[] = [
@@ -685,37 +684,16 @@ function InfiniteCanvasContent() {
   return (
     <main
       ref={containerRef}
-      className={`relative w-screen min-h-screen ${
-        activeCanvasMode === 'archive'
-          ? 'bg-[#0d0d12] text-white overflow-y-auto'
-          : 'bg-[#faf9f6] text-black overflow-y-auto'
-      }`}
+      className="relative w-screen min-h-screen bg-[#faf9f6] text-black overflow-y-auto"
     >
       {/* Luxury Custom Fluid Cursor (Auto-disabled on mobile) */}
       <CustomCursor />
 
-      {/* Dark Architectural Studio Texture for Flat-File Vault */}
-      {activeCanvasMode === 'archive' && (
-        <div
-          className="fixed inset-0 pointer-events-none -z-10"
-          style={{
-            backgroundColor: '#0d0d12',
-            backgroundImage:
-              'radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.015) 1px, transparent 1px)',
-            backgroundSize: '24px 24px, 120px 120px, 120px 120px',
-          }}
-        />
-      )}
-
       {/* Floating Minimalist Header: Back on Left, Context Indicator on Right */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className={`group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] font-mono text-[10.5px] sm:text-xs active:scale-95 transition-all shadow-lg border ${
-            activeCanvasMode === 'archive'
-              ? 'bg-[#181824]/90 backdrop-blur-xl text-white hover:text-[#1b00ff] border-white/10'
-              : 'bg-white/95 backdrop-blur-xl text-neutral-900 hover:text-[#e60000] border-black/10'
-          }`}
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] font-mono text-[10.5px] sm:text-xs bg-white/95 text-neutral-900 hover:text-[#1b00ff] backdrop-blur-xl border border-black/10 active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold uppercase tracking-wider">BACK</span>
@@ -724,9 +702,9 @@ function InfiniteCanvasContent() {
         {/* Top-Right Contextual Action */}
         <div className="pointer-events-auto flex items-center gap-2">
           {activeCanvasMode === 'archive' ? (
-            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#181824]/90 backdrop-blur-md border border-white/10 font-mono text-[11px] text-neutral-300 shadow-md">
+            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 backdrop-blur-md border border-black/10 font-mono text-[11px] text-neutral-700 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-[#1b00ff] animate-pulse"></span>
-              <span className="font-bold tracking-wider uppercase">DIRECTOR FLAT-FILE REPERTORY</span>
+              <span className="font-bold tracking-wider uppercase">ARCHIVE REPERTORY</span>
             </div>
           ) : (
             <div className="w-[84px] sm:w-[94px] pointer-events-none" />
@@ -736,20 +714,14 @@ function InfiniteCanvasContent() {
 
       {/* Bottom Center Floating Mode Switcher (Pure Black & White • Clean Text) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-        <div
-          className={`pointer-events-auto flex items-center p-1 rounded-full backdrop-blur-xl font-mono text-[11px] font-bold shadow-[0_8px_30px_rgba(0,0,0,0.4)] border ${
-            activeCanvasMode === 'archive'
-              ? 'bg-[#151520]/90 border-white/15 text-white'
-              : 'bg-white/95 border-black/10 text-neutral-800'
-          }`}
-        >
+        <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
           <button
             type="button"
             onClick={() => setActiveCanvasMode('archive')}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'archive'
-                ? 'bg-[#1b00ff] text-white shadow-sm'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-neutral-500 hover:text-black'
             }`}
           >
             ARCHIVE
@@ -759,8 +731,8 @@ function InfiniteCanvasContent() {
             onClick={() => setActiveCanvasMode('playground')}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'playground'
-                ? 'bg-white text-black shadow-sm'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-neutral-500 hover:text-black'
             }`}
           >
             PLAYGROUND
@@ -769,10 +741,10 @@ function InfiniteCanvasContent() {
       </div>
 
       {/* ============================================================ */}
-      {/* MODE 1: PHYSICAL FLAT-FILE DIRECTOR'S VAULT                  */}
+      {/* MODE 1: HAUTE-COUTURE EDITORIAL ARCHIVE REPERTORY            */}
       {/* ============================================================ */}
       {activeCanvasMode === 'archive' ? (
-        <ArchiveFlatFileVault
+        <ArchiveEditorialRepertory
           files={allFiles}
           onSelectFile={(file) => {
             setSelectedFile(file);

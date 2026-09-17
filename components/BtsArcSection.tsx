@@ -16,9 +16,126 @@ interface BentoItem {
   posterUrl?: string;
 }
 
+const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
+  rowOne: [
+    {
+      id: 'fallback-1',
+      projectId: 'art-direction',
+      brand: 'PARIS REPERTORY',
+      tag: 'CINEMA 16:9',
+      aspectClass: 'aspect-[16/9]',
+      bgAccent: 'bg-[#0f1115]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-2',
+      projectId: 'brand-identity',
+      brand: 'TOKYO KINETIC',
+      tag: 'REEL 9:16',
+      aspectClass: 'aspect-[9/16]',
+      bgAccent: 'bg-[#181329]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-3',
+      projectId: 'cinematography',
+      brand: '35MM ANAMORPHIC',
+      tag: 'LOOKBOOK 4:5',
+      aspectClass: 'aspect-[4/5]',
+      bgAccent: 'bg-[#0b2416]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-4',
+      projectId: 'motion-graphics',
+      brand: 'IRIDESCENT 3D',
+      tag: 'POST 1:1',
+      aspectClass: 'aspect-square',
+      bgAccent: 'bg-[#141414]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-5',
+      projectId: 'photography',
+      brand: 'MILAN LOOKBOOK',
+      tag: 'DIRECTOR 16:10',
+      aspectClass: 'aspect-[16/10]',
+      bgAccent: 'bg-[#111317]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&auto=format&fit=crop&q=80',
+    },
+  ],
+  rowTwo: [
+    {
+      id: 'fallback-6',
+      projectId: 'video-editing',
+      brand: 'DIRECTOR CUT 9:16',
+      tag: 'STREET REEL 9:16',
+      aspectClass: 'aspect-[9/16]',
+      bgAccent: 'bg-[#ff4e00]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-7',
+      projectId: 'color-grading',
+      brand: 'TUNGSTEN 35MM',
+      tag: 'COMMERCIAL 4:5',
+      aspectClass: 'aspect-[4/5]',
+      bgAccent: 'bg-[#966b2d]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-8',
+      projectId: 'art-direction',
+      brand: 'MONOLITHIC STILL',
+      tag: 'CINEMA 16:9',
+      aspectClass: 'aspect-[16/9]',
+      bgAccent: 'bg-[#0f1115]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-9',
+      projectId: 'cinematography',
+      brand: '35MM STILL 24A',
+      tag: 'LOOKBOOK 4:5',
+      aspectClass: 'aspect-[4/5]',
+      bgAccent: 'bg-[#0b2416]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=900&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'fallback-10',
+      projectId: 'photography',
+      brand: 'AVANT-GARDE',
+      tag: 'POST 1:1',
+      aspectClass: 'aspect-square',
+      bgAccent: 'bg-[#141414]',
+      mediaType: 'image',
+      mediaUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=900&auto=format&fit=crop&q=80',
+      posterUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=900&auto=format&fit=crop&q=80',
+    },
+  ],
+};
+
 function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: BentoItem[]; rowTwo: BentoItem[] } {
   if (!files || files.length === 0) {
-    return { rowOne: [], rowTwo: [] };
+    return FALLBACK_BENTO_ITEMS;
   }
 
   // Flatten all photos along with campaign metadata
@@ -34,7 +151,7 @@ function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: Bento
   });
 
   if (flatPhotos.length === 0) {
-    return { rowOne: [], rowTwo: [] };
+    return FALLBACK_BENTO_ITEMS;
   }
 
   const aspectConfigs = [
