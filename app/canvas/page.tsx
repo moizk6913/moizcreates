@@ -15,6 +15,7 @@ import {
 } from '@/lib/contentStore';
 import ArchiveFolderCard, { FolderStickerData, FolderVariantType } from '@/components/ArchiveFolderCard';
 import PlaygroundCosmos from '@/components/PlaygroundCosmos';
+import ArchiveFlatFileVault from '@/components/ArchiveFlatFileVault';
 
 export interface ArchiveFile {
   id: string;
@@ -684,44 +685,37 @@ function InfiniteCanvasContent() {
   return (
     <main
       ref={containerRef}
-      onPointerDown={activeCanvasMode === 'archive' ? handlePointerDown : undefined}
-      onPointerMove={activeCanvasMode === 'archive' ? handlePointerMove : undefined}
-      onPointerUp={activeCanvasMode === 'archive' ? handlePointerUp : undefined}
-      onPointerCancel={activeCanvasMode === 'archive' ? handlePointerUp : undefined}
-      onTouchStart={activeCanvasMode === 'archive' ? handleTouchStart : undefined}
-      onTouchMove={activeCanvasMode === 'archive' ? handleTouchMove : undefined}
-      onTouchEnd={activeCanvasMode === 'archive' ? handleTouchEnd : undefined}
-      onWheel={activeCanvasMode === 'archive' ? handleWheel : undefined}
-      className={`relative w-screen min-h-screen bg-[#faf9f6] ${
+      className={`relative w-screen min-h-screen ${
         activeCanvasMode === 'archive'
-          ? 'h-screen overflow-hidden select-none touch-none'
-          : 'h-screen overflow-y-auto select-auto touch-auto'
+          ? 'bg-[#0d0d12] text-white overflow-y-auto'
+          : 'bg-[#faf9f6] text-black overflow-y-auto'
       }`}
-      style={{ touchAction: activeCanvasMode === 'archive' ? 'none' : 'auto' }}
-      data-cursor={activeCanvasMode === 'archive' ? 'drag' : undefined}
     >
       {/* Luxury Custom Fluid Cursor (Auto-disabled on mobile) */}
       <CustomCursor />
 
-      {/* Limitless Drafting Mat Infinite Canvas (Tactile creative desk texture) */}
+      {/* Dark Architectural Studio Texture for Flat-File Vault */}
       {activeCanvasMode === 'archive' && (
         <div
-          className="fixed inset-0 pointer-events-none will-change-transform"
+          className="fixed inset-0 pointer-events-none -z-10"
           style={{
-            backgroundColor: '#f7f6f2',
+            backgroundColor: '#0d0d12',
             backgroundImage:
-              'radial-gradient(#111111 0.75px, transparent 0.75px), linear-gradient(to right, rgba(0,0,0,0.025) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px)',
-            backgroundSize: `${(isMobile ? 22 : 28) * zoom}px ${(isMobile ? 22 : 28) * zoom}px, ${140 * zoom}px ${140 * zoom}px, ${140 * zoom}px ${140 * zoom}px`,
-            backgroundPosition: `${pan.x % ((isMobile ? 22 : 28) * zoom)}px ${pan.y % ((isMobile ? 22 : 28) * zoom)}px, ${pan.x % (140 * zoom)}px ${pan.y % (140 * zoom)}px, ${pan.x % (140 * zoom)}px ${pan.y % (140 * zoom)}px`,
+              'radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.015) 1px, transparent 1px)',
+            backgroundSize: '24px 24px, 120px 120px, 120px 120px',
           }}
         />
       )}
 
-      {/* Floating Minimalist Header: Back on Left, Context Action on Top-Right */}
+      {/* Floating Minimalist Header: Back on Left, Context Indicator on Right */}
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className="group pointer-events-auto inline-flex items-center gap-2 px-4 sm:px-4 py-2.5 sm:py-2.5 bg-white/95 text-neutral-900 hover:text-[#e60000] backdrop-blur-xl rounded-[12px] font-mono text-[10.5px] sm:text-xs active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10"
+          className={`group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] font-mono text-[10.5px] sm:text-xs active:scale-95 transition-all shadow-lg border ${
+            activeCanvasMode === 'archive'
+              ? 'bg-[#181824]/90 backdrop-blur-xl text-white hover:text-[#1b00ff] border-white/10'
+              : 'bg-white/95 backdrop-blur-xl text-neutral-900 hover:text-[#e60000] border-black/10'
+          }`}
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold uppercase tracking-wider">BACK</span>
@@ -730,31 +724,32 @@ function InfiniteCanvasContent() {
         {/* Top-Right Contextual Action */}
         <div className="pointer-events-auto flex items-center gap-2">
           {activeCanvasMode === 'archive' ? (
-            <button
-              type="button"
-              onClick={handleRecenter}
-              className="group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-3.5 py-2.5 sm:py-2.5 bg-white/95 backdrop-blur-md rounded-[12px] font-mono text-[10.5px] sm:text-xs text-neutral-900 hover:text-[#e60000] active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/10 cursor-pointer"
-              title="Reset canvas view to center"
-            >
-              <span className="text-xs transition-transform duration-300 group-hover:rotate-90">⌖</span>
-              <span className="font-bold uppercase tracking-wider">CENTER</span>
-            </button>
+            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#181824]/90 backdrop-blur-md border border-white/10 font-mono text-[11px] text-neutral-300 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-[#1b00ff] animate-pulse"></span>
+              <span className="font-bold tracking-wider uppercase">DIRECTOR FLAT-FILE REPERTORY</span>
+            </div>
           ) : (
             <div className="w-[84px] sm:w-[94px] pointer-events-none" />
           )}
         </div>
       </header>
 
-      {/* Bottom Center Floating Mode Switcher (Pure Black & White • No Red • Clean Text) */}
+      {/* Bottom Center Floating Mode Switcher (Pure Black & White • Clean Text) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-        <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
+        <div
+          className={`pointer-events-auto flex items-center p-1 rounded-full backdrop-blur-xl font-mono text-[11px] font-bold shadow-[0_8px_30px_rgba(0,0,0,0.4)] border ${
+            activeCanvasMode === 'archive'
+              ? 'bg-[#151520]/90 border-white/15 text-white'
+              : 'bg-white/95 border-black/10 text-neutral-800'
+          }`}
+        >
           <button
             type="button"
             onClick={() => setActiveCanvasMode('archive')}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'archive'
-                ? 'bg-black text-white shadow-sm'
-                : 'text-neutral-500 hover:text-black'
+                ? 'bg-[#1b00ff] text-white shadow-sm'
+                : 'text-neutral-400 hover:text-white'
             }`}
           >
             ARCHIVE
@@ -764,8 +759,8 @@ function InfiniteCanvasContent() {
             onClick={() => setActiveCanvasMode('playground')}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'playground'
-                ? 'bg-black text-white shadow-sm'
-                : 'text-neutral-500 hover:text-black'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-neutral-400 hover:text-white'
             }`}
           >
             PLAYGROUND
@@ -774,148 +769,26 @@ function InfiniteCanvasContent() {
       </div>
 
       {/* ============================================================ */}
-      {/* MODE 1: 3D SPATIAL ARCHIVE FOLDER STAGE                      */}
+      {/* MODE 1: PHYSICAL FLAT-FILE DIRECTOR'S VAULT                  */}
       {/* ============================================================ */}
       {activeCanvasMode === 'archive' ? (
-        <div
-          className="w-full h-full relative flex items-center justify-center pointer-events-none overflow-hidden"
-          style={{ perspective: '1600px' }}
-        >
-          {/* Limitless World Stage (Pans, Zooms & 3D Tilts smoothly with gestures) */}
-          <div
-            className="absolute top-1/2 left-1/2 will-change-transform transition-transform duration-100 ease-out"
-            style={{
-              transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom}) rotateX(${tilt.y * -3.5}deg) rotateY(${tilt.x * 5}deg)`,
-              transformOrigin: '50% 50%',
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            {/* 1. FAINT ARCHITECTURAL WATERMARK (Anchors the canvas, removes the empty void) */}
-            <div className="absolute inset-0 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[900px] flex flex-col items-center justify-center pointer-events-none select-none -z-20">
-              <span className="text-[130px] sm:text-[190px] md:text-[240px] font-black tracking-tighter text-neutral-900/[0.035] leading-none uppercase select-none">
-                ARCHIVE
-              </span>
-              <span className="font-mono text-xs sm:text-sm tracking-[0.35em] text-neutral-900/[0.07] uppercase -mt-4 sm:-mt-8 select-none">
-                Director Repertory // 2024–2026
-              </span>
-            </div>
-
-            {/* 2. DRAFTING MAT RULER TICKS & COORDINATE CROSSHAIRS */}
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 w-[1280px] h-[820px] pointer-events-none border border-neutral-300/40 rounded-3xl -z-10">
-              <div className="absolute top-2 inset-x-8 flex justify-between font-mono text-[9px] text-neutral-400/80 select-none">
-                <span>+000 MM</span>
-                <span>+250 MM</span>
-                <span>+500 MM</span>
-                <span>+750 MM</span>
-                <span>+1000 MM</span>
-              </div>
-              <div className="absolute top-5 left-5 font-mono text-neutral-300 text-xs select-none">+</div>
-              <div className="absolute top-5 right-5 font-mono text-neutral-300 text-xs select-none">+</div>
-              <div className="absolute bottom-5 left-5 font-mono text-neutral-300 text-xs select-none">+</div>
-              <div className="absolute bottom-5 right-5 font-mono text-neutral-300 text-xs select-none">+</div>
-              <div className="absolute bottom-2 inset-x-8 flex justify-between font-mono text-[9px] text-neutral-400/80 select-none">
-                <span>GRID: 28MM</span>
-                <span>SCALE: 1:1</span>
-                <span>DIR // DESK.01</span>
-              </div>
-            </div>
-
-            {/* 3. SCATTERED TACTILE ARCHIVAL EPHEMERA */}
-            {/* Ephemera 1: 35mm Celluloid Film Contact Sheet Strip */}
-            <div
-              style={{
-                left: '-140px',
-                top: '-320px',
-                transform: 'translate(-50%, -50%) rotate(-12deg)',
-              }}
-              className="absolute z-0 bg-neutral-950 p-2 rounded-sm shadow-md border border-neutral-800 pointer-events-none select-none hover:scale-105 transition-transform"
-            >
-              <div className="flex items-center justify-between pb-1 px-1 border-b border-neutral-800 text-[6px] font-mono text-neutral-400">
-                <span>KODAK 5219</span>
-                <span>FRAME 24A</span>
-              </div>
-              <div className="flex gap-1.5 py-1">
-                <div className="w-10 h-7 bg-neutral-800 rounded-sm overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/40 via-purple-500/20 to-transparent" />
-                </div>
-                <div className="w-10 h-7 bg-neutral-800 rounded-sm overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/40 via-blue-500/20 to-transparent" />
-                </div>
-                <div className="w-10 h-7 bg-neutral-800 rounded-sm overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/40 via-rose-500/20 to-transparent" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-1 px-1 border-t border-neutral-800 text-[6px] font-mono text-neutral-500">
-                <span>35MM ANAMORPHIC</span>
-                <span>● REC</span>
-              </div>
-            </div>
-
-            {/* Ephemera 2: Swiss Pantone Color Swatch Chip */}
-            <div
-              style={{
-                left: '120px',
-                top: '380px',
-                transform: 'translate(-50%, -50%) rotate(7deg)',
-              }}
-              className="absolute z-0 bg-white p-2.5 rounded-sm shadow-md border border-black/10 pointer-events-none select-none hover:scale-105 transition-transform"
-            >
-              <div className="w-14 h-16 bg-[#ff3300] rounded-[2px] mb-2 shadow-inner" />
-              <span className="block font-black text-[9px] tracking-tight">PANTONE®</span>
-              <span className="block font-mono text-[7px] text-neutral-500">Warm Red C</span>
-            </div>
-
-            {/* Ephemera 3: Washi Drafting Tape with Archival Note */}
-            <div
-              style={{
-                left: '420px',
-                top: '-150px',
-                transform: 'translate(-50%, -50%) rotate(3deg)',
-              }}
-              className="absolute z-0 bg-amber-100/90 backdrop-blur-sm border border-amber-300/50 px-3 py-1.5 shadow-sm rounded-sm pointer-events-none select-none hover:scale-105 transition-transform"
-            >
-              <span className="font-mono text-[8px] font-bold text-amber-900 tracking-wider uppercase">
-                *DIRECTOR MASTER CUTS // 2026
-              </span>
-            </div>
-
-            {/* Archival Frosted-Glass 3D Folders */}
-            {allFiles.map((file) => (
-              <div
-                key={file.id}
-                data-cursor="view"
-                data-cursor-text="OPEN ↗"
-                style={{
-                  left: `${file.x}px`,
-                  top: `${file.y}px`,
-                  transform: `translate(-50%, -50%) rotate(${file.rot}deg)`,
-                }}
-                className="absolute transition-transform duration-300 hover:z-50 select-none touch-manipulation pointer-events-auto cursor-pointer"
-              >
-                <ArchiveFolderCard
-                  id={file.id}
-                  code={file.code}
-                  name={file.name}
-                  discipline={file.discipline}
-                  year={file.year}
-                  role={file.role}
-                  photos={file.photos && file.photos.length > 0 ? file.photos : (file.img ? [file.img] : [])}
-                  photoCount={file.photoCount || (file.photos ? file.photos.length : 0)}
-                  stickers={file.stickers}
-                  colorTag={file.colorTag}
-                  isComingSoon={file.isComingSoon}
-                  variant={file.variant}
-                  onClick={() => {
-                    if (hasMovedRef.current) return;
-                    setSelectedFile(file);
-                    setActiveTab('all');
-                    setEnlargedIndex(null);
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <ArchiveFlatFileVault
+          files={allFiles}
+          onSelectFile={(file) => {
+            setSelectedFile(file);
+            setActiveTab('all');
+            setEnlargedIndex(null);
+          }}
+          onEnlargePhoto={(file, idx) => {
+            setSelectedFile(file);
+            setActiveTab('all');
+            setEnlargedIndex(idx);
+          }}
+          initialFolderId={
+            folderParam ||
+            (disciplineParam ? DISCIPLINE_FILE_MAP[disciplineParam] || disciplineParam : null)
+          }
+        />
       ) : (
         /* ============================================================ */
         /* MODE 2: PLAYGROUND COSMOS (2.5D SPATIAL UNIVERSE & HUD)      */
