@@ -129,17 +129,6 @@ export default function ServicesSection() {
           </div>
         ))}
       </div>
-
-      {/* 3. EDGE-ANCHORED BASELINE METADATA (Stuck to 68px/100px edges, zero lines) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pt-12 sm:pt-16 flex items-center justify-between text-xs sm:text-sm font-mono text-neutral-400">
-        <div className="flex items-center gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-black"></span>
-          <span className="uppercase tracking-widest text-neutral-800 font-semibold">Capabilities</span>
-        </div>
-        <div className="text-neutral-400 uppercase tracking-wider hidden sm:block">
-          01 — 05 Strategic Creative Services · Global Practice
-        </div>
-      </div>
     </section>
   );
 }
