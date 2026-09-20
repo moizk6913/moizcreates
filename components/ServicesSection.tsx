@@ -108,7 +108,7 @@ export default function ServicesSection() {
             ref={(el) => {
               rowsRef.current[index] = el;
             }}
-            className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between py-6 sm:py-8 md:py-10 px-6 sm:px-8 md:px-10 rounded-[32px] sm:rounded-[38px] md:rounded-[44px] transition-all duration-300 group hover:bg-[#faf9f6]"
+            className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between py-6 sm:py-8 md:py-10 px-5 sm:px-8 md:px-10 rounded-[16px] sm:rounded-[20px] transition-all duration-300 group hover:bg-[#faf9f6]"
           >
             {/* Left Frame: Number (01) + Title (ART DIRECTION) - Anchored strictly to Left edge */}
             <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 shrink-0">

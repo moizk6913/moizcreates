@@ -225,7 +225,7 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
           >
             <div
               style={{ height: `${item.h}px` }}
-              className="relative w-full bg-[#111] overflow-hidden rounded-[14px] shadow-sm transition-transform duration-300 group-hover:scale-120 group-hover:z-[100]"
+              className="relative w-full bg-[#111] overflow-hidden rounded-[8px] shadow-sm transition-transform duration-300 group-hover:scale-120 group-hover:z-[100]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

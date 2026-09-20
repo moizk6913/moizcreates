@@ -140,7 +140,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
             </span>
             <span className="manifesto-token inline-flex items-center will-change-transform">
               <span
-                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-full bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-[10px] bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
                 title="Director Shutter Asset"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -148,7 +148,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
                   ref={img1Ref}
                   src={pool1[0]}
                   alt="Campaign Shutter Clip"
-                  className="w-full h-full object-cover rounded-full pointer-events-none"
+                  className="w-full h-full object-cover rounded-[10px] pointer-events-none"
                 />
               </span>
             </span>
@@ -164,7 +164,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
             </span>
             <span className="manifesto-token inline-flex items-center will-change-transform">
               <span
-                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-full bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center align-middle w-[84px] sm:w-[120px] md:w-[155px] h-[30px] sm:h-[42px] md:h-[54px] rounded-[10px] bg-black overflow-hidden relative shadow-none hover:scale-105 transition-transform duration-300 cursor-pointer shrink-0"
                 title="Production Shutter Asset"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -172,7 +172,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
                   ref={img2Ref}
                   src={pool2[0]}
                   alt="Production Shutter Clip"
-                  className="w-full h-full object-cover rounded-full pointer-events-none"
+                  className="w-full h-full object-cover rounded-[10px] pointer-events-none"
                 />
               </span>
             </span>

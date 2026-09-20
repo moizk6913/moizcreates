@@ -94,37 +94,37 @@ export default function ArchiveFolderCard({
       <div className="relative w-[196px] sm:w-[216px] h-[170px] sm:h-[185px] flex items-end justify-center">
         
         {/* LAYER 1: BACK PLATE (Silver-Grey Apple Squircle) */}
-        <div className="absolute bottom-0 w-[184px] sm:w-[204px] h-[126px] sm:h-[138px] rounded-[32px] sm:rounded-[36px] bg-gradient-to-b from-[#e3e1dd] to-[#cdc9c2] shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-black/5" />
+        <div className="absolute bottom-0 w-[184px] sm:w-[204px] h-[126px] sm:h-[138px] rounded-[16px] sm:rounded-[20px] bg-gradient-to-b from-[#e3e1dd] to-[#cdc9c2] shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-black/5" />
 
         {/* LAYER 2: 3 FANNED-OUT PHOTO CARDS (With Apple-grade white border frames) */}
         <div className="absolute bottom-6 w-full flex items-center justify-center pointer-events-none z-10">
           {/* Left Photo (Tilted -12deg) */}
-          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white rounded-[18px] sm:rounded-[22px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform -rotate-12 -translate-x-6 -translate-y-4 group-hover:-rotate-[16deg] group-hover:-translate-x-8 group-hover:-translate-y-6 transition-transform duration-500 ease-out overflow-hidden">
+          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white rounded-[10px] sm:rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform -rotate-12 -translate-x-6 -translate-y-4 group-hover:-rotate-[16deg] group-hover:-translate-x-8 group-hover:-translate-y-6 transition-transform duration-500 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img1}
               alt="Campaign Still 1"
-              className="w-full h-full object-cover rounded-[14px] sm:rounded-[18px]"
+              className="w-full h-full object-cover rounded-[7px] sm:rounded-[9px]"
             />
           </div>
 
           {/* Center Photo (Standing Highest, Upright) */}
-          <div className="absolute w-[86px] sm:w-[94px] h-[112px] sm:h-[124px] p-1.5 bg-white rounded-[18px] sm:rounded-[22px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] z-10 transform -translate-y-6 sm:-translate-y-7 group-hover:-translate-y-9 sm:group-hover:-translate-y-10 transition-transform duration-500 ease-out overflow-hidden">
+          <div className="absolute w-[86px] sm:w-[94px] h-[112px] sm:h-[124px] p-1.5 bg-white rounded-[10px] sm:rounded-[12px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] z-10 transform -translate-y-6 sm:-translate-y-7 group-hover:-translate-y-9 sm:group-hover:-translate-y-10 transition-transform duration-500 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img2}
               alt="Campaign Still 2"
-              className="w-full h-full object-cover rounded-[14px] sm:rounded-[18px]"
+              className="w-full h-full object-cover rounded-[7px] sm:rounded-[9px]"
             />
           </div>
 
           {/* Right Photo (Tilted +12deg) */}
-          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white rounded-[18px] sm:rounded-[22px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform rotate-12 translate-x-6 -translate-y-3 group-hover:rotate-[16deg] group-hover:translate-x-8 group-hover:-translate-y-5 transition-transform duration-500 ease-out overflow-hidden">
+          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white rounded-[10px] sm:rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform rotate-12 translate-x-6 -translate-y-3 group-hover:rotate-[16deg] group-hover:translate-x-8 group-hover:-translate-y-5 transition-transform duration-500 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img3}
               alt="Campaign Still 3"
-              className="w-full h-full object-cover rounded-[14px] sm:rounded-[18px]"
+              className="w-full h-full object-cover rounded-[7px] sm:rounded-[9px]"
             />
           </div>
         </div>

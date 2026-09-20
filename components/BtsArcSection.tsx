@@ -321,7 +321,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
       >
         {/* Visual Bento Container - Deep Apple continuous squircle radius */}
         <div
-          className={`relative w-full h-full rounded-[38px] sm:rounded-[44px] md:rounded-[48px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
+          className={`relative w-full h-full rounded-[24px] sm:rounded-[28px] md:rounded-[30px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
         >
           {/* Media: Looping Video on Desktop or High-Speed Photography on Mobile */}
           {isVideoAllowed ? (
@@ -365,7 +365,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
             {/* Controls / Tag - Apple Pill radius */}
             <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
+              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2.5 py-1 rounded-[8px] bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
                 {item.tag}
               </span>
 
@@ -374,7 +374,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
                   type="button"
                   onClick={(e) => toggleMute(item.id, e)}
                   title={unmutedId === item.id ? 'Mute' : 'Unmute'}
-                  className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+                  className="w-7 h-7 md:w-8 md:h-8 rounded-[10px] bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
                 >
                   {unmutedId === item.id ? (
                     <Volume2 className="w-3.5 h-3.5" />

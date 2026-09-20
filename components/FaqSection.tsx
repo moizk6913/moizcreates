@@ -75,7 +75,7 @@ export default function FaqSection() {
           return (
             <div
               key={faq.number}
-              className="w-full rounded-[32px] sm:rounded-[38px] md:rounded-[44px] transition-all duration-300 hover:bg-[#faf9f6]"
+              className="w-full rounded-[16px] sm:rounded-[20px] transition-all duration-300 hover:bg-[#faf9f6]"
             >
               <button
                 type="button"
