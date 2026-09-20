@@ -89,40 +89,40 @@ export default function ServicesSection() {
       className="w-full py-16 sm:py-24 md:py-32 bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. GIANT RUNNING HEADER (Zero lines, clean continuous silky marquee) */}
-      <div className="w-full pb-8 sm:pb-12 md:pb-16 overflow-hidden">
+      <div className="w-full pb-10 sm:pb-14 md:pb-20 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[104px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             OUR SERVICES — OUR SERVICES — OUR SERVICES — OUR SERVICES —
           </div>
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[104px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             OUR SERVICES — OUR SERVICES — OUR SERVICES — OUR SERVICES —
           </div>
         </div>
       </div>
 
-      {/* 2. FIGMA AUTO-LAYOUT RESPONSIVE ROWS (Anchored Left & Right, Zero Lines, 100% Black) */}
-      <div className="w-full max-w-[1700px] mx-auto px-6 sm:px-10 md:px-14 lg:px-20 space-y-3 sm:space-y-4 md:space-y-5">
+      {/* 2. EDGE-ANCHORED RESPONSIVE ROWS (Strictly stuck to 68px/100px left & right edges, no max-w clamp on zoom out) */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-3 sm:space-y-4 md:space-y-6">
         {SERVICES.map((item, index) => (
           <div
             key={item.number}
             ref={(el) => {
               rowsRef.current[index] = el;
             }}
-            className="w-full flex flex-col sm:flex-row sm:items-baseline sm:justify-between py-5 sm:py-7 md:py-8 px-4 sm:px-6 rounded-[18px] transition-colors duration-200 group hover:bg-[#faf9f6]"
+            className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between py-6 sm:py-8 md:py-10 px-5 sm:px-8 md:px-10 rounded-[22px] sm:rounded-[26px] transition-all duration-300 group hover:bg-[#faf9f6]"
           >
-            {/* Left Frame: Number (01) + Title (ART DIRECTION) - Anchored strictly to Left */}
+            {/* Left Frame: Number (01) + Title (ART DIRECTION) - Anchored strictly to Left edge */}
             <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 shrink-0">
-              <span className="font-mono text-sm sm:text-base md:text-lg font-bold text-neutral-400 group-hover:text-black transition-colors">
+              <span className="font-mono text-base sm:text-lg md:text-2xl font-bold text-neutral-400 group-hover:text-black transition-colors">
                 {item.number}
               </span>
-              <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[38px] tracking-tight uppercase text-black group-hover:text-neutral-500 transition-colors leading-tight">
+              <h3 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-[46px] xl:text-[54px] tracking-tight uppercase text-black group-hover:text-neutral-500 transition-colors leading-none">
                 {item.title}
               </h3>
             </div>
 
-            {/* Right Frame: Strategic Description - Anchored strictly to Right Edge */}
-            <div className="max-w-md md:max-w-lg lg:max-w-xl text-left sm:text-right pt-3 sm:pt-0">
-              <p className="font-sans text-xs sm:text-sm md:text-[15px] text-neutral-600 leading-relaxed font-normal">
+            {/* Right Frame: Strategic Description - Anchored strictly to Right edge */}
+            <div className="max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl text-left lg:text-right pt-4 lg:pt-0">
+              <p className="font-sans text-sm sm:text-base md:text-lg lg:text-[19px] text-neutral-600 group-hover:text-neutral-900 transition-colors leading-relaxed font-normal">
                 {item.description}
               </p>
             </div>
@@ -130,14 +130,14 @@ export default function ServicesSection() {
         ))}
       </div>
 
-      {/* 3. FLUSH COMPACT BASELINE (Zero lines, clean metadata) */}
-      <div className="w-full max-w-[1700px] mx-auto pt-10 sm:pt-14 px-6 sm:px-10 md:px-14 lg:px-20 flex items-center justify-between text-[11px] font-mono text-neutral-400">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-black"></span>
-          <span className="uppercase tracking-widest text-neutral-700 font-semibold">Capabilities</span>
+      {/* 3. EDGE-ANCHORED BASELINE METADATA (Stuck to 68px/100px edges, zero lines) */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pt-12 sm:pt-16 flex items-center justify-between text-xs sm:text-sm font-mono text-neutral-400">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-black"></span>
+          <span className="uppercase tracking-widest text-neutral-800 font-semibold">Capabilities</span>
         </div>
         <div className="text-neutral-400 uppercase tracking-wider hidden sm:block">
-          01 — 05 Strategic Creative Services
+          01 — 05 Strategic Creative Services · Global Practice
         </div>
       </div>
     </section>
