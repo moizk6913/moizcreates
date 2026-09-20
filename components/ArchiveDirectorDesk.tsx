@@ -12,24 +12,24 @@ interface ArchiveDirectorDeskProps {
 // 7 Distinct Non-Colliding Desktop Coordinates (In Pixels)
 // Wide 800px+ horizontal clearance providing generous, airy breathing room between all items
 const DESK_SLOTS: Record<string, { x: number; y: number; rot: number }> = {
-  'art-direction': { x: -320, y: -150, rot: -2 },
-  'brand-identity': { x: 320, y: -150, rot: 2 },
-  'cinematography': { x: -400, y: 15, rot: 2 },
-  'motion-graphics': { x: 0, y: -15, rot: 0 },
-  'video-editing': { x: 400, y: 15, rot: -2 },
-  'color-grading': { x: -200, y: 175, rot: -2 },
-  'photography': { x: 200, y: 175, rot: 2 },
+  'art-direction': { x: -340, y: -160, rot: -2 },
+  'brand-identity': { x: 340, y: -160, rot: 2 },
+  'cinematography': { x: -440, y: 30, rot: 2 },
+  'motion-graphics': { x: 0, y: -20, rot: 0 },
+  'video-editing': { x: 440, y: 30, rot: -2 },
+  'color-grading': { x: -220, y: 200, rot: -2 },
+  'photography': { x: 220, y: 200, rot: 2 },
 };
 
 // Fallback slot order if IDs vary
 const FALLBACK_SLOTS = [
-  { x: -320, y: -150, rot: -2 }, // Slot 0: Top Left
-  { x: 320, y: -150, rot: 2 },   // Slot 1: Top Right
-  { x: -400, y: 15, rot: 2 },    // Slot 2: Far Left
-  { x: 0, y: -15, rot: 0 },      // Slot 3: Center
-  { x: 400, y: 15, rot: -2 },    // Slot 4: Far Right
-  { x: -200, y: 175, rot: -2 },  // Slot 5: Bottom Left
-  { x: 200, y: 175, rot: 2 },    // Slot 6: Bottom Right
+  { x: -340, y: -160, rot: -2 }, // Slot 0: Top Left
+  { x: 340, y: -160, rot: 2 },   // Slot 1: Top Right
+  { x: -440, y: 30, rot: 2 },    // Slot 2: Far Left
+  { x: 0, y: -20, rot: 0 },      // Slot 3: Center
+  { x: 440, y: 30, rot: -2 },    // Slot 4: Far Right
+  { x: -220, y: 200, rot: -2 },  // Slot 5: Bottom Left
+  { x: 220, y: 200, rot: 2 },    // Slot 6: Bottom Right
 ];
 
 function getSlot(file: ArchiveFile, index: number) {
@@ -95,11 +95,11 @@ export default function ArchiveDirectorDesk({
         }}
       />
 
-      {/* 2. MAIN DIRECTOR'S DESK STAGE (Spacious 1050px Canvas) */}
-      <main className="relative z-10 w-full max-w-6xl my-auto py-8 sm:py-12 flex items-center justify-center min-h-[640px]">
+      {/* 2. MAIN DIRECTOR'S DESK STAGE (Spacious Apple Showcase Canvas) */}
+      <main className="relative z-10 w-full max-w-7xl my-auto py-8 sm:py-12 flex items-center justify-center min-h-[700px]">
         
-        {/* Desktop Absolute Desk Layout (All 7 Micro-Folders Guaranteed Distinct and Non-Colliding) */}
-        <div className="hidden md:flex relative w-full max-w-5xl h-[580px] items-center justify-center">
+        {/* Desktop Absolute Desk Layout (All 7 Apple Folders Guaranteed Distinct and Non-Colliding) */}
+        <div className="hidden md:flex relative w-full max-w-6xl h-[680px] items-center justify-center">
           {files.map((file, index) => {
             const slot = getSlot(file, index);
             return (
@@ -134,8 +134,8 @@ export default function ArchiveDirectorDesk({
           })}
         </div>
 
-        {/* Mobile Responsive Grid Layout (Clean 2-Column Display) */}
-        <div className="md:hidden grid grid-cols-2 gap-x-4 gap-y-6 w-full max-w-sm mx-auto pt-4">
+        {/* Mobile Responsive Grid Layout (Clean 1/2-Column Display with Ample Breathing Room) */}
+        <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-12 w-full max-w-xs sm:max-w-lg mx-auto pt-6">
           {files.map((file) => (
             <div key={file.id} className="flex justify-center">
               <ArchiveFolderCard

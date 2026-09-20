@@ -107,7 +107,7 @@ export default function TestimonialsSection() {
           {track1.map((t, idx) => (
             <div
               key={`track-1-${t.id}-${idx}`}
-              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-[#faf9f6] rounded-[24px] p-6 sm:p-8 flex flex-col justify-between space-y-5 hover:bg-[#f3f2ee] hover:-translate-y-1 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)]"
+              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white rounded-[32px] sm:rounded-[36px] p-7 sm:p-9 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
               <div className="space-y-3">
                 <StarRating />
@@ -121,7 +121,7 @@ export default function TestimonialsSection() {
                 <img
                   src={t.avatar}
                   alt={t.name}
-                  className="w-10 h-10 rounded-full object-cover bg-neutral-200 shrink-0"
+                  className="w-11 h-11 rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -146,7 +146,7 @@ export default function TestimonialsSection() {
           {track2.map((t, idx) => (
             <div
               key={`track-2-${t.id}-${idx}`}
-              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-[#faf9f6] rounded-[24px] p-6 sm:p-8 flex flex-col justify-between space-y-5 hover:bg-[#f3f2ee] hover:-translate-y-1 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)]"
+              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white rounded-[32px] sm:rounded-[36px] p-7 sm:p-9 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
               <div className="space-y-3">
                 <StarRating />
@@ -160,7 +160,7 @@ export default function TestimonialsSection() {
                 <img
                   src={t.avatar}
                   alt={t.name}
-                  className="w-10 h-10 rounded-full object-cover bg-neutral-200 shrink-0"
+                  className="w-11 h-11 rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
