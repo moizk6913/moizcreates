@@ -9,11 +9,62 @@ interface HeaderProps {
   visible?: boolean;
 }
 
+const WORLD_CITIES = [
+  { city: 'DUBAI', zone: 'Asia/Dubai', code: 'GST' },
+  { city: 'NEW YORK', zone: 'America/New_York', code: 'EDT' },
+  { city: 'LONDON', zone: 'Europe/London', code: 'BST' },
+  { city: 'MUMBAI', zone: 'Asia/Kolkata', code: 'IST' },
+  { city: 'TOKYO', zone: 'Asia/Tokyo', code: 'JST' },
+  { city: 'PARIS', zone: 'Europe/Paris', code: 'CEST' },
+];
+
 export default function Header({ visible = true }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const logoClicksRef = useRef<number>(0);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Worldwide live cycling clock state
+  const [currentCityIdx, setCurrentCityIdx] = useState(0);
+  const [worldTime, setWorldTime] = useState('');
+  const [isFading, setIsFading] = useState(false);
+
+  useEffect(() => {
+    const updateTime = () => {
+      try {
+        const cityObj = WORLD_CITIES[currentCityIdx];
+        const now = new Date();
+        const options: Intl.DateTimeFormatOptions = {
+          timeZone: cityObj.zone,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+        };
+        const timeStr = new Intl.DateTimeFormat('en-US', options).format(now);
+        setWorldTime(`${cityObj.city} ${timeStr} ${cityObj.code}`);
+      } catch {
+        const cityObj = WORLD_CITIES[currentCityIdx];
+        setWorldTime(`${cityObj.city} 12:00 PM ${cityObj.code}`);
+      }
+    };
+
+    updateTime();
+    const liveTimer = setInterval(updateTime, 1000);
+    return () => clearInterval(liveTimer);
+  }, [currentCityIdx]);
+
+  useEffect(() => {
+    const cycleTimer = setInterval(() => {
+      setIsFading(true);
+      setTimeout(() => {
+        setCurrentCityIdx((prev) => (prev + 1) % WORLD_CITIES.length);
+        setIsFading(false);
+      }, 250);
+    }, 3500);
+
+    return () => clearInterval(cycleTimer);
+  }, []);
 
   // Secret keyboard shortcut: Ctrl+Shift+A -> /admin
   useEffect(() => {
@@ -107,19 +158,25 @@ export default function Header({ visible = true }: HeaderProps) {
           </Link>
         </div>
 
-        {/* RIGHT NAV LINKS (Desktop: ARCHIVE, ABOUT, CONTACT) */}
-        <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-end">
+        {/* RIGHT NAV LINKS (Desktop: Live Worldwide Clock, ARCHIVE, CONTACT) */}
+        <div className="hidden md:flex items-center gap-6 lg:gap-10 pointer-events-auto flex-1 justify-end">
+          {/* Live Worldwide Clock (Cycles through cities and timezones) */}
+          <div
+            className={`flex items-center gap-2 font-mono text-xs tracking-wider transition-opacity duration-300 ${
+              isFading ? 'opacity-20' : 'opacity-100'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+            <span className="text-neutral-700 font-medium whitespace-nowrap">
+              {worldTime || 'DUBAI 12:00:00 PM GST'}
+            </span>
+          </div>
+
           <Link
             href="/canvas?view=archive"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             ARCHIVE
-          </Link>
-          <Link
-            href="/about"
-            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
-          >
-            ABOUT
           </Link>
           <Link
             href="/#contact"
@@ -162,7 +219,6 @@ export default function Header({ visible = true }: HeaderProps) {
               { label: 'WORK', href: '/#work' },
               { label: 'PLAYGROUND', href: '/canvas?view=playground' },
               { label: 'ARCHIVE', href: '/canvas?view=archive' },
-              { label: 'ABOUT', href: '/about' },
               { label: 'CONTACT', href: '/#contact' },
             ].map((link) => (
               <Link
@@ -177,7 +233,11 @@ export default function Header({ visible = true }: HeaderProps) {
             ))}
           </nav>
 
-          <div className="pt-8 flex flex-col gap-2 font-mono text-xs text-neutral-500">
+          <div className="pt-8 flex flex-col gap-3 font-mono text-xs text-neutral-500">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+              <span className="text-black font-semibold uppercase">{worldTime}</span>
+            </div>
             <span>MOIZ KHAN • ART DIRECTOR</span>
             <span className="text-black font-semibold">HIREMOIZ.WORKS@GMAIL.COM</span>
           </div>

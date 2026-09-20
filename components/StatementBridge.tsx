@@ -101,7 +101,7 @@ export default function StatementBridge() {
 
           <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
-              GOOD. <Link href="/about" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">EXPLORE PROFILE.</Link>
+              GOOD. <Link href="/#contact" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">LET&apos;S TALK.</Link>
             </span>
           </span>
 
