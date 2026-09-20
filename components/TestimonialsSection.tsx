@@ -107,7 +107,7 @@ export default function TestimonialsSection() {
           {track1.map((t, idx) => (
             <div
               key={`track-1-${t.id}-${idx}`}
-              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white rounded-[32px] sm:rounded-[36px] p-7 sm:p-9 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
+              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white rounded-[38px] sm:rounded-[44px] md:rounded-[48px] p-8 sm:p-10 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
               <div className="space-y-3">
                 <StarRating />
@@ -146,7 +146,7 @@ export default function TestimonialsSection() {
           {track2.map((t, idx) => (
             <div
               key={`track-2-${t.id}-${idx}`}
-              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white rounded-[32px] sm:rounded-[36px] p-7 sm:p-9 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
+              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white rounded-[38px] sm:rounded-[44px] md:rounded-[48px] p-8 sm:p-10 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
               <div className="space-y-3">
                 <StarRating />

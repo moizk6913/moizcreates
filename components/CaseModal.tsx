@@ -267,7 +267,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                 <div
                   key={idx}
                   onClick={() => setEnlargedPhoto(imgUrl)}
-                  className="group relative rounded-[20px] sm:rounded-[24px] overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] transition-all duration-300"
+                  className="group relative rounded-[28px] sm:rounded-[34px] overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] transition-all duration-300"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -277,7 +277,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                     loading="lazy"
                   />
                   {/* Bottom-left pill badge (Matching Image 2: FRAME XX) */}
-                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-2.5 py-1 rounded-[6px] tracking-wider uppercase pointer-events-none">
+                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-3 py-1 rounded-full tracking-wider uppercase pointer-events-none">
                     FRAME {80 + idx}
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               {bentoWide && (
                 <div
                   onClick={() => setEnlargedPhoto(bentoWide)}
-                  className="lg:col-span-8 rounded-[28px] sm:rounded-[34px] lg:rounded-[38px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
+                  className="lg:col-span-8 rounded-[38px] sm:rounded-[44px] lg:rounded-[48px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -311,7 +311,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               {bentoVertical && (
                 <div
                   onClick={() => setEnlargedPhoto(bentoVertical)}
-                  className="lg:col-span-4 rounded-[28px] sm:rounded-[34px] lg:rounded-[38px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
+                  className="lg:col-span-4 rounded-[38px] sm:rounded-[44px] lg:rounded-[48px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

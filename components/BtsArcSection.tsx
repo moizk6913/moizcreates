@@ -319,9 +319,9 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         onClick={() => handleCardClick(item.projectId)}
         className={`h-full flex-shrink-0 cursor-pointer group select-none relative ${item.aspectClass}`}
       >
-        {/* Visual Bento Container - Apple continuous squircle radius */}
+        {/* Visual Bento Container - Deep Apple continuous squircle radius */}
         <div
-          className={`relative w-full h-full rounded-[24px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
+          className={`relative w-full h-full rounded-[38px] sm:rounded-[44px] md:rounded-[48px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
         >
           {/* Media: Looping Video on Desktop or High-Speed Photography on Mobile */}
           {isVideoAllowed ? (
@@ -357,15 +357,15 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/60 transition-opacity duration-300" />
 
           {/* Top Brand Logo & Format Badge */}
-          <div className="absolute top-0 left-0 right-0 p-4 md:p-5 flex justify-between items-start z-10 pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 p-5 md:p-6 flex justify-between items-start z-10 pointer-events-none">
             {/* Bold Brand Watermark */}
             <span className="font-display font-black text-base md:text-xl tracking-wider text-white uppercase drop-shadow-md">
               {item.brand}
             </span>
 
-            {/* Controls / Tag - 10px Apple radius */}
+            {/* Controls / Tag - Apple Pill radius */}
             <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2 py-0.5 rounded-[10px] bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
+              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
                 {item.tag}
               </span>
 
@@ -374,21 +374,21 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
                   type="button"
                   onClick={(e) => toggleMute(item.id, e)}
                   title={unmutedId === item.id ? 'Mute' : 'Unmute'}
-                  className="w-6 h-6 md:w-7 md:h-7 rounded-[10px] bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+                  className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
                 >
                   {unmutedId === item.id ? (
-                    <Volume2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                    <Volume2 className="w-3.5 h-3.5" />
                   ) : (
-                    <VolumeX className="w-3 h-3 md:w-3.5 md:h-3.5 opacity-75" />
+                    <VolumeX className="w-3.5 h-3.5 opacity-75" />
                   )}
                 </button>
               )}
             </div>
           </div>
 
-          {/* Center Magnetic "Expand +" Badge - 10px Apple radius */}
+          {/* Center Magnetic "Expand +" Badge - Apple squircle */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
               <span className="font-sans text-[11px] md:text-xs font-semibold tracking-wide">Expand</span>
               <span className="text-sm md:text-base font-light leading-none mt-0.5 text-white">+</span>
             </div>
