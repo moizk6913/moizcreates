@@ -47,75 +47,68 @@ const FAQS: FaqItem[] = [
   },
 ];
 
-const TICKER_ITEMS = [
-  'ART DIRECTION',
-  'BRANDING',
-  'VISUAL DESIGN',
-  'UI/UX DESIGN',
-  'MOTION DESIGN',
-];
-
 export default function FaqSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="w-full pt-16 sm:pt-24 bg-white overflow-hidden select-none">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 md:px-14 pb-16 sm:pb-24">
-        {/* Giant Headline (Page 3 Reference) */}
-        <div className="overflow-hidden pb-8 sm:pb-14 select-none">
-          <h2 className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[104px] tracking-tight uppercase text-black leading-none whitespace-nowrap">
-            Frequently Asked
-          </h2>
-        </div>
-
-        {/* Clean Accordion Rows — Zero Lines */}
-        <div className="space-y-3 sm:space-y-4">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openIdx === idx;
-
-            return (
-              <div key={faq.number} className="rounded-[20px] transition-all hover:bg-[#faf9f6] p-2 sm:p-4 border-none">
-                <button
-                  type="button"
-                  onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full py-4 sm:py-6 px-4 flex items-center justify-between gap-4 text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-6 sm:gap-12 md:gap-16 flex-1 min-w-0">
-                    <span className="font-mono text-sm sm:text-base font-bold text-black group-hover:text-neutral-500 tracking-wider transition-colors">
-                      {faq.number}
-                    </span>
-                    <h3 className="font-display font-black text-sm sm:text-base md:text-lg tracking-wider uppercase text-black group-hover:text-neutral-500 transition-colors">
-                      {faq.question}
-                    </h3>
-                  </div>
-
-                  <span className="font-mono text-lg sm:text-2xl text-black font-bold flex-shrink-0 transition-transform duration-200">
-                    {isOpen ? '−' : '+'}
-                  </span>
-                </button>
-
-                {isOpen && (
-                  <div className="pb-8 sm:pb-10 pl-12 sm:pl-28 md:pl-32 pr-4 max-w-3xl animate-fadeIn">
-                    <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-sans font-normal">
-                      {faq.answer}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+    <section
+      id="faq"
+      className="w-full py-16 sm:py-24 md:py-32 bg-white overflow-hidden select-none border-none relative"
+    >
+      {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge) */}
+      <div className="w-full pb-10 sm:pb-14 md:pb-20 overflow-hidden">
+        <div className="flex items-center w-max animate-marquee-left">
+          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+            FREQUENTLY ASKED — FREQUENTLY ASKED — FREQUENTLY ASKED —
+          </div>
+          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+            FREQUENTLY ASKED — FREQUENTLY ASKED — FREQUENTLY ASKED —
+          </div>
         </div>
       </div>
 
-      {/* Signature Full-Width Monochromatic Black Ticker Ribbon (Nike / Apple Aesthetic) */}
-      <div className="w-full bg-[#0a0a0a] text-white py-4 px-4 sm:px-8 overflow-hidden select-none">
-        <div className="max-w-[1600px] mx-auto flex flex-wrap justify-between items-center gap-4 sm:gap-8 font-display font-black text-xs sm:text-sm tracking-widest uppercase text-center">
-          {TICKER_ITEMS.map((item, i) => (
-            <span key={i} className="flex-1 min-w-max">
-              {item}
-            </span>
-          ))}
-        </div>
+      {/* 2. EDGE-ANCHORED ACCORDION ROWS (Stuck strictly to 68px/100px margins, no max-w clamp on zoom out) */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-3 sm:space-y-4 md:space-y-6">
+        {FAQS.map((faq, idx) => {
+          const isOpen = openIdx === idx;
+
+          return (
+            <div
+              key={faq.number}
+              className="w-full rounded-[22px] sm:rounded-[26px] transition-all duration-300 hover:bg-[#faf9f6]"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenIdx(isOpen ? null : idx)}
+                className="w-full py-6 sm:py-8 md:py-10 px-5 sm:px-8 md:px-10 flex items-center justify-between gap-6 text-left cursor-pointer group"
+              >
+                {/* Left: Number + Question */}
+                <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 min-w-0">
+                  <span className="font-mono text-base sm:text-lg md:text-2xl font-bold text-neutral-400 group-hover:text-black transition-colors shrink-0">
+                    {faq.number}
+                  </span>
+                  <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[34px] xl:text-[40px] tracking-tight uppercase text-black group-hover:text-neutral-500 transition-colors leading-tight">
+                    {faq.question}
+                  </h3>
+                </div>
+
+                {/* Right: + / − Sign stuck to right edge */}
+                <span className="font-mono text-2xl sm:text-3xl md:text-4xl text-black font-light shrink-0 transition-transform duration-200 group-hover:scale-110">
+                  {isOpen ? '−' : '+'}
+                </span>
+              </button>
+
+              {/* Expanded Answer */}
+              {isOpen && (
+                <div className="pb-8 pt-2 pl-12 sm:pl-20 md:pl-28 pr-6 max-w-4xl animate-fadeIn">
+                  <p className="font-sans text-sm sm:text-base md:text-lg lg:text-[19px] text-neutral-600 leading-relaxed font-normal">
+                    {faq.answer}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
