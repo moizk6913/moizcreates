@@ -1156,9 +1156,14 @@ export default function InfiniteCanvasPage() {
   return (
     <Suspense
       fallback={
-        <div className="w-screen h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-mono text-xs text-neutral-500 gap-3">
-          <div className="w-7 h-7 border-2 border-black border-t-transparent rounded-full animate-spin" />
-          <span className="tracking-wider uppercase">Loading Spatial Archive...</span>
+        <div className="w-screen h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-mono text-xs text-neutral-800 gap-3 select-none">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#1b00ff] animate-ping" />
+            <span className="font-bold tracking-widest uppercase">MOIZ KHAN // ARCHIVAL DESK</span>
+          </div>
+          <span className="text-neutral-400 text-[10px] tracking-widest uppercase">
+            CALIBRATING SPATIAL REPERTORY...
+          </span>
         </div>
       }
     >

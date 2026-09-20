@@ -14,6 +14,7 @@ import StatementBridge from '@/components/StatementBridge';
 import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
 import CustomCursor from '@/components/CustomCursor';
+import Preloader from '@/components/Preloader';
 import {
   getStoredCanvasFiles,
   getStoredCanvasFilesAsync,
@@ -79,6 +80,9 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen bg-canvas">
+      {/* Ultra-Luxury High-Fashion Cinema Preloader */}
+      <Preloader onComplete={() => setIsIntroDone(true)} />
+
       {/* Custom Luxury Fluid Cursor */}
       <CustomCursor />
 
