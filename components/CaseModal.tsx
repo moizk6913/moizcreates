@@ -149,7 +149,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             <span className="font-mono text-xs text-neutral-400 font-bold uppercase tracking-wider">
               PROJECT
             </span>
-            <span className="font-mono text-[11px] text-[#e60000] bg-red-50 font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="font-mono text-[11px] text-black bg-neutral-100 font-bold px-3 py-1 rounded-full uppercase tracking-wider">
               {projectData.tag}
             </span>
           </div>
@@ -164,7 +164,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                     onClose();
                   }
                 }}
-                className="font-mono text-xs px-3.5 py-1.5 rounded-full bg-red-50 text-[#e60000] hover:bg-[#e60000] hover:text-white transition-all font-bold flex items-center gap-1 cursor-pointer"
+                className="font-mono text-xs px-3.5 py-1.5 rounded-full bg-neutral-100 text-neutral-700 hover:bg-black hover:text-white transition-all font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>🗑️</span>
                 <span>Delete</span>
@@ -191,7 +191,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
           {/* Project Title & Metadata Header (Matching media_1789049860810.png) */}
           <div className="space-y-6 max-w-5xl">
             <div className="space-y-2">
-              <span className="font-mono text-xs font-bold text-[#e60000] uppercase tracking-widest block">
+              <span className="font-mono text-xs font-bold text-black uppercase tracking-widest block">
                 {projectData.market.toUpperCase()}
               </span>
               <h1 className="font-display font-black text-4xl sm:text-6xl md:text-7xl text-black uppercase tracking-tight leading-[0.92]">
@@ -203,7 +203,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               {projectData.narrative}
             </p>
 
-            {/* 4 Metadata Columns with Red Dot Indicator */}
+            {/* 4 Metadata Columns with Dot Indicator */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 text-xs font-sans">
               <div className="space-y-1">
                 <span className="font-mono text-[11px] text-neutral-400 font-bold uppercase tracking-wider block">
@@ -216,7 +216,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                   <span className="font-mono text-[11px] text-neutral-400 font-bold uppercase tracking-wider">
                     CREW / LEADERSHIP
                   </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
                 </div>
                 <span className="font-bold text-black block">{projectData.team}</span>
               </div>
@@ -347,7 +347,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             {/* Directorial Vision & Strategy Summary Card */}
             <div className="bg-[#faf9f6] rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 space-y-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
               <div className="space-y-2">
-                <span className="font-mono text-xs font-bold text-[#e60000] uppercase tracking-widest block">
+                <span className="font-mono text-xs font-bold text-black uppercase tracking-widest block">
                   DIRECTORIAL VISION &amp; STRATEGY
                 </span>
                 <p className="font-sans text-sm sm:text-base text-neutral-800 leading-relaxed font-normal max-w-4xl">
@@ -388,7 +388,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                         onClose();
                       }
                     }}
-                    className="font-mono text-xs px-4 py-2.5 rounded-full border border-red-200 text-[#e60000] hover:bg-[#e60000] hover:text-white transition-all cursor-pointer font-bold flex items-center gap-1.5"
+                    className="font-mono text-xs px-4 py-2.5 rounded-full border border-neutral-300 text-neutral-700 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer font-bold flex items-center gap-1.5"
                   >
                     <span>🗑️</span>
                     <span>Delete Entire Campaign</span>
@@ -398,7 +398,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                 <Link
                   href="/canvas"
                   onClick={onClose}
-                  className="font-mono text-xs px-5 py-2.5 rounded-full bg-black text-white hover:bg-[#e60000] transition-colors cursor-pointer font-bold flex items-center gap-1.5 shadow-sm"
+                  className="font-mono text-xs px-5 py-2.5 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors cursor-pointer font-bold flex items-center gap-1.5 shadow-sm"
                 >
                   <span>EXPLORE ARCHIVE CANVAS</span>
                   <span>↗</span>

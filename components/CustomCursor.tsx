@@ -178,21 +178,21 @@ export default function CustomCursor() {
 
   if (isTouchDevice) return null;
 
-  // Determine ring styling and dimensions based on state
+  // Determine ring styling and dimensions based on state (Nike / Apple pure monochrome)
   let ringStyle = 'w-2 h-2 -ml-1 -mt-1 border-transparent bg-transparent opacity-0 scale-50';
-  let dotStyle = 'w-2.5 h-2.5 -ml-[5px] -mt-[5px] bg-[#1b00ff] opacity-100 shadow-[0_0_8px_rgba(27,0,255,0.4)]';
+  let dotStyle = 'w-2.5 h-2.5 -ml-[5px] -mt-[5px] bg-black opacity-90 shadow-xs';
 
   if (variant === 'link') {
     ringStyle = 'w-12 h-12 -ml-6 -mt-6 border border-black/15 bg-black/[0.04] opacity-100 scale-100';
-    dotStyle = 'w-1.5 h-1.5 -ml-[3px] -mt-[3px] bg-[#1b00ff] opacity-60';
+    dotStyle = 'w-1.5 h-1.5 -ml-[3px] -mt-[3px] bg-black opacity-60';
   } else if (variant === 'view') {
-    ringStyle = 'w-24 h-24 -ml-12 -mt-12 border-transparent bg-[#1b00ff] text-white shadow-2xl opacity-100 scale-100';
+    ringStyle = 'w-24 h-24 -ml-12 -mt-12 border-transparent bg-black text-white shadow-2xl opacity-100 scale-100';
     dotStyle = 'opacity-0';
   } else if (variant === 'shuffle') {
     ringStyle = 'w-28 h-28 -ml-14 -mt-14 border-transparent bg-black text-white shadow-2xl opacity-100 scale-100';
     dotStyle = 'opacity-0';
   } else if (variant === 'drag') {
-    ringStyle = 'w-20 h-20 -ml-10 -mt-10 border-transparent bg-[#1b00ff]/90 backdrop-blur-sm text-white opacity-100 scale-100';
+    ringStyle = 'w-20 h-20 -ml-10 -mt-10 border-transparent bg-black/90 backdrop-blur-sm text-white opacity-100 scale-100';
     dotStyle = 'opacity-0';
   }
 

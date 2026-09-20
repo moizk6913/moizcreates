@@ -17,15 +17,15 @@ function StarGlyph({ size = 20, fill = '#000000', className = '' }: { size?: num
   );
 }
 
-// Cluster 1: Research (8 outer black stars orbiting 1 center red star)
+// Cluster 1: Research (8 outer black stars orbiting 1 center star)
 function ResearchCluster() {
   const radius = 54;
   const count = 8;
   return (
     <div className="relative w-44 h-44 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-      {/* Center Red #e60000 Star */}
+      {/* Center Black Star */}
       <div className="z-10 animate-pulse">
-        <StarGlyph size={28} fill="#e60000" />
+        <StarGlyph size={28} fill="#000000" />
       </div>
 
       {/* Orbiting Black Stars */}
@@ -47,15 +47,15 @@ function ResearchCluster() {
   );
 }
 
-// Cluster 2: Design (Concentric Ring of 10 black stars around center red star)
+// Cluster 2: Design (Concentric Ring of 10 black stars around center star)
 function DesignCluster() {
   const radius = 58;
   const count = 10;
   return (
     <div className="relative w-44 h-44 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-      {/* Center Red #e60000 Star */}
+      {/* Center Black Star */}
       <div className="z-10 animate-pulse">
-        <StarGlyph size={28} fill="#e60000" />
+        <StarGlyph size={28} fill="#000000" />
       </div>
 
       {/* Orbiting Stars */}
@@ -77,15 +77,15 @@ function DesignCluster() {
   );
 }
 
-// Cluster 3: Deliver (Dense Ring of 14 black stars around center red star)
+// Cluster 3: Deliver (Dense Ring of 14 black stars around center star)
 function DeliverCluster() {
   const radius = 64;
   const count = 14;
   return (
     <div className="relative w-44 h-44 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-      {/* Center Red #e60000 Star */}
+      {/* Center Black Star */}
       <div className="z-10 animate-pulse">
-        <StarGlyph size={28} fill="#e60000" />
+        <StarGlyph size={28} fill="#000000" />
       </div>
 
       {/* Orbiting Stars */}
@@ -159,7 +159,7 @@ export default function ProcessSection() {
                 <span className="font-mono text-xs text-neutral-400 font-bold tracking-widest block">
                   {p.number}
                 </span>
-                <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-wider text-black group-hover:text-[#e60000] transition-colors">
+                <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-wider text-black group-hover:text-neutral-500 transition-colors">
                   {p.title}
                 </h3>
                 <p className="font-sans text-xs sm:text-sm text-neutral-600 leading-relaxed font-normal pt-1">

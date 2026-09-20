@@ -903,7 +903,7 @@ export default function AdminPage() {
   }, [currentProjectWorks, projectTypeFilter]);
 
   return (
-    <main className="min-h-screen bg-[#0d0d0e] text-white selection:bg-[#e60000] selection:text-white font-sans flex flex-col">
+    <main className="min-h-screen bg-[#0d0d0e] text-white selection:bg-white selection:text-black font-sans flex flex-col">
       <CustomCursor />
 
       {/* TOP EDITORIAL STUDIO BAR */}
@@ -919,7 +919,7 @@ export default function AdminPage() {
           <span className="font-display font-black text-xs uppercase tracking-wider text-white">
             Creative Archive
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-[#e60000]/15 text-[#e60000] font-mono text-[9px] font-bold uppercase">
+          <span className="px-2 py-0.5 rounded-full bg-white/10 text-white font-mono text-[9px] font-bold uppercase">
             Upload First CMS
           </span>
         </div>
@@ -930,7 +930,7 @@ export default function AdminPage() {
             type="button"
             onClick={() => { setActiveView('all_work'); setSelectedProjectId(null); }}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
-              activeView === 'all_work' ? 'bg-[#e60000] text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+              activeView === 'all_work' ? 'bg-white text-black shadow-xs' : 'text-neutral-400 hover:text-white'
             }`}
           >
             All Work ({works.length})
@@ -940,7 +940,7 @@ export default function AdminPage() {
             onClick={() => { setActiveView('projects'); setSelectedProjectId(null); }}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
               activeView === 'projects' || activeView === 'single_project'
-                ? 'bg-[#e60000] text-white shadow-xs'
+                ? 'bg-white text-black shadow-xs'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -951,7 +951,7 @@ export default function AdminPage() {
             onClick={() => { setActiveView('playground'); setSelectedProjectId(null); }}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold flex items-center gap-1.5 ${
               activeView === 'playground'
-                ? 'bg-[#e60000] text-white shadow-xs'
+                ? 'bg-white text-black shadow-xs'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -962,7 +962,7 @@ export default function AdminPage() {
             type="button"
             onClick={() => { setActiveView('journal'); setSelectedProjectId(null); }}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
-              activeView === 'journal' ? 'bg-[#e60000] text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+              activeView === 'journal' ? 'bg-white text-black shadow-xs' : 'text-neutral-400 hover:text-white'
             }`}
           >
             Journal ({posts.length})
@@ -971,7 +971,7 @@ export default function AdminPage() {
             type="button"
             onClick={() => { setActiveView('settings'); setSelectedProjectId(null); }}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
-              activeView === 'settings' ? 'bg-[#e60000] text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+              activeView === 'settings' ? 'bg-white text-black shadow-xs' : 'text-neutral-400 hover:text-white'
             }`}
           >
             Settings
@@ -987,7 +987,7 @@ export default function AdminPage() {
               setBatchSuggestion(null);
               setIsAddWorkOpen(true);
             }}
-            className="px-5 py-2 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer"
+            className="px-5 py-2 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span>+</span>
             <span>Add Work</span>
@@ -1130,7 +1130,7 @@ export default function AdminPage() {
             </div>
 
             {selectedWorkIds.size > 0 && (
-              <span className="text-[#e60000] font-bold">
+              <span className="text-white font-bold">
                 {selectedWorkIds.size} work(s) selected
               </span>
             )}
@@ -1172,7 +1172,7 @@ export default function AdminPage() {
                     onClick={() => setInspectingWork(work)}
                     className={`group relative rounded-2xl bg-[#141416] border overflow-hidden flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
                       isSelected
-                        ? 'border-[#e60000] ring-2 ring-[#e60000]/50'
+                        ? 'border-white ring-2 ring-white/50'
                         : 'border-white/[0.06] hover:border-white/20'
                     }`}
                   >
@@ -1184,7 +1184,7 @@ export default function AdminPage() {
                       }}
                       className="absolute top-2.5 left-2.5 z-20 w-6 h-6 rounded-lg bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/20 hover:border-white transition-colors cursor-pointer"
                     >
-                      {isSelected && <span className="text-[#e60000] font-black text-xs">✓</span>}
+                      {isSelected && <span className="text-white font-black text-xs">✓</span>}
                     </div>
 
                     {/* Single Picture Delete Quick Action */}
@@ -1195,7 +1195,7 @@ export default function AdminPage() {
                         e.stopPropagation();
                         handleDeleteSingleWork(work);
                       }}
-                      className="absolute top-2.5 right-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/10 shadow-md"
+                      className="absolute top-2.5 right-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-white hover:text-black text-neutral-300 flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/10 shadow-md"
                     >
                       🗑️
                     </button>
@@ -1229,7 +1229,7 @@ export default function AdminPage() {
                     {/* Card Meta */}
                     <div className="p-3 space-y-1.5 flex-1 flex flex-col justify-between">
                       <div>
-                        <span className="font-mono text-[9px] font-bold text-[#e60000] uppercase tracking-wider block">
+                        <span className="font-mono text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">
                           {work.workType}
                         </span>
                         <h4 className="font-display font-bold text-xs text-white line-clamp-1">
@@ -1272,7 +1272,7 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => setIsNewProjectModalOpen(true)}
-              className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer"
             >
               + New Project Container
             </button>
@@ -1286,7 +1286,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setIsNewProjectModalOpen(true)}
-                className="px-5 py-2.5 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
               >
                 Create First Project
               </button>
@@ -1343,7 +1343,7 @@ export default function AdminPage() {
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                            <span className="font-mono text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
                               {project.tag || 'CAMPAIGN'}
                             </span>
                             <span className="text-neutral-600 font-mono text-xs">•</span>
@@ -1366,7 +1366,7 @@ export default function AdminPage() {
                           </button>
                         </div>
 
-                        <h3 className="font-display font-black text-xl text-white uppercase tracking-tight group-hover:text-[#e60000] transition-colors">
+                        <h3 className="font-display font-black text-xl text-white uppercase tracking-tight group-hover:text-neutral-400 transition-colors">
                           {project.title}
                         </h3>
 
@@ -1421,7 +1421,7 @@ export default function AdminPage() {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 p-8 rounded-3xl bg-[#141416] border border-white/[0.06]">
               <div className="space-y-2 max-w-3xl">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-[#e60000] font-bold uppercase tracking-widest">
+                  <span className="font-mono text-xs text-neutral-400 font-bold uppercase tracking-widest">
                     {currentProject.tag || 'PROJECT'}
                   </span>
                   <span className="font-mono text-xs text-neutral-500">•</span>
@@ -1468,7 +1468,7 @@ export default function AdminPage() {
                     setBatchSuggestion({ matchedProjectId: currentProject.id, matchedProjectName: currentProject.title, projectConfidence: 1.0 });
                     setIsAddWorkOpen(true);
                   }}
-                  className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#e60000] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   + Add Work To Project
                 </button>
@@ -1493,10 +1493,10 @@ export default function AdminPage() {
               setBatchSuggestion({ matchedProjectId: currentProject.id, matchedProjectName: currentProject.title, projectConfidence: 1.0 });
               setIsAddWorkOpen(true);
             }}
-            className="p-6 rounded-2xl border border-dashed border-white/15 hover:border-[#e60000] bg-white/[0.02] hover:bg-[#e60000]/[0.03] transition-all flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer group"
+            className="p-6 rounded-2xl border border-dashed border-white/15 hover:border-white bg-white/[0.02] hover:bg-white/[0.06] transition-all flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer group"
           >
             <div className="flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-white/[0.06] group-hover:bg-[#e60000] group-hover:text-white flex items-center justify-center text-lg transition-colors shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.06] group-hover:bg-white group-hover:text-black flex items-center justify-center text-lg transition-colors shrink-0">
                 ＋
               </div>
               <div>
@@ -1508,7 +1508,7 @@ export default function AdminPage() {
                 </p>
               </div>
             </div>
-            <span className="font-mono text-xs font-bold px-4 py-2 rounded-full bg-white text-black group-hover:bg-[#e60000] group-hover:text-white transition-colors shrink-0">
+            <span className="font-mono text-xs font-bold px-4 py-2 rounded-full bg-white text-black group-hover:bg-neutral-200 transition-colors shrink-0">
               Browse / Drop Files
             </span>
           </div>
@@ -1577,7 +1577,7 @@ export default function AdminPage() {
 
                       {/* Cover Badge or Set Cover Action */}
                       {currentProject.coverWorkId === work.id ? (
-                        <span className="absolute top-2.5 left-2.5 z-30 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full bg-[#e60000] text-white shadow-lg flex items-center gap-1">
+                        <span className="absolute top-2.5 left-2.5 z-30 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full bg-white text-black shadow-lg flex items-center gap-1">
                           ★ COVER
                         </span>
                       ) : (
@@ -1614,7 +1614,7 @@ export default function AdminPage() {
 
                     <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
                       <div>
-                        <span className="font-mono text-[9px] font-bold text-[#e60000] uppercase tracking-wider block">
+                        <span className="font-mono text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">
                           {work.workType}
                         </span>
                         <h4 className="font-display font-bold text-xs text-white line-clamp-1">
@@ -1675,7 +1675,7 @@ export default function AdminPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
             <div>
               <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-[#e60000] animate-pulse" />
+                <span className="w-3 h-3 rounded-full bg-white animate-pulse" />
                 <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
                   Playground Lab • 360° Canvas ({playgroundWorks.length})
                 </h2>
@@ -1706,7 +1706,7 @@ export default function AdminPage() {
                   setPgTags('');
                   setIsPlaygroundUploadOpen(true);
                 }}
-                className="px-5 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer"
               >
                 <span>+</span>
                 <span>Upload Experiment</span>
@@ -1732,7 +1732,7 @@ export default function AdminPage() {
               onClick={() => setPgFilterFormat('9:16')}
               className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 pgFilterFormat === '9:16'
-                  ? 'bg-[#e60000] text-white shadow-sm'
+                  ? 'bg-white text-black shadow-sm'
                   : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
               }`}
             >
@@ -1743,7 +1743,7 @@ export default function AdminPage() {
               onClick={() => setPgFilterFormat('16:9')}
               className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 pgFilterFormat === '16:9'
-                  ? 'bg-[#e60000] text-white shadow-sm'
+                  ? 'bg-white text-black shadow-sm'
                   : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
               }`}
             >
@@ -1754,7 +1754,7 @@ export default function AdminPage() {
               onClick={() => setPgFilterFormat('4:5')}
               className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 pgFilterFormat === '4:5'
-                  ? 'bg-[#e60000] text-white shadow-sm'
+                  ? 'bg-white text-black shadow-sm'
                   : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
               }`}
             >
@@ -1765,7 +1765,7 @@ export default function AdminPage() {
               onClick={() => setPgFilterFormat('1:1')}
               className={`px-4 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 pgFilterFormat === '1:1'
-                  ? 'bg-[#e60000] text-white shadow-sm'
+                  ? 'bg-white text-black shadow-sm'
                   : 'bg-white/[0.05] text-neutral-400 hover:text-white border border-white/[0.06]'
               }`}
             >
@@ -1791,7 +1791,7 @@ export default function AdminPage() {
                   setPgAsset(null);
                   setIsPlaygroundUploadOpen(true);
                 }}
-                className="px-6 py-3 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#ff1a1a] transition-all cursor-pointer"
+                className="px-6 py-3 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
               >
                 + Upload First Experiment
               </button>
@@ -1829,7 +1829,7 @@ export default function AdminPage() {
                       )}
 
                       {/* Aspect Badge */}
-                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-[#e60000] font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10">
+                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-white font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10">
                         {aspect}
                       </span>
 
@@ -1843,7 +1843,7 @@ export default function AdminPage() {
                     <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between gap-2">
-                          <h4 className="font-sans font-bold text-sm text-white line-clamp-1 group-hover:text-[#e60000] transition-colors">
+                          <h4 className="font-sans font-bold text-sm text-white line-clamp-1 group-hover:text-neutral-400 transition-colors">
                             {work.title}
                           </h4>
                           <span className="font-mono text-[10px] text-neutral-500 shrink-0">
@@ -1929,7 +1929,7 @@ export default function AdminPage() {
                 className="p-6 rounded-2xl bg-[#141416] border border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
               >
                 <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                  <span className="font-mono text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
                     {post.category} • {post.date}
                   </span>
                   <h3 className="font-display font-bold text-lg text-white">
@@ -2027,7 +2027,7 @@ export default function AdminPage() {
                     setApiVerified(false);
                   }
                 }}
-                className="px-6 py-3 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer shrink-0"
+                className="px-6 py-3 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer shrink-0"
               >
                 Save &amp; Verify
               </button>
@@ -2101,7 +2101,7 @@ export default function AdminPage() {
       {/* ============================================================ */}
       {selectedWorkIds.size > 0 && activeView === 'all_work' && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-2xl bg-black/90 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-wrap items-center gap-4 animate-fadeIn max-w-[95vw]">
-          <span className="font-mono text-xs font-bold text-[#e60000] tracking-wider uppercase">
+          <span className="font-mono text-xs font-bold text-white tracking-wider uppercase">
             {selectedWorkIds.size} Selected
           </span>
 
@@ -2185,7 +2185,7 @@ export default function AdminPage() {
                 <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
                   Add Creative Work
                 </h3>
-                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-[#e60000]/20 text-[#e60000] font-bold uppercase tracking-wider">
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-white font-bold uppercase tracking-wider">
                   UPLOAD FIRST
                 </span>
               </div>
@@ -2209,7 +2209,7 @@ export default function AdminPage() {
                   if (e.dataTransfer.files) handleDropFiles(e.dataTransfer.files);
                 }}
                 onClick={() => fileInputRef.current?.click()}
-                className="p-10 rounded-3xl border-2 border-dashed border-white/15 hover:border-[#e60000] hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-3 cursor-pointer transition-all duration-300 group"
+                className="p-10 rounded-3xl border-2 border-dashed border-white/15 hover:border-white hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-3 cursor-pointer transition-all duration-300 group"
               >
                 <input
                   ref={fileInputRef}
@@ -2221,7 +2221,7 @@ export default function AdminPage() {
                     if (e.target.files) handleDropFiles(e.target.files);
                   }}
                 />
-                <div className="w-14 h-14 rounded-2xl bg-white/[0.06] group-hover:bg-[#e60000] text-white flex items-center justify-center text-2xl transition-all group-hover:scale-110">
+                <div className="w-14 h-14 rounded-2xl bg-white/[0.06] group-hover:bg-white group-hover:text-black text-white flex items-center justify-center text-2xl transition-all group-hover:scale-110">
                   📁
                 </div>
                 <h4 className="font-display font-black text-lg text-white uppercase tracking-tight">
@@ -2235,7 +2235,7 @@ export default function AdminPage() {
               {/* AI Status Banner */}
               {isAnalyzingAi && (
                 <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center gap-3 animate-pulse">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#e60000] animate-ping shrink-0" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
                   <span className="font-mono text-xs text-neutral-300 font-bold">
                     Analyzing uploaded work and comparing against existing archive relationships...
                   </span>
@@ -2244,9 +2244,9 @@ export default function AdminPage() {
 
               {/* Batch Match Banner (Existing Project Suggestion) */}
               {batchSuggestion?.matchedProjectName && (
-                <div className="p-5 rounded-2xl bg-[#1a1a1e] border border-[#e60000]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="p-5 rounded-2xl bg-[#1a1a1e] border border-white/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-widest block">
+                    <span className="font-mono text-[10px] text-white font-bold uppercase tracking-widest block">
                       AI SUGGESTION • {Math.round((batchSuggestion.projectConfidence || 0.9) * 100)}% MATCH
                     </span>
                     <p className="font-sans text-sm text-white font-medium">
@@ -2265,7 +2265,7 @@ export default function AdminPage() {
                           notifyUser(`Assigned to ${batchSuggestion.matchedProjectName}`);
                         }
                       }}
-                      className="px-4 py-2 rounded-full bg-[#e60000] text-white font-bold uppercase tracking-wider hover:bg-[#ff1a1a] cursor-pointer"
+                      className="px-4 py-2 rounded-full bg-white text-black font-bold uppercase tracking-wider hover:bg-neutral-200 cursor-pointer"
                     >
                       Accept Match
                     </button>
@@ -2278,7 +2278,7 @@ export default function AdminPage() {
                       }}
                       className="px-4 py-2 rounded-full bg-white/[0.08] text-white hover:bg-white/[0.15] font-bold uppercase tracking-wider cursor-pointer"
                     >
-                      Keep Standalone
+                      Standalone
                     </button>
                   </div>
                 </div>
@@ -2416,7 +2416,7 @@ export default function AdminPage() {
                   type="button"
                   onClick={() => handlePublishUploadQueue('published')}
                   disabled={!uploadQueue.length || isPublishingBatch}
-                  className="px-6 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer shadow-lg"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer shadow-lg"
                 >
                   {isPublishingBatch ? 'Publishing...' : `Publish All (${uploadQueue.length})`}
                 </button>
@@ -2520,7 +2520,7 @@ export default function AdminPage() {
                         }
                       );
                     }}
-                    className="text-[#e60000] hover:text-[#ff3333] font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    className="text-white hover:text-neutral-300 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
                     <span>✨</span>
                     <span>{isGeneratingCopy ? 'Writing copy...' : 'AI Generate Editorial Copy'}</span>
@@ -2547,7 +2547,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => handleCreateNewProject()}
-                className="px-6 py-2.5 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                className="px-6 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Create Project
               </button>
@@ -2668,7 +2668,7 @@ export default function AdminPage() {
                         }
                       );
                     }}
-                    className="text-[#e60000] hover:text-[#ff3333] font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    className="text-white hover:text-neutral-300 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
                     <span>✨</span>
                     <span>{isGeneratingCopy ? 'Writing copy...' : 'AI Generate Editorial Copy'}</span>
@@ -2695,7 +2695,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={handleSaveEditedProject}
-                className="px-6 py-2.5 rounded-full bg-white text-black hover:bg-[#e60000] hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                className="px-6 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Save Changes
               </button>
@@ -2719,7 +2719,7 @@ export default function AdminPage() {
             <div className="space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] text-[#e60000] font-bold uppercase tracking-wider">
+                <span className="font-mono text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
                   WORK INSPECTOR
                 </span>
                 <button
@@ -2837,7 +2837,7 @@ export default function AdminPage() {
                   setInspectingWork(null);
                   notifyUser('Work updated successfully.');
                 }}
-                className="w-full py-3 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer"
+                className="w-full py-3 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer"
               >
                 Save Changes
               </button>
@@ -2943,7 +2943,7 @@ export default function AdminPage() {
             {/* Header */}
             <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-[#121214]">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#e60000]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-white" />
                 <h3 className="font-display font-black text-lg text-white uppercase tracking-tight">
                   Upload Playground Experiment
                 </h3>
@@ -2967,7 +2967,7 @@ export default function AdminPage() {
                   if (e.dataTransfer.files) handlePlaygroundFileSelect(e.dataTransfer.files);
                 }}
                 onClick={() => pgFileInputRef.current?.click()}
-                className="p-6 rounded-2xl border-2 border-dashed border-white/15 hover:border-[#e60000] hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-2 cursor-pointer transition-all group"
+                className="p-6 rounded-2xl border-2 border-dashed border-white/15 hover:border-white hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-2 cursor-pointer transition-all group"
               >
                 <input
                   ref={pgFileInputRef}
@@ -2978,7 +2978,7 @@ export default function AdminPage() {
                     if (e.target.files) handlePlaygroundFileSelect(e.target.files);
                   }}
                 />
-                <div className="w-12 h-12 rounded-xl bg-white/[0.06] group-hover:bg-[#e60000] text-white flex items-center justify-center text-xl transition-all">
+                <div className="w-12 h-12 rounded-xl bg-white/[0.06] group-hover:bg-white group-hover:text-black text-white flex items-center justify-center text-xl transition-all">
                   📁
                 </div>
                 <div className="text-white font-bold font-sans text-sm">
@@ -3027,7 +3027,7 @@ export default function AdminPage() {
                       onClick={() => setPgFormat(fmt.id as any)}
                       className={`py-2 px-3 rounded-xl border text-center font-bold text-xs transition-all cursor-pointer ${
                         pgFormat === fmt.id
-                          ? 'bg-[#e60000] border-[#e60000] text-white shadow-sm'
+                          ? 'bg-white border-white text-black shadow-sm'
                           : 'bg-white/[0.04] border-white/10 text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -3048,7 +3048,7 @@ export default function AdminPage() {
                     value={pgTitle}
                     onChange={(e) => setPgTitle(e.target.value)}
                     placeholder="e.g. KINETIC CHROME & TRANSIENTS"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-white focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -3060,7 +3060,7 @@ export default function AdminPage() {
                     value={pgRole}
                     onChange={(e) => setPgRole(e.target.value)}
                     placeholder="e.g. Motion Director / 3D Loop"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -3075,7 +3075,7 @@ export default function AdminPage() {
                     type="text"
                     value={pgYear}
                     onChange={(e) => setPgYear(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:border-[#e60000] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-mono text-xs focus:border-white focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -3087,7 +3087,7 @@ export default function AdminPage() {
                     value={pgTags}
                     onChange={(e) => setPgTags(e.target.value)}
                     placeholder="Kinetic, 3D, Chrome, Sound"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -3102,7 +3102,7 @@ export default function AdminPage() {
                   value={pgDesc}
                   onChange={(e) => setPgDesc(e.target.value)}
                   placeholder="Notes about lenses, framerates, sound synchronization, or procedural shaders."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-[#e60000] focus:outline-none resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white font-sans text-xs focus:border-white focus:outline-none resize-none"
                 />
               </div>
             </div>
@@ -3120,11 +3120,11 @@ export default function AdminPage() {
                 type="button"
                 disabled={!pgAsset || isPublishingPg}
                 onClick={handlePublishPlaygroundExperiment}
-                className="px-6 py-2 rounded-full bg-[#e60000] hover:bg-[#ff1a1a] disabled:opacity-40 disabled:cursor-not-allowed text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2"
+                className="px-6 py-2 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2"
               >
                 {isPublishingPg ? (
                   <>
-                    <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span className="w-3 h-3 rounded-full border-2 border-black border-t-transparent animate-spin" />
                     <span>Publishing...</span>
                   </>
                 ) : (

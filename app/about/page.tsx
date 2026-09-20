@@ -131,7 +131,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <main className="w-full min-h-screen bg-[#e4e1da] text-[#111111] selection:bg-[#e60000] selection:text-white flex flex-col justify-between relative overflow-x-hidden select-none">
+    <main className="w-full min-h-screen bg-[#e4e1da] text-[#111111] selection:bg-black selection:text-white flex flex-col justify-between relative overflow-x-hidden select-none">
       
       {/* ============================================================ */}
       {/* CLEAN TOP HEADER: Only Back to Portfolio Button               */}
@@ -155,7 +155,7 @@ export default function AboutPage() {
       <section className="hidden md:block w-full h-screen min-h-[660px] relative overflow-hidden bg-[#e4e1da]">
         
         {/* ========================================================== */}
-        {/* 1. FIXED VISUAL ANCHOR (Character & Red 'art director')    */}
+        {/* 1. FIXED VISUAL ANCHOR (Character & 'art director')        */}
         {/* Sits 100% FIXED in center with complete letter 'd'         */}
         {/* Made slightly smaller for luxurious editorial balance      */}
         {/* ========================================================== */}
@@ -198,7 +198,7 @@ export default function AboutPage() {
           <a
             href="mailto:hiremoiz.works@gmail.com"
             onClick={handleCopyEmail}
-            className="group inline-flex items-center gap-2 hover:text-[#e60000] transition-colors cursor-pointer"
+            className="group inline-flex items-center gap-2 hover:text-neutral-500 transition-colors cursor-pointer"
             title="Click to copy email or open mailto"
           >
             <span>{copied ? 'COPIED TO CLIPBOARD ✓' : 'HIREMOIZ.WORKS@GMAIL.COM'}</span>
@@ -278,7 +278,7 @@ export default function AboutPage() {
           <a
             href="mailto:hiremoiz.works@gmail.com"
             onClick={handleCopyEmail}
-            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-black/[0.06] hover:bg-[#e60000] hover:text-white font-mono text-[10.5px] uppercase tracking-wider transition-all duration-200 shadow-sm"
+            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-black/[0.06] hover:bg-black hover:text-white font-mono text-[10.5px] uppercase tracking-wider transition-all duration-200 shadow-sm"
           >
             <span>{copied ? 'COPIED ✓' : 'HIREMOIZ.WORKS@GMAIL.COM'}</span>
             <span className="text-xs">↗</span>

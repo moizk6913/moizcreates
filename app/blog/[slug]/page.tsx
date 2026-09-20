@@ -52,14 +52,14 @@ export default function BlogPostReaderPage() {
   }
 
   return (
-    <main className="min-h-screen bg-canvas text-primary selection:bg-accent-red selection:text-white pb-24">
+    <main className="min-h-screen bg-canvas text-primary selection:bg-black selection:text-white pb-24">
       <CustomCursor />
 
       {/* Reader Sticky Header */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5 md:px-12 bg-canvas/90 backdrop-blur-md border-b border-border-hairline flex justify-between items-center">
         <Link
           href="/blog"
-          className="group inline-flex items-center gap-2 font-mono text-xs text-secondary hover:text-accent-red transition-colors"
+          className="group inline-flex items-center gap-2 font-mono text-xs text-secondary hover:text-neutral-500 transition-colors"
           data-cursor="view"
           data-cursor-text="BACK ↗"
         >
@@ -70,13 +70,13 @@ export default function BlogPostReaderPage() {
         <div className="flex items-center gap-5 font-mono text-xs">
           <Link
             href="/"
-            className="text-primary hover:text-accent-red font-bold transition-colors uppercase tracking-widest"
+            className="text-primary hover:text-neutral-500 font-bold transition-colors uppercase tracking-widest"
           >
             PORTFOLIO ↗
           </Link>
           <Link
             href="/canvas"
-            className="hidden sm:inline-block text-secondary hover:text-accent-red transition-colors tracking-widest uppercase"
+            className="hidden sm:inline-block text-secondary hover:text-neutral-500 transition-colors tracking-widest uppercase"
           >
             CANVAS ↗
           </Link>
@@ -117,8 +117,8 @@ export default function BlogPostReaderPage() {
 
         {/* Technical Specs Callout (If Available) */}
         {post.specs && (
-          <div className="bg-[#f7f6f3] border-l-2 border-accent-red p-6 sm:p-8 rounded-r-xl mb-12 font-mono text-xs">
-            <span className="font-bold text-accent-red tracking-widest uppercase block mb-4">
+          <div className="bg-[#f7f6f3] border-l-2 border-black p-6 sm:p-8 rounded-r-xl mb-12 font-mono text-xs">
+            <span className="font-bold text-black tracking-widest uppercase block mb-4">
               TECHNICAL ON-SET SPECIFICATIONS
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -155,7 +155,7 @@ export default function BlogPostReaderPage() {
           {post.content.map((paragraph, idx) => (
             <p
               key={idx}
-              className={idx === 0 ? 'first-letter:text-5xl first-letter:font-display first-letter:font-black first-letter:mr-2 first-letter:float-left first-letter:text-accent-red' : ''}
+              className={idx === 0 ? 'first-letter:text-5xl first-letter:font-display first-letter:font-black first-letter:mr-2 first-letter:float-left first-letter:text-black' : ''}
             >
               {paragraph}
             </p>
@@ -181,7 +181,7 @@ export default function BlogPostReaderPage() {
 
           <Link
             href="/"
-            className="px-5 py-2.5 bg-primary text-white hover:bg-accent-red rounded-full font-mono text-xs font-bold tracking-wider uppercase transition-colors"
+            className="px-5 py-2.5 bg-primary text-white hover:bg-neutral-800 rounded-full font-mono text-xs font-bold tracking-wider uppercase transition-colors"
           >
             VIEW PORTFOLIO ↗
           </Link>
@@ -200,10 +200,10 @@ export default function BlogPostReaderPage() {
                   href={`/blog/${rel.slug}`}
                   className="group block p-5 bg-subtle border border-border-hairline rounded-xl hover:-translate-y-1 transition-transform"
                 >
-                  <span className="font-mono text-[10px] text-accent-red uppercase tracking-wider block mb-1">
+                  <span className="font-mono text-[10px] text-black font-semibold uppercase tracking-wider block mb-1">
                     {rel.category}
                   </span>
-                  <h4 className="font-display font-bold text-base text-primary group-hover:text-accent-red transition-colors mb-2">
+                  <h4 className="font-display font-bold text-base text-primary group-hover:text-neutral-500 transition-colors mb-2">
                     {rel.title}
                   </h4>
                   <span className="font-mono text-[10px] text-muted">{rel.readTime} →</span>

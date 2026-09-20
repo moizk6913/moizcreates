@@ -81,15 +81,15 @@ export default function FaqSection() {
                   className="w-full py-4 sm:py-6 px-4 flex items-center justify-between gap-4 text-left cursor-pointer group"
                 >
                   <div className="flex items-center gap-6 sm:gap-12 md:gap-16 flex-1 min-w-0">
-                    <span className="font-mono text-sm sm:text-base font-bold text-black group-hover:text-[#e60000] tracking-wider transition-colors">
+                    <span className="font-mono text-sm sm:text-base font-bold text-black group-hover:text-neutral-500 tracking-wider transition-colors">
                       {faq.number}
                     </span>
-                    <h3 className="font-display font-black text-sm sm:text-base md:text-lg tracking-wider uppercase text-black group-hover:text-[#e60000] transition-colors">
+                    <h3 className="font-display font-black text-sm sm:text-base md:text-lg tracking-wider uppercase text-black group-hover:text-neutral-500 transition-colors">
                       {faq.question}
                     </h3>
                   </div>
 
-                  <span className="font-mono text-lg sm:text-2xl text-[#e60000] font-bold flex-shrink-0 transition-transform duration-200">
+                  <span className="font-mono text-lg sm:text-2xl text-black font-bold flex-shrink-0 transition-transform duration-200">
                     {isOpen ? '−' : '+'}
                   </span>
                 </button>
@@ -107,8 +107,8 @@ export default function FaqSection() {
         </div>
       </div>
 
-      {/* Signature Full-Width Red #e60000 Ticker Ribbon (Page 3 Reference) */}
-      <div className="w-full bg-[#e60000] text-white py-4 px-4 sm:px-8 overflow-hidden select-none">
+      {/* Signature Full-Width Monochromatic Black Ticker Ribbon (Nike / Apple Aesthetic) */}
+      <div className="w-full bg-[#0a0a0a] text-white py-4 px-4 sm:px-8 overflow-hidden select-none">
         <div className="max-w-[1600px] mx-auto flex flex-wrap justify-between items-center gap-4 sm:gap-8 font-display font-black text-xs sm:text-sm tracking-widest uppercase text-center">
           {TICKER_ITEMS.map((item, i) => (
             <span key={i} className="flex-1 min-w-max">

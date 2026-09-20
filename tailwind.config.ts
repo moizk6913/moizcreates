@@ -15,7 +15,7 @@ const config: Config = {
         secondary: '#585a62',
         muted: '#8c8f98',
         accent: {
-          red: '#e60000',
+          red: '#000000',
         },
         border: {
           hairline: '#e8e6e1',

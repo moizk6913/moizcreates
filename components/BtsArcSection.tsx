@@ -390,7 +390,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
               <span className="font-sans text-[11px] md:text-xs font-semibold tracking-wide">Expand</span>
-              <span className="text-sm md:text-base font-light leading-none mt-0.5 text-accent-red">+</span>
+              <span className="text-sm md:text-base font-light leading-none mt-0.5 text-white">+</span>
             </div>
           </div>
         </div>
@@ -404,7 +404,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         <div className="max-w-[1600px] mx-auto px-6 sm:px-10 md:px-14">
           <div className="rounded-[32px] bg-[#faf9f6] p-10 sm:p-16 md:p-20 text-center flex flex-col items-center justify-center space-y-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)]">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/5 font-mono text-[10px] font-bold tracking-widest uppercase text-neutral-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-black" />
               <span>ARCHIVE (2024–2026)</span>
             </div>
             <h3 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl uppercase tracking-tight text-black leading-tight">
@@ -416,7 +416,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
             <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
               <Link
                 href="/admin"
-                className="px-6 py-3 rounded-full bg-[#e60000] text-white font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#ff1a1a] transition-all shadow-md"
+                className="px-6 py-3 rounded-full bg-black text-white font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all shadow-md"
               >
                 + Add Work in Studio Desk →
               </Link>

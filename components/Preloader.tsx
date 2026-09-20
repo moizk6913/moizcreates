@@ -111,7 +111,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       {/* Top Bar: Artist Branding & Archive Metadata */}
       <div className="flex items-center justify-between text-xs font-mono tracking-widest uppercase text-neutral-400">
         <div className="flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full bg-[#1b00ff] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           <span className="font-bold text-white tracking-wider">MOIZ KHAN</span>
         </div>
         <span className="text-neutral-500 hidden sm:inline-block">
@@ -131,7 +131,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         {/* Large Elegant Monospace Counter */}
         <div className="font-display font-black text-6xl sm:text-8xl md:text-9xl tracking-tighter text-white tabular-nums leading-none">
           {String(progress).padStart(2, '0')}
-          <span className="text-2xl sm:text-4xl text-[#1b00ff] font-sans font-light ml-1">%</span>
+          <span className="text-2xl sm:text-4xl text-white/50 font-sans font-light ml-1">%</span>
         </div>
 
         <p className="font-mono text-[10px] sm:text-xs text-neutral-500 uppercase tracking-widest pt-2">
@@ -149,7 +149,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         <div className="relative w-full h-[1.5px] bg-white/10 rounded-full overflow-hidden">
           <div
             ref={lineRef}
-            className="absolute left-0 top-0 bottom-0 bg-[#1b00ff] transition-none w-0"
+            className="absolute left-0 top-0 bottom-0 bg-white transition-none w-0"
           />
         </div>
       </div>

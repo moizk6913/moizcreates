@@ -748,7 +748,7 @@ Tone & Style:
           `Your portfolio is fully compiled and active on localhost!\n\n` +
           `• **All 10 Routes**: Ready for production deployment.\n` +
           `• **No Harsh Lines**: Strictly following your clean 'no line' design rule.\n` +
-          `• **Palette**: Pure Red (#e60000), Black, and White (zero blue).\n` +
+          `• **Palette**: Pure Nike/Apple Monochrome — Deep Black (#000000), Pure White (#ffffff), and Off-White (#faf9f6) with subtle gradients (zero color accents).\n` +
           `• **Apple Squircle Curvature**: Applied to all modal cards, buttons, and bento containers.`;
       } else if (
         lower.includes('cool') ||
@@ -764,7 +764,7 @@ Tone & Style:
           `• **Widescreen Key Visual Lead**: Always open campaigns with a full 1920×1080 cinematic banner. It establishes visual authority before showing editorial plates.\n` +
           `• **Signature Asymmetric Bento Spread**: Concluding with the 65% wide card + 35% portrait lookbook frame locked to the exact same flush height gives a bespoke, high-fashion agency feel.\n` +
           `• **Editorial Micro-Typography**: Crisp monospace frame markers (\`FRAME 80\`, \`88 FRAMES ARCHIVED\`) combined with bold Swiss titles reinforce precision craftsmanship.\n` +
-          `• **Line-Free Contrast**: Keep the interface completely free of divider lines. Let deep blacks, subtle surface shifts, and vivid Red (#e60000) guide the eye naturally.`;
+          `• **Line-Free Contrast**: Keep the interface completely free of divider lines. Let deep blacks, subtle off-white surface shifts, and clean typography guide the eye naturally.`;
       } else if (
         /^(yo|hey|hi|hello|sup|whatsapp|whatapp|whatappp)/i.test(lower) ||
         lower.includes('how are you') ||
@@ -806,7 +806,7 @@ Tone & Style:
         lower.includes('blue')
       ) {
         reply =
-          `Your visual identity is strictly locked to **Pure Red (#e60000)**, **Deep Black (#0d0d0e)**, and **Crisp White**. Zero blue is permitted anywhere on your portfolio. This high-contrast aesthetic creates a bold, luxury directorial presence.`;
+          `Your visual identity is strictly locked to a **Nike / Apple Monochromatic Palette**: **Deep Black (#000000)**, **Crisp White (#ffffff)**, **Off-White (#faf9f6)**, and subtle off-white to white gradients. Zero red and zero blue are permitted anywhere on your portfolio. This high-contrast aesthetic creates a timeless, luxury directorial presence.`;
       } else if (
         lower.includes('font') ||
         lower.includes('typography') ||

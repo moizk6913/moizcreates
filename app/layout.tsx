@@ -75,7 +75,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jetbrains.variable} ${dmMono.variable} ${spaceMono.variable} ${syne.variable} ${archivoBlack.variable} ${plusJakarta.variable}`}
     >
-      <body className="font-sans bg-canvas text-primary selection:bg-accent-red selection:text-white">
+      <body className="font-sans bg-canvas text-primary selection:bg-black selection:text-white">
         <SeoScriptInjector />
         <SmoothScroll>{children}</SmoothScroll>
         <Analytics />

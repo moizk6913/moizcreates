@@ -75,13 +75,13 @@ export default function Header({ visible = true }: HeaderProps) {
         <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-start">
           <Link
             href="/#work"
-            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             WORK
           </Link>
           <Link
             href="/canvas?view=playground"
-            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             PLAYGROUND
           </Link>
@@ -111,19 +111,19 @@ export default function Header({ visible = true }: HeaderProps) {
         <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-end">
           <Link
             href="/canvas?view=archive"
-            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             ARCHIVE
           </Link>
           <Link
             href="/about"
-            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             ABOUT
           </Link>
           <Link
             href="/#contact"
-            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-[#e60000] transition-colors"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             CONTACT
           </Link>
@@ -169,7 +169,7 @@ export default function Header({ visible = true }: HeaderProps) {
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="font-display font-black text-3xl sm:text-4xl text-black hover:text-[#e60000] uppercase tracking-wider transition-colors flex items-center justify-between"
+                className="font-display font-black text-3xl sm:text-4xl text-black hover:text-neutral-500 uppercase tracking-wider transition-colors flex items-center justify-between"
               >
                 <span>{link.label}</span>
                 <span className="text-xs font-mono text-neutral-400">→</span>
@@ -177,9 +177,9 @@ export default function Header({ visible = true }: HeaderProps) {
             ))}
           </nav>
 
-          <div className="pt-8  flex flex-col gap-2 font-mono text-xs text-neutral-500">
+          <div className="pt-8 flex flex-col gap-2 font-mono text-xs text-neutral-500">
             <span>MOIZ KHAN • ART DIRECTOR</span>
-            <span className="text-[#e60000]">HIREMOIZ.WORKS@GMAIL.COM</span>
+            <span className="text-black font-semibold">HIREMOIZ.WORKS@GMAIL.COM</span>
           </div>
         </div>
       )}

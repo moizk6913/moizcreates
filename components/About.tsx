@@ -92,7 +92,7 @@ export default function About() {
 
           <span className="overflow-hidden block py-0.5">
             <span className="statement-line block will-change-transform">
-              GOOD. <Link href="/about" className="text-[#e60000] hover:underline cursor-pointer transition-colors">LET&apos;S TALK.</Link>
+              GOOD. <Link href="/about" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">LET&apos;S TALK.</Link>
             </span>
           </span>
 
@@ -102,7 +102,7 @@ export default function About() {
         <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/about"
-            className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-[10px] bg-primary text-canvas hover:bg-accent-red transition-all duration-300 font-mono text-xs uppercase tracking-widest hover:scale-105 shadow-sm"
+            className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-[10px] bg-primary text-canvas hover:bg-neutral-800 transition-all duration-300 font-mono text-xs uppercase tracking-widest hover:scale-105 shadow-sm"
           >
             <span>EXPLORE DIRECTORIAL PROFILE</span>
             <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">→</span>

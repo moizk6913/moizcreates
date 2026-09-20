@@ -73,11 +73,11 @@ export default function TestimonialsSection() {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="font-display font-black text-xs sm:text-sm text-[#e60000] uppercase tracking-wider">
+                  <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-wider">
                     {TESTIMONIALS[0].name}
                   </h4>
-                  {/* Verified Badge in Red #e60000 */}
-                  <span className="w-4 h-4 rounded-full bg-[#e60000] text-white text-[9px] flex items-center justify-center font-bold">
+                  {/* Verified Badge in Black */}
+                  <span className="w-4 h-4 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">
                     ✓
                   </span>
                 </div>
@@ -103,10 +103,10 @@ export default function TestimonialsSection() {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="font-display font-black text-xs sm:text-sm text-[#e60000] uppercase tracking-wider">
+                  <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-wider">
                     {TESTIMONIALS[1].name}
                   </h4>
-                  <span className="w-4 h-4 rounded-full bg-[#e60000] text-white text-[9px] flex items-center justify-center font-bold">
+                  <span className="w-4 h-4 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">
                     ✓
                   </span>
                 </div>
@@ -132,10 +132,10 @@ export default function TestimonialsSection() {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="font-display font-black text-xs sm:text-sm text-[#e60000] uppercase tracking-wider">
+                  <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-wider">
                     {TESTIMONIALS[2].name}
                   </h4>
-                  <span className="w-4 h-4 rounded-full bg-[#e60000] text-white text-[9px] flex items-center justify-center font-bold">
+                  <span className="w-4 h-4 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">
                     ✓
                   </span>
                 </div>
@@ -161,10 +161,10 @@ export default function TestimonialsSection() {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="font-display font-black text-xs sm:text-sm text-[#e60000] uppercase tracking-wider">
+                  <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-wider">
                     {TESTIMONIALS[3].name}
                   </h4>
-                  <span className="w-4 h-4 rounded-full bg-[#e60000] text-white text-[9px] flex items-center justify-center font-bold">
+                  <span className="w-4 h-4 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">
                     ✓
                   </span>
                 </div>

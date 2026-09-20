@@ -25,14 +25,14 @@ export default function BlogIndexPage() {
   const remainingPosts = filteredPosts.slice(1);
 
   return (
-    <main className="min-h-screen bg-canvas text-primary selection:bg-accent-red selection:text-white">
+    <main className="min-h-screen bg-canvas text-primary selection:bg-black selection:text-white">
       <CustomCursor />
 
       {/* Standalone Editorial Header with Prominent Backlink to Main Portfolio */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 py-6 md:px-12 bg-canvas/90 backdrop-blur-md border-b border-border-hairline flex justify-between items-center">
         <Link
           href="/"
-          className="group inline-flex items-center gap-2.5 font-mono text-xs text-primary hover:text-accent-red transition-colors"
+          className="group inline-flex items-center gap-2.5 font-mono text-xs text-primary hover:text-neutral-500 transition-colors"
           data-cursor="view"
           data-cursor-text="HOME ↗"
         >
@@ -43,7 +43,7 @@ export default function BlogIndexPage() {
         <div className="flex items-center gap-6 font-mono text-xs tracking-widest">
           <Link
             href="/canvas"
-            className="text-secondary hover:text-accent-red transition-colors"
+            className="text-secondary hover:text-black transition-colors"
           >
             ARCHIVE ↗
           </Link>
@@ -55,7 +55,7 @@ export default function BlogIndexPage() {
         {/* Editorial Publication Masthead */}
         <div className="border-b border-black/10 pb-10 mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-red inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-black inline-block" />
             <span className="font-mono text-xs text-muted tracking-widest uppercase">
               DIRECTOR'S NOTEBOOK • VOL. 2026
             </span>
@@ -117,7 +117,7 @@ export default function BlogIndexPage() {
                     <span>{featuredPost.readTime}</span>
                   </div>
 
-                  <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl tracking-tight leading-tight text-primary group-hover:text-accent-red transition-colors mb-3">
+                  <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl tracking-tight leading-tight text-primary group-hover:text-neutral-500 transition-colors mb-3">
                     {featuredPost.title}
                   </h2>
 
@@ -127,7 +127,7 @@ export default function BlogIndexPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-black/10">
-                  <span className="font-mono text-xs font-bold text-primary group-hover:text-accent-red transition-colors">
+                  <span className="font-mono text-xs font-bold text-primary group-hover:text-neutral-500 transition-colors">
                     READ ESSAY →
                   </span>
                   <span className="font-mono text-[11px] text-muted">
@@ -168,7 +168,7 @@ export default function BlogIndexPage() {
                   <span>{post.readTime}</span>
                 </div>
 
-                <h3 className="font-display font-bold text-lg sm:text-xl tracking-tight text-primary group-hover:text-accent-red transition-colors leading-snug mb-2">
+                <h3 className="font-display font-bold text-lg sm:text-xl tracking-tight text-primary group-hover:text-neutral-500 transition-colors leading-snug mb-2">
                   {post.title}
                 </h3>
 
@@ -176,7 +176,7 @@ export default function BlogIndexPage() {
                   {post.excerpt}
                 </p>
 
-                <div className="mt-3 flex items-center justify-between text-[10px] font-mono font-bold text-accent-red pt-1">
+                <div className="mt-3 flex items-center justify-between text-[10px] font-mono font-bold text-black pt-1">
                   <span>READ ARCHIVE</span>
                   <span>↗</span>
                 </div>
@@ -188,7 +188,7 @@ export default function BlogIndexPage() {
         {/* Back to Top / Return to Portfolio CTA Banner */}
         <div className="mt-24 p-8 sm:p-12 bg-primary text-white rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
-            <span className="font-mono text-xs text-accent-red tracking-widest uppercase block mb-1">
+            <span className="font-mono text-xs text-neutral-400 tracking-widest uppercase block mb-1">
               DIRECTOR ARCHIVE
             </span>
             <h3 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-tight">
@@ -202,7 +202,7 @@ export default function BlogIndexPage() {
           <div className="flex items-center gap-4 flex-wrap">
             <Link
               href="/"
-              className="px-6 py-3 bg-white text-primary hover:bg-accent-red hover:text-white rounded-full font-mono text-xs font-bold tracking-wider transition-colors uppercase"
+              className="px-6 py-3 bg-white text-primary hover:bg-neutral-200 hover:text-black rounded-full font-mono text-xs font-bold tracking-wider transition-colors uppercase"
             >
               ← RETURN TO PORTFOLIO
             </Link>

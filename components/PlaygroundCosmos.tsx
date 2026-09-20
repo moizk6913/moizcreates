@@ -1060,7 +1060,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                         markDiscovered(tile.id);
                         setSelectedTile(tile);
                       }}
-                      className="px-3 py-1 rounded-full bg-white/95 hover:bg-[#e60000] hover:text-white text-black font-mono text-[9px] font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center gap-1"
+                      className="px-3 py-1 rounded-full bg-white/95 hover:bg-black hover:text-white text-black font-mono text-[9px] font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center gap-1"
                     >
                       <span>{isUnblurred ? 'EXPAND' : 'UNBLUR'}</span>
                       <span>{isUnblurred ? '↗' : '👁️'}</span>
@@ -1102,7 +1102,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
             {/* Modal Top Bar */}
             <div className="px-6 py-4 bg-white/[0.03] border-b border-white/10 flex items-center justify-between text-white font-mono text-xs shrink-0">
               <div className="flex items-center gap-3">
-                <span className="font-bold text-[#e60000] uppercase tracking-wider">
+                <span className="font-bold text-white uppercase tracking-wider">
                   {selectedTile.aspect}
                 </span>
                 <span className="text-white/25">•</span>
@@ -1123,33 +1123,32 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                 <button
                   type="button"
                   onClick={() => setSelectedTile(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center text-xs font-bold transition-all cursor-pointer"
-                  title="Close [ESC]"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                  aria-label="Close"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            {/* Media Player */}
-            <div className="relative flex-1 min-h-[50vh] max-h-[68vh] bg-black flex items-center justify-center overflow-hidden p-4">
+            {/* Modal Body - Media Display */}
+            <div className="flex-1 overflow-hidden flex items-center justify-center p-4 sm:p-8 bg-black/60 relative">
               {selectedTile.mediaType === 'video' ? (
                 <video
                   src={selectedTile.mediaUrl}
-                  poster={selectedTile.thumbnailUrl}
-                  controls
                   autoPlay
                   loop
-                  muted={isModalMuted}
                   playsInline
-                  className="max-h-[62vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+                  muted={isModalMuted}
+                  controls
+                  className="max-h-[62vh] max-w-full rounded-[14px] object-contain shadow-2xl"
                 />
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={selectedTile.mediaUrl}
                   alt={selectedTile.title}
-                  className="max-h-[62vh] w-auto max-w-full rounded-xl object-contain shadow-2xl select-none"
+                  className="max-h-[65vh] max-w-full rounded-[14px] object-contain shadow-2xl"
                 />
               )}
 
@@ -1203,7 +1202,7 @@ export default function PlaygroundCosmos({ uploadedWorks = [] }: PlaygroundCosmo
                 <button
                   type="button"
                   onClick={() => setSelectedTile(null)}
-                  className="px-5 py-2 rounded-full bg-white text-black font-bold uppercase tracking-wider hover:bg-[#e60000] hover:text-white transition-colors cursor-pointer text-xs"
+                  className="px-5 py-2 rounded-full bg-white text-black font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer text-xs"
                 >
                   CLOSE [ESC]
                 </button>

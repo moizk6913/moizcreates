@@ -115,7 +115,7 @@ export default function ServicesSection() {
               <span className="font-mono text-sm sm:text-base md:text-lg font-bold text-neutral-400 group-hover:text-black transition-colors">
                 {item.number}
               </span>
-              <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[38px] tracking-tight uppercase text-black group-hover:text-[#e60000] transition-colors leading-tight">
+              <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[38px] tracking-tight uppercase text-black group-hover:text-neutral-500 transition-colors leading-tight">
                 {item.title}
               </h3>
             </div>

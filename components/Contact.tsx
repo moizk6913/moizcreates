@@ -79,14 +79,14 @@ export default function Contact() {
                 <button
                   type="button"
                   onClick={handleCopyEmail}
-                  className="font-britti font-medium text-xs sm:text-sm md:text-[15px] text-black hover:text-[#e60000] uppercase tracking-wider transition-colors block text-left group cursor-pointer"
+                  className="font-britti font-medium text-xs sm:text-sm md:text-[15px] text-black hover:text-neutral-500 uppercase tracking-wider transition-colors block text-left group cursor-pointer"
                   title="Click to copy email address"
                 >
                   <span className="group-hover:underline underline-offset-4">
                     {email}
                   </span>
                   {copied && (
-                    <span className="ml-2 text-[10px] font-britti font-normal text-emerald-600 normal-case bg-emerald-100/90 px-2 py-0.5 rounded-full inline-block">
+                    <span className="ml-2 text-[10px] font-britti font-normal text-white normal-case bg-black px-2 py-0.5 rounded-full inline-block">
                       ✓ Copied
                     </span>
                   )}
@@ -104,16 +104,16 @@ export default function Contact() {
               </span>
               <div className="space-y-1">
                 <nav className="flex flex-wrap items-center gap-x-5 sm:gap-x-6 gap-y-1 font-britti font-medium text-xs sm:text-sm uppercase tracking-wider text-black">
-                  <Link href="/#work" className="hover:text-[#e60000] transition-colors">
+                  <Link href="/#work" className="hover:text-neutral-500 transition-colors">
                     WORK
                   </Link>
-                  <Link href="/canvas?view=playground" className="hover:text-[#e60000] transition-colors">
+                  <Link href="/canvas?view=playground" className="hover:text-neutral-500 transition-colors">
                     PLAYGROUND
                   </Link>
-                  <Link href="/canvas?view=archive" className="hover:text-[#e60000] transition-colors">
+                  <Link href="/canvas?view=archive" className="hover:text-neutral-500 transition-colors">
                     ARCHIVE
                   </Link>
-                  <Link href="/about" className="hover:text-[#e60000] transition-colors">
+                  <Link href="/about" className="hover:text-neutral-500 transition-colors">
                     ABOUT
                   </Link>
                 </nav>
@@ -135,7 +135,7 @@ export default function Contact() {
                 href="https://instagram.com/moizcreates"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#e60000] transition-colors flex items-center gap-1 group"
+                className="hover:text-neutral-500 transition-colors flex items-center gap-1 group"
               >
                 <span>INSTAGRAM</span>
                 <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
@@ -144,7 +144,7 @@ export default function Contact() {
                 href="https://linkedin.com/in/moizkhan"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#e60000] transition-colors flex items-center gap-1 group"
+                className="hover:text-neutral-500 transition-colors flex items-center gap-1 group"
               >
                 <span>LINKEDIN</span>
                 <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
@@ -153,7 +153,7 @@ export default function Contact() {
                 href="https://wa.me/971500000000"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#e60000] transition-colors flex items-center gap-1 group"
+                className="hover:text-neutral-500 transition-colors flex items-center gap-1 group"
               >
                 <span>WHATSAPP</span>
                 <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
@@ -176,7 +176,7 @@ export default function Contact() {
           </div>
 
           {/* Right: Time (GMT+4) */}
-          <div className="text-right text-[#4d5b7c] font-normal flex items-center gap-1.5">
+          <div className="text-right text-neutral-600 font-normal flex items-center gap-1.5">
             <span>Time (GMT+4)</span>
             {dubaiTime && (
               <span className="font-britti font-normal text-[11px] sm:text-xs text-neutral-500 hidden sm:inline-block">
@@ -203,7 +203,7 @@ export default function Contact() {
             fontWeight="700"
             fontSize="2048"
             fill="#000"
-            className="hover:fill-[#e60000] transition-colors duration-500 cursor-default"
+            className="hover:fill-neutral-800 transition-colors duration-500 cursor-default"
           >
             MOIZ KHAN
           </text>

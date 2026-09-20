@@ -526,7 +526,7 @@ function InfiniteCanvasContent() {
       <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-6 md:p-8 flex justify-between items-center pointer-events-none">
         <Link
           href="/"
-          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] font-mono text-[10.5px] sm:text-xs bg-white/95 text-neutral-900 hover:text-[#1b00ff] backdrop-blur-xl border border-black/10 active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
+          className="group pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] font-mono text-[10.5px] sm:text-xs bg-white/95 text-neutral-900 hover:text-neutral-500 backdrop-blur-xl border border-black/10 active:scale-95 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
         >
           <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
           <span className="font-bold uppercase tracking-wider">BACK</span>
@@ -536,7 +536,7 @@ function InfiniteCanvasContent() {
         <div className="pointer-events-auto flex items-center gap-2">
           {activeCanvasMode === 'archive' ? (
             <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 backdrop-blur-md border border-black/10 font-mono text-[11px] text-neutral-700 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#1b00ff] animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-black animate-pulse"></span>
               <span className="font-bold tracking-wider uppercase">ARCHIVE REPERTORY</span>
             </div>
           ) : (
@@ -1158,7 +1158,7 @@ export default function InfiniteCanvasPage() {
       fallback={
         <div className="w-screen h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-mono text-xs text-neutral-800 gap-3 select-none">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#1b00ff] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-black animate-ping" />
             <span className="font-bold tracking-widest uppercase">MOIZ KHAN // ARCHIVAL DESK</span>
           </div>
           <span className="text-neutral-400 text-[10px] tracking-widest uppercase">
