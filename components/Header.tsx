@@ -118,7 +118,7 @@ export default function Header({ visible = true }: HeaderProps) {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 md:px-14 py-5 sm:py-6 flex items-center justify-between pointer-events-none transition-all duration-500 ease-out bg-white/75 backdrop-blur-md border-none ${
+        className={`fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] py-5 sm:py-6 flex items-center justify-between pointer-events-none transition-all duration-500 ease-out bg-white/75 backdrop-blur-md border-none ${
           visible && !scrolledDown ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
         }`}
       >

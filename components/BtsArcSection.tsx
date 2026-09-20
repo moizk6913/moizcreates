@@ -401,7 +401,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   if (rowOne.length === 0 && rowTwo.length === 0) {
     return (
       <section id="work" className="w-full py-20 sm:py-28 md:py-32 bg-canvas overflow-hidden select-none">
-        <div className="max-w-[1600px] mx-auto px-6 sm:px-10 md:px-14">
+        <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
           <div className="rounded-[32px] bg-[#faf9f6] p-10 sm:p-16 md:p-20 text-center flex flex-col items-center justify-center space-y-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)]">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/5 font-mono text-[10px] font-bold tracking-widest uppercase text-neutral-600">
               <span className="w-1.5 h-1.5 rounded-full bg-black" />
