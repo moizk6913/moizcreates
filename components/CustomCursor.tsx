@@ -28,19 +28,41 @@ export default function CustomCursor() {
 
     document.documentElement.classList.add('has-custom-cursor');
 
-    const onMouseMove = (e: MouseEvent) => {
+    let animId: number | null = null;
+
+    const wakeCursor = () => {
+      if (!animId) {
+        animId = requestAnimationFrame(animate);
+      }
+    };
+
+    const onPointerMove = (e: PointerEvent | MouseEvent) => {
+      if (dotPos.current.x === -100 && dotPos.current.y === -100) {
+        dotPos.current = { x: e.clientX, y: e.clientY };
+        ringPos.current = { x: e.clientX, y: e.clientY };
+      }
       mousePos.current = { x: e.clientX, y: e.clientY };
-      setIsVisible((prev) => (prev ? prev : true));
+      setIsVisible(true);
+      wakeCursor();
     };
 
     const onMouseDown = () => setIsClicking(true);
     const onMouseUp = () => setIsClicking(false);
 
-    const onMouseLeave = () => setIsVisible(false);
+    const onMouseLeave = (e: MouseEvent) => {
+      // Only hide if the cursor truly exited the viewport edges
+      if (
+        e.clientY <= 2 ||
+        e.clientX <= 2 ||
+        (window.innerWidth && e.clientX >= window.innerWidth - 2) ||
+        (window.innerHeight && e.clientY >= window.innerHeight - 2)
+      ) {
+        setIsVisible(false);
+      }
+    };
     const onMouseEnter = () => setIsVisible(true);
 
-    const handleElementHover = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
+    const checkHoverTarget = (target: HTMLElement | null) => {
       if (!target) return;
 
       const cursorTarget = target.closest('[data-cursor]') as HTMLElement | null;
@@ -79,14 +101,36 @@ export default function CustomCursor() {
       setCustomText('');
     };
 
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    const handleElementHover = (e: MouseEvent) => {
+      checkHoverTarget(e.target as HTMLElement | null);
+    };
+
+    const onScroll = () => {
+      wakeCursor();
+      if (mousePos.current.x >= 0 && mousePos.current.y >= 0) {
+        try {
+          const hoveredEl = document.elementFromPoint(mousePos.current.x, mousePos.current.y) as HTMLElement | null;
+          checkHoverTarget(hoveredEl);
+        } catch {
+          // Safe fallback
+        }
+      }
+    };
+
+    const onResize = () => {
+      setIsVisible(true);
+      wakeCursor();
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('mousemove', onPointerMove, { passive: true });
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
     document.addEventListener('mouseleave', onMouseLeave);
     document.addEventListener('mouseenter', onMouseEnter);
     document.addEventListener('mouseover', handleElementHover, { passive: true });
-
-    let animId: number | null = null;
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
 
     const animate = () => {
       const diffDotX = mousePos.current.x - dotPos.current.x;
@@ -97,8 +141,8 @@ export default function CustomCursor() {
       dotPos.current.x += diffDotX * 0.45;
       dotPos.current.y += diffDotY * 0.45;
 
-      ringPos.current.x += diffRingX * 0.16;
-      ringPos.current.y += diffRingY * 0.16;
+      ringPos.current.x += diffRingX * 0.18;
+      ringPos.current.y += diffRingY * 0.18;
 
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${dotPos.current.x}px, ${dotPos.current.y}px, 0)`;
@@ -107,33 +151,22 @@ export default function CustomCursor() {
         ringRef.current.style.transform = `translate3d(${ringPos.current.x}px, ${ringPos.current.y}px, 0)`;
       }
 
-      // Put RAF to sleep if cursor has caught up and settled (zero idle CPU waste)
-      if (Math.abs(diffRingX) > 0.1 || Math.abs(diffRingY) > 0.1) {
+      // Keep RAF alive if moving
+      if (Math.abs(diffRingX) > 0.05 || Math.abs(diffRingY) > 0.05) {
         animId = requestAnimationFrame(animate);
       } else {
         animId = null;
       }
     };
 
-    const wakeCursor = () => {
-      if (!animId) {
-        animId = requestAnimationFrame(animate);
-      }
-    };
-
-    const onMouseMoveWithWake = (e: MouseEvent) => {
-      onMouseMove(e);
-      wakeCursor();
-    };
-
-    window.removeEventListener('mousemove', onMouseMove);
-    window.addEventListener('mousemove', onMouseMoveWithWake, { passive: true });
-
     animId = requestAnimationFrame(animate);
 
     return () => {
       document.documentElement.classList.remove('has-custom-cursor');
-      window.removeEventListener('mousemove', onMouseMoveWithWake);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('mouseleave', onMouseLeave);
@@ -172,7 +205,7 @@ export default function CustomCursor() {
 
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-[9999] transition-opacity duration-300 ${
+      className={`pointer-events-none fixed inset-0 z-[999999] transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       aria-hidden="true"

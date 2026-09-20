@@ -283,21 +283,24 @@ body {
   will-change: transform;
 }
 
-/* Custom Cursor Desktop Styles (Only active when custom cursor is mounted) */
+/* Custom Cursor Desktop Styles (Universal desktop coverage, text cursor preserved on inputs) */
 @media (hover: hover) and (pointer: fine) {
+  html.has-custom-cursor,
   html.has-custom-cursor body,
-  html.has-custom-cursor a,
-  html.has-custom-cursor button,
-  html.has-custom-cursor [role="button"],
-  html.has-custom-cursor [data-cursor] {
+  html.has-custom-cursor * {
     cursor: none !important;
+  }
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea,
+  html.has-custom-cursor [contenteditable="true"] {
+    cursor: text !important;
   }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.85);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -306,14 +309,16 @@ body {
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Hide scrollbar but keep scroll functionality (BUG-15 fix) */
+/* Hide scrollbar completely while maintaining silent mouse-wheel and trackpad scrolling */
 .no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 .no-scrollbar::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

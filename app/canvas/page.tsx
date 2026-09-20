@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import CustomCursor from '@/components/CustomCursor';
@@ -8,13 +8,12 @@ import {
   getStoredCanvasFiles,
   getStoredCanvasFilesAsync,
   subscribeToCanvasUpdates,
-  deleteCanvasFile,
-  saveCanvasFile,
   getStoredWorksAsync,
   WorkItem,
 } from '@/lib/contentStore';
 import PlaygroundCosmos from '@/components/PlaygroundCosmos';
-import ArchiveEditorialRepertory from '@/components/ArchiveEditorialRepertory';
+import ArchiveDirectorDesk from '@/components/ArchiveDirectorDesk';
+import { get35CuratedDeliverables, DeliverableAsset } from '@/lib/archiveDeliverables';
 
 export interface ArchiveFile {
   id: string;
@@ -78,17 +77,17 @@ const DEFAULT_DISCIPLINE_FOLDERS: ArchiveFile[] = [
     x: 270,
     y: -190,
     rot: 3,
-    img: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80',
+    img: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop',
     aspect: 'aspect-[4/5]',
     colorTag: 'bg-[#cbd5e1]',
     variant: 'cobalt-modern',
     desc: 'Visual architecture, kinetic identity decks, and comprehensive brand guidelines. Full identity systems and packaging design.',
     deliverables: ['Visual Identity', 'Typography Systems', 'Guidelines Deck', 'Packaging Design'],
     photos: [
-      'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1200&auto=format&fit=crop',
     ],
     photoCount: 42,
     stickers: {
@@ -136,17 +135,17 @@ const DEFAULT_DISCIPLINE_FOLDERS: ArchiveFile[] = [
     x: 0,
     y: 0,
     rot: 0,
-    img: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&auto=format&fit=crop&q=80',
+    img: '/assets/bento/bento_chrome_3d_cutout.png',
     aspect: 'aspect-[16/9]',
     colorTag: 'bg-[#cbd5e1]',
     variant: 'neon-violet',
     desc: 'Distorted typography, kinetic title sequences, and frame-by-frame rhythmic pacing. Experimental 3D reels and iridescent forms.',
     deliverables: ['Kinetic Titles', '3D Motion', 'Broadcast Packages', 'Social Loops'],
     photos: [
-      'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1633167606207-d840b5070fc2?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=600&auto=format&fit=crop&q=80',
+      '/assets/bento/bento_chrome_3d_cutout.png',
+      '/assets/bento/bento_sphere_3d_cutout.png',
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=1000&auto=format&fit=crop&q=80',
     ],
     photoCount: 19,
     stickers: {
@@ -173,7 +172,7 @@ const DEFAULT_DISCIPLINE_FOLDERS: ArchiveFile[] = [
     deliverables: ['9:16 Social Ads', 'Director Cuts', 'Sound Rescoring', 'Multi-Format Masters'],
     photos: [
       'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=600&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=600&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=600&auto=format&fit=crop&q=80',
     ],
@@ -355,25 +354,16 @@ function InfiniteCanvasContent() {
     }
   }, [viewParam]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const [allFiles, setAllFiles] = useState<ArchiveFile[]>(DEFAULT_DISCIPLINE_FOLDERS);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
   const [selectedFile, setSelectedFile] = useState<ArchiveFile | null>(null);
-  const [customFolderIds, setCustomFolderIds] = useState<Set<string>>(new Set());
-  const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const refreshCanvasFiles = useCallback(() => {
     // 1. Instant sync hydration from localStorage cache
     const cached = getStoredCanvasFiles();
     if (cached && cached.length > 0) {
       setAllFiles(mergeDisciplinesWithUploads(cached));
-      setCustomFolderIds(new Set(cached.map((c) => c.id)));
     } else {
       setAllFiles(DEFAULT_DISCIPLINE_FOLDERS);
-      setCustomFolderIds(new Set());
     }
 
     // 2. Async hydration from IndexedDB for complete 38+ photo arrays
@@ -381,7 +371,6 @@ function InfiniteCanvasContent() {
       .then((fullFiles) => {
         if (fullFiles && fullFiles.length > 0) {
           setAllFiles(mergeDisciplinesWithUploads(fullFiles));
-          setCustomFolderIds(new Set(fullFiles.map((f) => f.id)));
         }
       })
       .catch((err) => {
@@ -413,7 +402,7 @@ function InfiniteCanvasContent() {
   useEffect(() => {
     refreshCanvasFiles();
 
-    // 3. Automatically update canvas when work is published or deleted in admin (live cross-tab)
+    // Automatically update canvas when work is published or deleted in admin (live cross-tab)
     const unsubscribe = subscribeToCanvasUpdates(() => {
       refreshCanvasFiles();
     });
@@ -425,7 +414,7 @@ function InfiniteCanvasContent() {
 
   const hasAutoNavigatedRef = useRef<string | null>(null);
 
-  // Deep Link Auto-Navigation: Pans and automatically opens discipline or folder if passed in URL
+  // Deep Link Auto-Navigation: Automatically opens discipline or folder if passed in URL
   useEffect(() => {
     if (!disciplineParam && !folderParam) return;
     const targetKey = `${disciplineParam || ''}_${folderParam || ''}`;
@@ -441,48 +430,25 @@ function InfiniteCanvasContent() {
 
     if (match) {
       hasAutoNavigatedRef.current = targetKey;
-      setPan({ x: -match.x, y: -match.y });
       setSelectedFile(match);
       setActiveTab('all');
       setEnlargedIndex(null);
     }
   }, [disciplineParam, folderParam, allFiles]);
 
-  // Gesture tracking references
-  const isDraggingRef = useRef(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const panStartRef = useRef({ x: 0, y: 0 });
-  const hasMovedRef = useRef(false);
-  const initialPinchDistRef = useRef<number | null>(null);
-  const initialZoomRef = useRef(1);
-
   // Gallery filtering & lightbox browsing state
-  const [activeTab, setActiveTab] = useState<'all' | 'social' | 'lookbook' | 'banners' | 'stills'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'stills' | 'banners' | 'social'>('all');
   const [enlargedIndex, setEnlargedIndex] = useState<number | null>(null);
-  const [photoRatios, setPhotoRatios] = useState<Record<string, number>>({});
+  const bentoScrollRef = useRef<HTMLDivElement>(null);
 
-  // Asynchronously detect & cache natural aspect ratios for accurate deliverable classification
+  // Reset internal bento scroll to top whenever a new project is opened or filter tab changes
   useEffect(() => {
-    if (!selectedFile) return;
-    const photos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
-    photos.forEach((url) => {
-      if (photoRatios[url]) return;
-      const img = new Image();
-      img.onload = () => {
-        if (img.naturalHeight > 0) {
-          const ratio = img.naturalWidth / img.naturalHeight;
-          setPhotoRatios((prev) => ({ ...prev, [url]: ratio }));
-        }
-      };
-      img.onerror = () => {
-        setPhotoRatios((prev) => ({ ...prev, [url]: 1.0 }));
-      };
-      img.src = url;
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFile]);
+    if (selectedFile && bentoScrollRef.current) {
+      bentoScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedFile, activeTab]);
 
-  // Lock document scroll on mount (BUG-01 fix: separated from keyboard handler so it doesn't re-run on enlargedIndex change)
+  // Lock document scroll on mount
   useEffect(() => {
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -493,34 +459,7 @@ function InfiniteCanvasContent() {
       document.body.style.overflow = prevBodyOverflow;
       document.documentElement.style.overflow = prevHtmlOverflow;
     };
-  }, []); // Runs ONCE on mount/unmount only
-
-  // Mobile viewport detection and smooth 3D tilt tracking (separate from overflow lock)
-  useEffect(() => {
-    const handleWindowMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-      setTilt({ x, y });
-    };
-    window.addEventListener('mousemove', handleWindowMouseMove, { passive: true });
-
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setZoom(0.75);
-      } else {
-        setZoom(1.0);
-      }
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => {
-      window.removeEventListener('mousemove', handleWindowMouseMove);
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []); // Runs ONCE on mount/unmount only
+  }, []);
 
   // Escape key handler — depends on enlargedIndex to know what to close
   useEffect(() => {
@@ -553,138 +492,32 @@ function InfiniteCanvasContent() {
     return () => window.removeEventListener('keydown', handleNav);
   }, [enlargedIndex, selectedFile]);
 
-  // --- UNIFIED POINTER & TOUCH GESTURE HANDLING ---
+  // Completely lock background scrolling and interactions when modal or lightbox is active
+  useEffect(() => {
+    if (selectedFile || enlargedIndex !== null) {
+      const origBodyOverflow = document.body.style.overflow;
+      const origHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Only capture primary button (mouse left or single touch)
-    if (e.button !== 0) return;
-
-    isDraggingRef.current = true;
-    hasMovedRef.current = false;
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-    panStartRef.current = { ...pan };
-
-    try {
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    } catch {
-      // Fallback safe
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return;
-
-    const deltaX = e.clientX - dragStartRef.current.x;
-    const deltaY = e.clientY - dragStartRef.current.y;
-
-    if (Math.hypot(deltaX, deltaY) > 8) {
-      hasMovedRef.current = true;
-    }
-
-    setPan({
-      x: panStartRef.current.x + deltaX,
-      y: panStartRef.current.y + deltaY,
-    });
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    isDraggingRef.current = false;
-    try {
-      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch {
-      // Fallback safe
-    }
-    setTimeout(() => {
-      hasMovedRef.current = false;
-    }, 120);
-  };
-
-  // --- TWO-FINGER PINCH-TO-ZOOM FOR MOBILE TOUCH ---
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      initialPinchDistRef.current = dist;
-      initialZoomRef.current = zoom;
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && initialPinchDistRef.current !== null) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const scale = dist / initialPinchDistRef.current;
-      const newZoom = Math.min(Math.max(initialZoomRef.current * scale, 0.4), 1.8);
-      setZoom(newZoom);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    initialPinchDistRef.current = null;
-  };
-
-  // --- DESKTOP WHEEL ZOOM ---
-  const handleWheel = (e: React.WheelEvent) => {
-    // Zoom on pinch trackpad or Ctrl + Wheel
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
-      setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.4), 1.8));
-    } else {
-      // Scroll to pan
-      setPan((prev) => ({
-        x: prev.x - e.deltaX * 0.8,
-        y: prev.y - e.deltaY * 0.8,
-      }));
-    }
-  };
-
-  const handleFileClick = (file: ArchiveFile) => {
-    // If the user was dragging/panning the canvas, don't open the modal
-    if (hasMovedRef.current) return;
-    setSelectedFile(file);
-  };
-
-  // Smoothly animated re-center back to (0, 0) and default zoom
-  const handleRecenter = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const startPan = { ...pan };
-    const startZoom = zoom;
-    const targetPan = { x: 0, y: 0 };
-    const targetZoom = isMobile ? 0.75 : 1.0;
-    const startTime = performance.now();
-    const duration = 450; // ms
-
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Smooth cubic ease out curve
-      const ease = 1 - Math.pow(1 - progress, 3);
-
-      setPan({
-        x: startPan.x + (targetPan.x - startPan.x) * ease,
-        y: startPan.y + (targetPan.y - startPan.y) * ease,
-      });
-      setZoom(startZoom + (targetZoom - startZoom) * ease);
-
-      if (progress < 1) {
-        requestAnimationFrame(step);
+      // Pause Lenis smooth scroll so background desk is 100% frozen
+      if (typeof window !== 'undefined' && (window as any).__lenis) {
+        (window as any).__lenis.stop();
       }
-    };
 
-    requestAnimationFrame(step);
-  };
+      return () => {
+        document.body.style.overflow = origBodyOverflow;
+        document.documentElement.style.overflow = origHtmlOverflow;
+        if (typeof window !== 'undefined' && (window as any).__lenis) {
+          (window as any).__lenis.start();
+        }
+      };
+    }
+  }, [selectedFile, enlargedIndex]);
 
   return (
     <main
-      ref={containerRef}
-      className="relative w-screen min-h-screen bg-[#faf9f6] text-black overflow-y-auto"
+      className="relative w-screen min-h-screen bg-[#faf9f6] text-black overflow-hidden select-none"
     >
       {/* Luxury Custom Fluid Cursor (Auto-disabled on mobile) */}
       <CustomCursor />
@@ -717,17 +550,6 @@ function InfiniteCanvasContent() {
         <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
           <button
             type="button"
-            onClick={() => setActiveCanvasMode('archive')}
-            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-              activeCanvasMode === 'archive'
-                ? 'bg-black text-white shadow-sm'
-                : 'text-neutral-500 hover:text-black'
-            }`}
-          >
-            ARCHIVE
-          </button>
-          <button
-            type="button"
             onClick={() => setActiveCanvasMode('playground')}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'playground'
@@ -737,6 +559,17 @@ function InfiniteCanvasContent() {
           >
             PLAYGROUND
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveCanvasMode('archive')}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+              activeCanvasMode === 'archive'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-neutral-500 hover:text-black'
+            }`}
+          >
+            ARCHIVE
+          </button>
         </div>
       </div>
 
@@ -744,22 +577,13 @@ function InfiniteCanvasContent() {
       {/* MODE 1: HAUTE-COUTURE EDITORIAL ARCHIVE REPERTORY            */}
       {/* ============================================================ */}
       {activeCanvasMode === 'archive' ? (
-        <ArchiveEditorialRepertory
+        <ArchiveDirectorDesk
           files={allFiles}
           onSelectFile={(file) => {
             setSelectedFile(file);
             setActiveTab('all');
             setEnlargedIndex(null);
           }}
-          onEnlargePhoto={(file, idx) => {
-            setSelectedFile(file);
-            setActiveTab('all');
-            setEnlargedIndex(idx);
-          }}
-          initialFolderId={
-            folderParam ||
-            (disciplineParam ? DISCIPLINE_FILE_MAP[disciplineParam] || disciplineParam : null)
-          }
         />
       ) : (
         /* ============================================================ */
@@ -768,346 +592,336 @@ function InfiniteCanvasContent() {
         <PlaygroundCosmos uploadedWorks={standaloneWorks} />
       )}
 
-      {/* Project Detail Lightbox Modal (Expansive Luxury Masonry Showcase) */}
+      {/* Project Detail Lightbox Modal (High-Fashion Directorial Monograph & Archival Dossier) */}
       {selectedFile && (() => {
-        const rawPhotos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
+        // Fetch up to 35 curated high-res visual assets for this discipline
+        const curatedDeliverables = get35CuratedDeliverables(selectedFile.id, selectedFile.photos);
         
-        // Accurate real aspect-ratio classification
-        const getCategory = (url: string): 'social' | 'lookbook' | 'banner' => {
-          const r = photoRatios[url];
-          if (!r) return 'lookbook';
-          if (r < 0.78) return 'social'; // 9:16 vertical reels & stories
-          if (r >= 1.20) return 'banner'; // 16:9 & 16:10 widescreen banners
-          return 'lookbook'; // 4:5 editorial portrait / 1:1 square
-        };
-
-        const socialCount = rawPhotos.filter((u) => getCategory(u) === 'social').length;
-        const lookbookCount = rawPhotos.filter((u) => getCategory(u) === 'lookbook').length;
-        const bannerCount = rawPhotos.filter((u) => getCategory(u) === 'banner').length;
-
-        // Filter photos based on active category tab
-        const displayedPhotos = rawPhotos.filter((url) => {
+        // Filter photos based on active category tab (zero numbers, zero brackets, no 'All')
+        const displayedDeliverables = curatedDeliverables.filter((asset) => {
           if (activeTab === 'all') return true;
-          const cat = getCategory(url);
-          if (activeTab === 'social') return cat === 'social';
-          if (activeTab === 'lookbook') return cat === 'lookbook';
-          if (activeTab === 'banners') return cat === 'banner';
-          return true;
+          return asset.type === activeTab;
         });
 
         return (
           <div
             data-lenis-prevent
             onClick={() => setSelectedFile(null)}
-            className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-5 md:p-8 animate-fadeIn overscroll-contain"
+            onWheel={(e) => {
+              e.stopPropagation();
+              if (bentoScrollRef.current) {
+                bentoScrollRef.current.scrollTop += e.deltaY;
+              }
+            }}
+            className="fixed inset-0 z-[10000] bg-white/40 backdrop-blur-3xl flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-hidden select-text pointer-events-auto"
           >
+            {/* STATIONARY SHOWCASE CARD (Stays fixed & centered, never scrolls out of viewport, ZERO black stroke) */}
             <div
               data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[96vw] xl:max-w-[1550px] h-[94dvh] sm:h-[92vh] bg-[#faf9f6] rounded-[18px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.35)] border border-black/10 flex flex-col overscroll-contain"
+              className="relative w-full max-w-[1240px] h-[92vh] max-h-[920px] bg-white rounded-[32px] sm:rounded-[44px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
             >
-              {/* Luxury Gallery Header */}
-              <div className="px-5 py-4 sm:px-8 sm:py-5 bg-white/95 backdrop-blur-md border-b border-black/[0.06] flex flex-wrap justify-between items-center gap-4 z-20 flex-shrink-0">
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFile(null)}
-                    className="w-10 h-10 rounded-full bg-white shadow-sm border border-black/10 hover:bg-black hover:text-white active:scale-95 text-primary flex items-center justify-center text-lg font-bold transition-all cursor-pointer"
-                    title="Back to Canvas"
-                  >
-                    ←
-                  </button>
-                  <div className="flex items-baseline gap-3">
-                    <h2 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-primary uppercase leading-tight">
-                      {selectedFile.name}
-                    </h2>
-                    {selectedFile.isComingSoon || rawPhotos.length === 0 ? (
-                      <span className="font-mono text-xs px-3 py-1 rounded-full bg-accent-red/10 text-accent-red font-bold uppercase tracking-wider">
-                        COMING SOON
-                      </span>
-                    ) : (
-                      <span className="font-mono text-xs px-3 py-1 rounded-full bg-black/5 text-secondary font-bold">
-                        {rawPhotos.length} ASSETS
-                      </span>
-                    )}
-                  </div>
-                </div>
+              {/* TOP NAVIGATION BAR (Clean, Prominent Tabs, Single Close Button) */}
+              <header
+                onWheel={(e) => {
+                  e.stopPropagation();
+                  if (bentoScrollRef.current) {
+                    bentoScrollRef.current.scrollTop += e.deltaY;
+                  }
+                }}
+                className="flex items-center justify-between px-6 sm:px-10 py-4 sm:py-5 flex-shrink-0 bg-white z-20"
+              >
+                <div className="flex items-center gap-6 sm:gap-10">
+                  {/* Clean Project Title directly */}
+                  <h2 className="text-base sm:text-lg font-black text-neutral-900 uppercase tracking-tight">
+                    {selectedFile.name}
+                  </h2>
 
-                {/* Filter Pills Bar (Only show if there are photos) */}
-                {!selectedFile.isComingSoon && rawPhotos.length > 0 && (
-                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pr-4">
+                  {/* Filter Tabs (Larger, Prominent, Pill Styled, Clearly Legible) */}
+                  <nav className="hidden sm:flex items-center gap-2 sm:gap-2.5 text-sm font-semibold">
                     <button
                       type="button"
                       onClick={() => setActiveTab('all')}
-                      className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
                         activeTab === 'all'
-                          ? 'bg-black text-white shadow-sm'
-                          : 'bg-black/5 text-secondary hover:bg-black/10'
+                          ? 'bg-black text-white font-bold shadow-xs'
+                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                       }`}
                     >
-                      All ({rawPhotos.length})
+                      Deliverables
                     </button>
-                    {socialCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('social')}
-                        className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                          activeTab === 'social'
-                            ? 'bg-black text-white shadow-sm'
-                            : 'bg-black/5 text-secondary hover:bg-black/10'
-                        }`}
-                      >
-                        📱 9:16 Social Ads ({socialCount})
-                      </button>
-                    )}
-                    {lookbookCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('lookbook')}
-                        className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                          activeTab === 'lookbook'
-                            ? 'bg-black text-white shadow-sm'
-                            : 'bg-black/5 text-secondary hover:bg-black/10'
-                        }`}
-                      >
-                        📖 4:5 Lookbook ({lookbookCount})
-                      </button>
-                    )}
-                    {bannerCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('banners')}
-                        className={`flex-shrink-0 px-4 py-1.5 rounded-full font-mono text-xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
-                          activeTab === 'banners'
-                            ? 'bg-black text-white shadow-sm'
-                            : 'bg-black/5 text-secondary hover:bg-black/10'
-                        }`}
-                      >
-                        🖥️ 16:9 Banners ({bannerCount})
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2">
-                  {customFolderIds.has(selectedFile.id) && (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (confirm(`Are you sure you want to completely delete "${selectedFile.name}" from your portfolio? This cannot be undone.`)) {
-                          deleteCanvasFile(selectedFile.id);
-                          setSelectedFile(null);
-                          refreshCanvasFiles();
-                        }
-                      }}
-                      className="px-3.5 py-1.5 rounded-full font-mono text-xs font-bold text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
-                      title="Completely delete this campaign"
+                      onClick={() => setActiveTab('stills')}
+                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                        activeTab === 'stills'
+                          ? 'bg-black text-white font-bold shadow-xs'
+                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                      }`}
                     >
-                      <span>🗑️</span>
-                      <span className="hidden sm:inline">Delete Campaign</span>
+                      Stills
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('banners')}
+                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                        activeTab === 'banners'
+                          ? 'bg-black text-white font-bold shadow-xs'
+                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                      }`}
+                    >
+                      Widescreen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('social')}
+                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                        activeTab === 'social'
+                          ? 'bg-black text-white font-bold shadow-xs'
+                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                      }`}
+                    >
+                      Reels
+                    </button>
+                  </nav>
+                </div>
+
+                {/* Single Clean Close Button */}
+                <div className="flex items-center flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => setSelectedFile(null)}
-                    className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hover:bg-black/15 active:scale-95 text-secondary flex items-center justify-center font-mono text-sm transition-all cursor-pointer"
-                    title="Close Gallery"
+                    className="px-6 py-2 rounded-full bg-black text-white hover:bg-neutral-800 text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
                   >
-                    ✕
+                    Close
                   </button>
                 </div>
-              </div>
+              </header>
 
-              {/* Modal Body: Coming Soon Showcase OR Photo Gallery */}
-              {selectedFile.isComingSoon || rawPhotos.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-14 text-center max-w-2xl mx-auto space-y-6 overflow-y-auto">
-                  <div className="w-20 h-20 rounded-2xl bg-black/5 border border-black/10 flex items-center justify-center text-4xl shadow-inner">
-                    📁
-                  </div>
-                  <div className="space-y-2">
-                    <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-accent-red bg-accent-red/10 border border-accent-red/25 px-3 py-1 rounded-full">
-                      DIRECTORIAL ARCHIVE IN PRODUCTION
-                    </span>
-                    <h3 className="font-display font-black text-3xl sm:text-5xl text-primary uppercase tracking-tight pt-3">
-                      {selectedFile.name}
-                    </h3>
-                    <p className="font-mono text-xs sm:text-sm text-secondary tracking-wider uppercase font-semibold">
-                      {selectedFile.discipline} • {selectedFile.role}
-                    </p>
-                  </div>
-                  <p className="font-sans text-sm sm:text-base text-secondary/90 leading-relaxed max-w-lg">
-                    {selectedFile.desc}
-                  </p>
-                  {selectedFile.deliverables && selectedFile.deliverables.length > 0 && (
-                    <div className="w-full pt-6 border-t border-black/5">
-                      <span className="font-mono text-[10px] text-muted tracking-widest uppercase block mb-3 font-bold">
-                        PLANNED DELIVERABLES &amp; RELEASES
+              {/* INTERNAL SCROLL CONTAINER: ONLY THE BENTO CONTENT MOVES */}
+              <div
+                ref={bentoScrollRef}
+                data-lenis-prevent
+                onWheel={(e) => {
+                  e.stopPropagation();
+                }}
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar p-5 sm:p-8 md:p-10 space-y-[10px] touch-pan-y"
+              >
+
+              {/* ======================================================= */}
+              {/* 1. DEDICATED PROJECT STATEMENT & OVERVIEW (Deliverables tab only) */}
+              {/* Generous space to write: What is project, about project, what I done */}
+              {/* ======================================================= */}
+              {activeTab === 'all' && (
+                <section className="w-full bg-[#f6f5f2] rounded-[24px] sm:rounded-[28px] p-6 sm:p-8 md:p-9 space-y-4 select-text">
+                  {/* Micro Metadata Row */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono tracking-wider uppercase text-neutral-500">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-black text-white font-semibold text-[11px]">
+                        {selectedFile.code || selectedFile.id} • {selectedFile.year || '2026'}
                       </span>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {selectedFile.deliverables.map((deliv, i) => (
-                          <span key={i} className="font-mono text-xs px-3.5 py-1.5 rounded-lg bg-black/5 text-primary border border-black/5 font-medium">
-                            {deliv}
-                          </span>
-                        ))}
-                      </div>
+                      <span className="px-3 py-1 rounded-full bg-black/5 text-neutral-800 font-medium text-[11px]">
+                        Role: {selectedFile.role || 'Lead Creative Director'}
+                      </span>
                     </div>
-                  )}
-                  <div className="pt-4 flex flex-wrap justify-center gap-3">
-                    <Link
-                      href="/admin"
-                      className="px-6 py-3 rounded-xl bg-primary text-white hover:bg-accent-red font-mono text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-2 shadow-sm active:scale-95"
-                    >
-                      <span>⚡</span> Upload Work in Studio Desk ↗
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFile(null)}
-                      className="px-5 py-3 rounded-xl bg-black/5 hover:bg-black/10 text-primary font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                    >
-                      Back to Canvas
-                    </button>
+                    <span className="text-neutral-500 font-mono text-[11px] flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                      {curatedDeliverables.length} Deliverables Completed
+                    </span>
                   </div>
-                </div>
-              ) : (
-                /* Adaptive Luxury Editorial Gallery (Zero Padding Holes, Zero Clutter) */
-                <div className="flex-1 p-5 sm:p-8 md:p-10 overflow-y-auto space-y-10">
-                {displayedPhotos.length === 0 ? (
-                  <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-                    <div className="w-12 h-12 rounded-full bg-black/5 mx-auto flex items-center justify-center font-mono text-lg text-secondary">
-                      ∅
-                    </div>
-                    <p className="font-mono text-xs text-secondary uppercase tracking-wider">
-                      No assets found in this format.
+
+                  {/* Project Headline & Spacious Narrative Space */}
+                  <div className="space-y-2.5 max-w-4xl">
+                    <h3 className="text-2xl sm:text-3xl md:text-[34px] font-black text-neutral-900 uppercase tracking-tight leading-tight">
+                      {selectedFile.name} —&gt; Directorial Execution
+                    </h3>
+                    <p className="text-neutral-700 text-sm sm:text-base leading-relaxed font-normal">
+                      {selectedFile.desc || `High-fidelity directorial cut and multi-format production for ${selectedFile.name}. Executed end-to-end creative direction, sound design, visual pacing, and color grading tailored across broadcast widescreen formats and vertical social ecosystems.`}
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('all')}
-                      className="px-5 py-2 bg-black text-white rounded-full font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all cursor-pointer"
-                    >
-                      Show All Assets ({rawPhotos.length}) →
-                    </button>
                   </div>
-                ) : displayedPhotos.length === 1 ? (
-                  /* Focused Centered Luxury Showcase for 1 Filtered Photo */
-                  <div className="max-w-xl mx-auto flex flex-col items-center">
-                    {(() => {
-                      const photoUrl = displayedPhotos[0];
-                      const rawIndex = rawPhotos.indexOf(photoUrl);
-                      const cat = getCategory(photoUrl);
+
+                  {/* Deliverables Scope Tags */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {(selectedFile.deliverables && selectedFile.deliverables.length > 0
+                      ? selectedFile.deliverables
+                      : ['Directorial Cut', 'Keyframe Stills', 'Widescreen Masters', '9:16 Social Reels', 'Color Grading']
+                    ).map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3.5 py-1.5 rounded-full bg-white text-neutral-800 font-medium text-xs shadow-2xs"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ======================================================= */}
+              {/* 2. BENTO DELIVERABLES STREAM (Based on Creative Sizes, ZERO Black Strokes) */}
+              {/* 9:16 Reels, 16:10 Widescreen, 21:9 Banners, 4:5 Stills - Strict 10px Gap */}
+              {/* ======================================================= */}
+              <section id="archival-collection-stream" className="space-y-[10px]">
+
+                {/* FILTERED CATEGORY VIEWS */}
+                {activeTab === 'stills' ? (
+                  /* STILLS ONLY: Clean 3-Column 4:5 Grid (Exact 10px gap, ZERO black stroke) */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-[10px]">
+                    {displayedDeliverables.map((asset) => {
+                      const originalIndex = curatedDeliverables.findIndex((d) => d.url === asset.url);
+                      const clickIndex = originalIndex >= 0 ? originalIndex : 0;
                       return (
                         <div
-                          onClick={() => setEnlargedIndex(rawIndex)}
-                          className="w-full relative rounded-[18px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.01] shadow-[0_24px_60px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
+                          key={`${asset.url}-${asset.title}`}
+                          onClick={() => setEnlargedIndex(clickIndex)}
+                          className="group relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[4/5] w-full"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={photoUrl}
-                            alt={`${selectedFile.name} asset ${rawIndex + 1}`}
-                            className="w-full h-auto max-h-[68vh] object-contain mx-auto block rounded-[18px] transition-transform duration-500 group-hover:scale-[1.02]"
+                            src={asset.url}
+                            alt={asset.title}
                             loading="lazy"
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
                             onError={(e) => {
-                              e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop';
                             }}
                           />
-
-                          {/* Minimal Luxury Hover Overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-5 pointer-events-none">
-                            <div className="flex justify-end">
-                              <span className="font-mono text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
-                                {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
+                            <div className="flex justify-between items-start">
+                              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                STILL // 4:5
+                              </span>
+                              <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                ↗
                               </span>
                             </div>
-
-                            <div className="flex justify-between items-center text-white">
-                              <span className="font-mono text-xs font-bold tracking-wide">
-                                Asset {String(rawIndex + 1).padStart(2, '0')} of {rawPhotos.length}
-                              </span>
-                              <span className="font-mono text-xs font-bold text-accent-red flex items-center gap-1">
-                                <span>Click to Enlarge</span>
-                                <span>↗</span>
-                              </span>
+                            <div>
+                              <p className="font-mono text-[10px] text-white/70 uppercase tracking-wider">Editorial Frame</p>
+                              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight line-clamp-1">{asset.title}</h4>
                             </div>
                           </div>
                         </div>
                       );
-                    })()}
-                    <div className="mt-3 flex items-center gap-3 text-secondary font-mono text-[11px]">
-                      <span>Single Format Focus</span>
-                      <span>•</span>
-                      <span className="uppercase text-accent-red font-bold">
-                        {getCategory(displayedPhotos[0]) === 'social' ? '9:16 Vertical Reel' : getCategory(displayedPhotos[0]) === 'banner' ? '16:9 Widescreen Banner' : '4:5 Editorial Lookbook'}
-                      </span>
-                    </div>
+                    })}
                   </div>
-                ) : displayedPhotos.length <= 3 ? (
-                  /* Balanced Centered Grid for 2-3 Photos */
-                  <div className={`grid gap-6 max-w-5xl mx-auto ${
-                    displayedPhotos.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'
-                  }`}>
-                    {displayedPhotos.map((photoUrl, idx) => {
-                      const rawIndex = rawPhotos.indexOf(photoUrl);
-                      const cat = getCategory(photoUrl);
+                ) : activeTab === 'banners' ? (
+                  /* BANNERS ONLY: Alternating Panoramas and Dual Widescreens (Exact 10px gap, ZERO black stroke) */
+                  <div className="space-y-[10px]">
+                    {Array.from({ length: Math.ceil(displayedDeliverables.length / 3) }).map((_, bIdx) => {
+                      const chunk = displayedDeliverables.slice(bIdx * 3, bIdx * 3 + 3);
+                      return (
+                        <div key={`banner-group-${bIdx}`} className="space-y-[10px]">
+                          {chunk[0] && (() => {
+                            const origIdx = curatedDeliverables.findIndex((d) => d.url === chunk[0].url);
+                            return (
+                              <div
+                                onClick={() => setEnlargedIndex(origIdx >= 0 ? origIdx : 0)}
+                                className="group relative w-full aspect-[21/9] sm:aspect-[24/8] md:aspect-[28/9] overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={chunk[0].url}
+                                  alt={chunk[0].title}
+                                  loading="lazy"
+                                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop';
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-5 text-white pointer-events-none">
+                                  <div className="flex justify-between items-start">
+                                    <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                      PANORAMIC BANNER // 21:9
+                                    </span>
+                                    <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                      ↗
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <p className="font-mono text-[10px] text-white/70 uppercase tracking-wider">Cinematic Ribbon</p>
+                                    <h4 className="text-sm font-bold text-white tracking-tight">{chunk[0].title}</h4>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          {chunk.length > 1 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+                              {chunk.slice(1).map((item) => {
+                                const origIdx = curatedDeliverables.findIndex((d) => d.url === item.url);
+                                return (
+                                  <div
+                                    key={item.url}
+                                    onClick={() => setEnlargedIndex(origIdx >= 0 ? origIdx : 0)}
+                                    className="group relative w-full aspect-[16/9] sm:aspect-[16/10] overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
+                                  >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={item.url}
+                                      alt={item.title}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop';
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
+                                      <div className="flex justify-between items-start">
+                                        <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                          WIDESCREEN // 16:10
+                                        </span>
+                                        <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                          ↗
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <p className="font-mono text-[10px] text-white/70 uppercase tracking-wider">Directorial Master</p>
+                                        <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight line-clamp-1">{item.title}</h4>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : activeTab === 'social' ? (
+                  /* REELS ONLY: Clean 4-Column 9:16 Vertical Grid (Exact 10px gap, ZERO black stroke) */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px]">
+                    {displayedDeliverables.map((asset) => {
+                      const originalIndex = curatedDeliverables.findIndex((d) => d.url === asset.url);
+                      const clickIndex = originalIndex >= 0 ? originalIndex : 0;
                       return (
                         <div
-                          key={idx}
-                          onClick={() => setEnlargedIndex(rawIndex)}
-                          className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
+                          key={`${asset.url}-${asset.title}`}
+                          onClick={() => setEnlargedIndex(clickIndex)}
+                          className="group relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
                         >
-                          {/* Single Picture Delete Action */}
-                          <button
-                            type="button"
-                            title="Delete Picture"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (confirm('Delete this picture from this collection?')) {
-                                const newPhotos = rawPhotos.filter((_, pIdx) => pIdx !== rawIndex);
-                                if (newPhotos.length === 0) {
-                                  deleteCanvasFile(selectedFile.id);
-                                  setSelectedFile(null);
-                                } else {
-                                  const updated = {
-                                    ...selectedFile,
-                                    photos: newPhotos,
-                                    photoCount: newPhotos.length,
-                                    img: newPhotos[0] || '',
-                                  };
-                                  saveCanvasFile(updated as any);
-                                  setSelectedFile(updated);
-                                }
-                                refreshCanvasFiles();
-                              }
-                            }}
-                            className="absolute top-2.5 left-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/15 shadow-md"
-                          >
-                            🗑️
-                          </button>
-
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={photoUrl}
-                            alt={`${selectedFile.name} asset ${rawIndex + 1}`}
-                            className="w-full h-auto block rounded-[14px] transition-transform duration-500 group-hover:scale-[1.02]"
+                            src={asset.url}
+                            alt={asset.title}
                             loading="lazy"
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
                             onError={(e) => {
-                              e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop';
                             }}
                           />
-
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
-                            <div className="flex justify-end">
-                              <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
-                                {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
+                            <div className="flex justify-between items-start">
+                              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                9:16 REEL
+                              </span>
+                              <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                ↗
                               </span>
                             </div>
-
-                            <div className="flex justify-between items-center text-white">
-                              <span className="font-mono text-[11px] font-bold tracking-wide">
-                                Asset {String(rawIndex + 1).padStart(2, '0')}
-                              </span>
-                              <span className="font-mono text-[11px] font-bold text-accent-red flex items-center gap-1">
-                                <span>Enlarge</span>
-                                <span>↗</span>
-                              </span>
+                            <div>
+                              <p className="font-mono text-[10px] text-white/70 uppercase tracking-wider">Vertical Motion Story</p>
+                              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight line-clamp-1">{asset.title}</h4>
                             </div>
                           </div>
                         </div>
@@ -1115,147 +929,151 @@ function InfiniteCanvasContent() {
                     })}
                   </div>
                 ) : (
-                  /* Rich Editorial Masonry Columns for 4+ Photos */
-                  <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-5 sm:gap-6 space-y-5 sm:space-y-6">
-                    {displayedPhotos.map((photoUrl, idx) => {
-                      const rawIndex = rawPhotos.indexOf(photoUrl);
-                      const cat = getCategory(photoUrl);
-
+                  /* ALL DELIVERABLES: DYNAMIC BENTO STREAM (Responsive to Creative Sizes, ZERO Black Strokes) */
+                  (() => {
+                    const renderCard = (
+                      item: DeliverableAsset,
+                      badge: string,
+                      sub: string,
+                      extraClasses = ''
+                    ) => {
+                      const origIdx = curatedDeliverables.findIndex((d) => d.url === item.url);
+                      const clickIdx = origIdx >= 0 ? origIdx : 0;
                       return (
                         <div
-                          key={idx}
-                          onClick={() => setEnlargedIndex(rawIndex)}
-                          className="break-inside-avoid relative rounded-[14px] overflow-hidden group cursor-zoom-in transition-all duration-300 hover:scale-[1.015] hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] bg-[#eae7de] border border-black/5"
+                          key={`${item.url}-${item.title}`}
+                          onClick={() => setEnlargedIndex(clickIdx)}
+                          className={`group relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 ${extraClasses}`}
                         >
-                          {/* Single Picture Delete Action */}
-                          <button
-                            type="button"
-                            title="Delete Picture"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (confirm('Delete this picture from this collection?')) {
-                                const newPhotos = rawPhotos.filter((_, pIdx) => pIdx !== rawIndex);
-                                if (newPhotos.length === 0) {
-                                  deleteCanvasFile(selectedFile.id);
-                                  setSelectedFile(null);
-                                } else {
-                                  const updated = {
-                                    ...selectedFile,
-                                    photos: newPhotos,
-                                    photoCount: newPhotos.length,
-                                    img: newPhotos[0] || '',
-                                  };
-                                  saveCanvasFile(updated as any);
-                                  setSelectedFile(updated);
-                                }
-                                refreshCanvasFiles();
-                              }
-                            }}
-                            className="absolute top-2.5 left-2.5 z-30 w-7 h-7 rounded-lg bg-black/80 hover:bg-red-600 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer border border-white/15 shadow-md"
-                          >
-                            🗑️
-                          </button>
-
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={photoUrl}
-                            alt={`${selectedFile.name} asset ${rawIndex + 1}`}
-                            className="w-full h-auto block rounded-[14px] transition-transform duration-500 group-hover:scale-[1.02]"
+                            src={item.url}
+                            alt={item.title}
                             loading="lazy"
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
                             onError={(e) => {
-                              e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop';
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200&auto=format&fit=crop';
                             }}
                           />
-
-                          {/* Minimal Luxury Hover Overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
-                            <div className="flex justify-end">
-                              <span className="font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/15">
-                                {cat === 'social' ? '9:16 Social Reel' : cat === 'banner' ? '16:9 Widescreen' : '4:5 Editorial Lookbook'}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
+                            <div className="flex justify-between items-start">
+                              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                {badge}
+                              </span>
+                              <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                ↗
                               </span>
                             </div>
-
-                            <div className="flex justify-between items-center text-white">
-                              <span className="font-mono text-[11px] font-bold tracking-wide">
-                                Asset {String(rawIndex + 1).padStart(2, '0')}
-                              </span>
-                              <span className="font-mono text-[11px] font-bold text-accent-red flex items-center gap-1">
-                                <span>Enlarge</span>
-                                <span>↗</span>
-                              </span>
+                            <div>
+                              <p className="font-mono text-[10px] text-white/70 uppercase tracking-wider">{sub}</p>
+                              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight line-clamp-1">{item.title}</h4>
                             </div>
                           </div>
                         </div>
                       );
-                    })}
-                  </div>
+                    };
+
+                    const clusters: React.ReactNode[] = [];
+                    // All deliverables start from index 0 in authentic bento groupings
+                    const allItems = displayedDeliverables;
+                    let i = 0;
+                    let clusterCount = 0;
+
+                    while (i < allItems.length) {
+                      const pattern = clusterCount % 5;
+                      clusterCount++;
+
+                      if (pattern === 0) {
+                        // HERO BENTO SPLIT: Widescreen Master (16:10) + Vertical Reel (9:16)
+                        const item1 = allItems[i];
+                        const item2 = allItems[i + 1];
+                        i += item2 ? 2 : 1;
+
+                        clusters.push(
+                          <div key={`bento-split-${i}`} className="grid grid-cols-1 md:grid-cols-12 gap-[10px]">
+                            <div className={`${item2 ? 'md:col-span-7' : 'md:col-span-12'} w-full aspect-[16/10]`}>
+                              {renderCard(item1, 'WIDESCREEN // 16:10', 'Directorial Master', 'w-full h-full')}
+                            </div>
+                            {item2 && (
+                              <div className="md:col-span-5 w-full aspect-[16/10] md:aspect-auto">
+                                {renderCard(item2, 'VERTICAL REEL // 9:16', 'Motion Keyframe Reel', 'w-full h-full')}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      } else if (pattern === 1) {
+                        // FULL-WIDTH PANORAMIC BANNER (21:9) - Creative banner size
+                        const it = allItems[i];
+                        i += 1;
+
+                        clusters.push(
+                          <div key={`bento-ribbon-${i}`} className="w-full aspect-[21/9] sm:aspect-[24/8] md:aspect-[28/9]">
+                            {renderCard(it, 'PANORAMIC BANNER // 21:9', 'Cinematic Spread', 'w-full h-full')}
+                          </div>
+                        );
+                      } else if (pattern === 2) {
+                        // TRIO STILLS (3 Items, Equal Height 4:5)
+                        const items = allItems.slice(i, i + 3);
+                        i += items.length;
+
+                        clusters.push(
+                          <div key={`bento-stills-${i}`} className="grid grid-cols-1 sm:grid-cols-3 gap-[10px]">
+                            {items.map((it) => (
+                              <div key={it.url} className="w-full aspect-[4/5]">
+                                {renderCard(it, 'EDITORIAL STILL // 4:5', 'Directorial Stills Cut', 'w-full h-full')}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      } else if (pattern === 3) {
+                        // 4-COLUMN VERTICAL REELS (9:16) - Social Reel size
+                        const items = allItems.slice(i, i + 4);
+                        i += items.length;
+
+                        clusters.push(
+                          <div key={`bento-reels-${i}`} className="grid grid-cols-2 sm:grid-cols-4 gap-[10px]">
+                            {items.map((it) => (
+                              <div key={it.url} className="w-full aspect-[9/16]">
+                                {renderCard(it, '9:16 REEL // 1080x1920', 'Social Story Master', 'w-full h-full')}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      } else {
+                        // DUAL WIDESCREEN (2 Items, Equal Height 16:10)
+                        const items = allItems.slice(i, i + 2);
+                        i += items.length;
+
+                        clusters.push(
+                          <div key={`bento-widescreen-${i}`} className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+                            {items.map((it) => (
+                              <div key={it.url} className="w-full aspect-[16/9] sm:aspect-[16/10]">
+                                {renderCard(it, 'WIDESCREEN // 16:10', 'Commercial Cut', 'w-full h-full')}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                    }
+
+                    return <div className="space-y-[10px]">{clusters}</div>;
+                  })()
                 )}
+              </section>
 
-                {/* Directorial Narrative & Deliverables */}
-                {selectedFile.desc && (
-                  <div className="bg-white rounded-[16px] p-6 sm:p-8 border border-black/[0.06] shadow-sm space-y-4 max-w-4xl mx-auto mt-8">
-                    <div>
-                      <span className="font-mono text-xs text-accent-red font-bold uppercase tracking-wider block mb-1.5">
-                        Directorial Vision &amp; Strategy
-                      </span>
-                      <p className="text-sm sm:text-base text-secondary leading-relaxed">
-                        {selectedFile.desc}
-                      </p>
-                    </div>
+              {/* 3. FLUSH COMPACT FOOTER (NO EXTRA GAP, NO BORDER LINE) */}
+              <footer className="pt-4 pb-2 flex flex-wrap justify-between items-center text-xs text-neutral-400 font-medium flex-shrink-0">
+                <span>Bento Studio Architecture • {selectedFile.name} Archive // {selectedFile.code || selectedFile.id}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFile(null)}
+                  className="text-black font-semibold hover:underline cursor-pointer"
+                >
+                  Back to Desk Canvas ↗
+                </button>
+              </footer>
 
-                    {selectedFile.deliverables && selectedFile.deliverables.length > 0 && (
-                      <div className="border-t border-black/5 pt-4">
-                        <span className="font-mono text-xs font-bold text-primary uppercase block mb-2.5">
-                          Campaign Scope:
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedFile.deliverables.map((item, idx) => (
-                            <span
-                              key={idx}
-                              className="px-3.5 py-1.5 bg-[#f5f4f0] border border-black/5 rounded-[8px] font-mono text-xs text-secondary"
-                            >
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Bottom Actions Bar */}
-                <div className="mt-8 pt-6 border-t border-black/10 flex flex-wrap justify-between items-center gap-4 max-w-4xl mx-auto">
-                  <span className="font-mono text-xs text-secondary tracking-wider uppercase">
-                    {rawPhotos.length} {rawPhotos.length === 1 ? 'Asset' : 'Assets'} Available • {selectedFile.name}
-                  </span>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {(!selectedFile.isComingSoon || customFolderIds.has(selectedFile.id) || (selectedFile.photos && selectedFile.photos.length > 0)) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`Are you sure you want to completely delete "${selectedFile.name}" from your portfolio? This cannot be undone.`)) {
-                            deleteCanvasFile(selectedFile.id);
-                            setSelectedFile(null);
-                            refreshCanvasFiles();
-                          }
-                        }}
-                        className="font-mono text-xs px-4 py-2 rounded-lg border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer font-bold flex items-center gap-1.5"
-                      >
-                        <span>🗑️</span>
-                        <span>Delete Campaign</span>
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFile(null)}
-                      className="font-mono text-xs px-5 py-2 rounded-lg bg-black text-white hover:bg-neutral-800 transition-all font-bold uppercase cursor-pointer"
-                    >
-                      Close Gallery
-                    </button>
-                  </div>
-                </div>
               </div>
-            )}
             </div>
           </div>
         );
@@ -1263,12 +1081,15 @@ function InfiniteCanvasContent() {
 
       {/* Full-Screen High-Resolution Multi-Asset Lightbox Overlay with Next / Prev */}
       {enlargedIndex !== null && selectedFile && (() => {
-        const rawPhotos = selectedFile.photos && selectedFile.photos.length > 0 ? selectedFile.photos : [selectedFile.img];
-        const currentPhoto = rawPhotos[enlargedIndex] || rawPhotos[0];
+        const curatedDeliverables = get35CuratedDeliverables(selectedFile.id, selectedFile.photos);
+        const photosList = curatedDeliverables.map((d) => d.url);
+        const currentPhoto = photosList[enlargedIndex] || photosList[0] || selectedFile.img;
+        const currentTitle = curatedDeliverables[enlargedIndex]?.title || selectedFile.name;
 
         return (
           <div
             onClick={() => setEnlargedIndex(null)}
+            onWheel={(e) => e.stopPropagation()}
             className="fixed inset-0 z-[20000] bg-black/92 backdrop-blur-lg flex items-center justify-center p-4 sm:p-8 animate-fadeIn"
           >
             {/* Prev Arrow */}
@@ -1276,7 +1097,7 @@ function InfiniteCanvasContent() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setEnlargedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : rawPhotos.length - 1));
+                setEnlargedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : photosList.length - 1));
               }}
               className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
               title="Previous Photo (Left Arrow)"
@@ -1289,7 +1110,7 @@ function InfiniteCanvasContent() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setEnlargedIndex((prev) => (prev !== null && prev < rawPhotos.length - 1 ? prev + 1 : 0));
+                setEnlargedIndex((prev) => (prev !== null && prev < photosList.length - 1 ? prev + 1 : 0));
               }}
               className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
               title="Next Photo (Right Arrow)"
@@ -1304,7 +1125,7 @@ function InfiniteCanvasContent() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={currentPhoto}
-                alt={`Asset ${enlargedIndex + 1}`}
+                alt={currentTitle}
                 className="max-w-full max-h-[84vh] object-contain rounded-[10px] shadow-2xl select-none"
                 onError={(e) => {
                   e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop';
@@ -1312,14 +1133,14 @@ function InfiniteCanvasContent() {
               />
               <div className="mt-4 flex items-center gap-6 text-white font-mono text-xs">
                 <span className="text-white/70 tracking-widest uppercase">
-                  Asset {enlargedIndex + 1} of {rawPhotos.length}
+                  Asset {enlargedIndex + 1} of {photosList.length} • {currentTitle}
                 </span>
                 <button
                   type="button"
                   onClick={() => setEnlargedIndex(null)}
                   className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold uppercase tracking-wider"
                 >
-                  Close [ESC]
+                  Close ✕
                 </button>
               </div>
             </div>
