@@ -158,20 +158,8 @@ export default function Header({ visible = true }: HeaderProps) {
           </Link>
         </div>
 
-        {/* RIGHT NAV LINKS (Desktop: Live Worldwide Clock, ARCHIVE, CONTACT) */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-10 pointer-events-auto flex-1 justify-end">
-          {/* Live Worldwide Clock (Cycles through cities and timezones) */}
-          <div
-            className={`flex items-center gap-2 font-mono text-xs tracking-wider transition-opacity duration-300 ${
-              isFading ? 'opacity-20' : 'opacity-100'
-            }`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-            <span className="text-neutral-700 font-medium whitespace-nowrap">
-              {worldTime || 'DUBAI 12:00:00 PM GST'}
-            </span>
-          </div>
-
+        {/* RIGHT NAV LINKS (Desktop: ARCHIVE, CONTACT, Live Worldwide Clock Right Last) */}
+        <div className="hidden md:flex items-center gap-6 lg:gap-9 pointer-events-auto flex-1 justify-end">
           <Link
             href="/canvas?view=archive"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
@@ -184,6 +172,18 @@ export default function Header({ visible = true }: HeaderProps) {
           >
             CONTACT
           </Link>
+
+          {/* Live Worldwide Clock (Right Last) */}
+          <div
+            className={`flex items-center gap-2 font-mono text-xs tracking-wider transition-opacity duration-300 pl-2 lg:pl-3 ${
+              isFading ? 'opacity-20' : 'opacity-100'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+            <span className="text-neutral-700 font-medium whitespace-nowrap">
+              {worldTime || 'DUBAI 12:00:00 PM GST'}
+            </span>
+          </div>
         </div>
 
         {/* MOBILE HAMBURGER BUTTON (Mobile / Tablet only) */}

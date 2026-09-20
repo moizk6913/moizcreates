@@ -79,29 +79,17 @@ export default function StatementBridge() {
       className="w-full py-20 sm:py-28 md:py-36 bg-white relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
     >
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center">
-        <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[1.12] text-black flex flex-col items-center justify-center gap-1 sm:gap-2">
+        <h2 className="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-tight leading-[1.18] text-black flex flex-col items-center justify-center gap-2 sm:gap-4">
           
           <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
-              I WAS GOING TO WRITE SOMETHING IMPRESSIVE HERE.
+              I WAS GOING TO WRITE SOMETHING IMPRESSIVE HERE. THEN I REMEMBERED YOU&apos;VE ALREADY SCROLLED THIS FAR.
             </span>
           </span>
 
           <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
-              THEN I REMEMBERED YOU&apos;VE ALREADY SCROLLED THIS FAR.
-            </span>
-          </span>
-
-          <span className="overflow-hidden block py-1 sm:py-0.5">
-            <span className="statement-line block will-change-transform">
-              SO I GUESS THE WORK DID ITS JOB.
-            </span>
-          </span>
-
-          <span className="overflow-hidden block py-1 sm:py-0.5">
-            <span className="statement-line block will-change-transform">
-              GOOD. <Link href="/#contact" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">LET&apos;S TALK.</Link>
+              SO I GUESS THE WORK DID ITS JOB. GOOD. <Link href="/#contact" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">LET&apos;S TALK.</Link>
             </span>
           </span>
 
