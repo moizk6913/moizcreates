@@ -76,16 +76,10 @@ export default function StatementBridge() {
     <section
       ref={sectionRef}
       id="manifesto-bridge"
-      className="w-full py-12 sm:py-16 md:py-20 bg-gradient-to-b from-canvas via-[#f8f7f5] to-[#f4f2ee] relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
+      className="w-full py-20 sm:py-28 md:py-36 bg-white relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
     >
-      {/* Soft atmospheric ambient glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] bg-[radial-gradient(circle,rgba(230,0,0,0.035)_0%,transparent_70%)] pointer-events-none"
-        aria-hidden="true"
-      />
-
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center">
-        <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[1.12] text-primary flex flex-col items-center justify-center gap-1 sm:gap-2">
+        <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-[1.12] text-black flex flex-col items-center justify-center gap-1 sm:gap-2">
           
           <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
@@ -107,22 +101,11 @@ export default function StatementBridge() {
 
           <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
-              GOOD. <Link href="/#contact" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">LET&apos;S TALK.</Link>
+              GOOD. <Link href="/about" className="text-black underline underline-offset-4 hover:text-neutral-500 cursor-pointer transition-colors">EXPLORE PROFILE.</Link>
             </span>
           </span>
 
         </h2>
-
-        {/* Action Link to the Dedicated Directorial Canvas */}
-        <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href="/about"
-            className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-[10px] bg-primary text-white hover:bg-neutral-800 transition-all duration-300 font-mono text-xs uppercase tracking-widest hover:scale-105 shadow-sm"
-          >
-            <span>EXPLORE DIRECTORIAL PROFILE</span>
-            <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </Link>
-        </div>
       </div>
     </section>
   );
