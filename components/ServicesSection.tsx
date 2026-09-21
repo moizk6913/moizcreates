@@ -76,56 +76,11 @@ interface ServicesSectionProps {
   onOpenCase?: (id: string) => void;
 }
 
-export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSectionProps) {
+export default function ServicesSection({ onOpenCase }: ServicesSectionProps) {
   const containerRef = useRef<HTMLElement>(null);
   const rowsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const followerRef = useRef<HTMLDivElement>(null);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-  const targetPosRef = useRef({ x: 0, y: 0 });
-  const currentPosRef = useRef({ x: 0, y: 0, rot: 0 });
-
-  // Smooth mouse follower loop with velocity tilt (Zero lag, 120fps hardware acceleration)
-  useEffect(() => {
-    let animId: number;
-
-    const animate = () => {
-      const target = targetPosRef.current;
-      const current = currentPosRef.current;
-
-      current.x += (target.x - current.x) * 0.12;
-      current.y += (target.y - current.y) * 0.12;
-
-      const dx = target.x - current.x;
-      const targetRot = Math.max(-6, Math.min(6, dx * 0.06));
-      current.rot += (targetRot - current.rot) * 0.1;
-
-      if (followerRef.current && containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth || 1200;
-        // Float to the right if in left 55% of container, float to left if in right 45%
-        const isRightHalf = current.x > containerWidth * 0.55;
-        const offsetX = isRightHalf ? -220 : 220;
-        const offsetY = -40;
-
-        followerRef.current.style.transform = `translate3d(${current.x + offsetX}px, ${current.y + offsetY}px, 0) translate(-50%, -50%) rotate(${current.rot}deg)`;
-      }
-
-      animId = requestAnimationFrame(animate);
-    };
-
-    animId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animId);
-  }, []);
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    targetPosRef.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  };
 
   // Smooth, non-intrusive scroll reveal
   useGSAP(
@@ -161,44 +116,9 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
     <section
       ref={containerRef}
       id="services"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={() => setHoveredIndex(null)}
+      onMouseLeave={() => setHoveredIndex(null)}
       className="w-full pt-28 sm:pt-36 md:pt-48 pb-36 sm:pb-48 md:pb-64 bg-white overflow-hidden select-none border-none relative"
     >
-      {/* Floating Curated Visual Follower (Active on desktop, pure zero-color background) */}
-      <div
-        ref={followerRef}
-        aria-hidden="true"
-        className={`pointer-events-none absolute top-0 left-0 z-30 w-[280px] sm:w-[340px] md:w-[390px] aspect-[16/10] apple-widget-md rounded-[28px] sm:rounded-[32px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.22)] ring-1 ring-black/10 hidden md:block transition-[opacity,scale] duration-300 ease-out will-change-transform ${
-          hoveredIndex !== null ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-        }`}
-      >
-        <div className="relative w-full h-full bg-[#111]">
-          {SERVICES.map((srv, idx) => (
-            <div
-              key={srv.number}
-              className={`absolute inset-0 transition-opacity duration-400 ease-out ${
-                hoveredIndex === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
-              } transition-transform duration-700 ease-out`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={userPhotos?.[idx] || srv.previewImage}
-                alt={srv.title}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/20" />
-              <div className="absolute top-4 left-4 z-10">
-                <span className="font-mono text-[9px] font-bold px-2.5 py-1 apple-pill rounded-full bg-black/55 backdrop-blur-md text-white uppercase tracking-widest">
-                  {srv.tag}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* 1. GIANT RUNNING HEADER (WHAT I DO) */}
       <div className="w-full pb-16 sm:pb-24 md:pb-32 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
@@ -225,6 +145,7 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
                 rowsRef.current[index] = el;
               }}
               onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => {
                 if (onOpenCase && item.projectId) {
                   onOpenCase(item.projectId);
