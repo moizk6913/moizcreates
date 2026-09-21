@@ -41,10 +41,14 @@ export default function FaqSection() {
   return (
     <section
       id="faq"
-      className="w-full pt-[88px] pb-0 bg-white overflow-hidden select-none border-none relative"
+      style={{ paddingTop: 'var(--faq-top, 88px)' }}
+      className="w-full pb-0 bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-[64px]">
+      <div
+        style={{ paddingBottom: 'var(--header-to-content, 64px)' }}
+        className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
+      >
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
           <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
             FREQUENTLY ASKED

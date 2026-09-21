@@ -2,7 +2,14 @@
 
 export default function ClientsStrip() {
   return (
-    <section id="visual-references" className="w-full pt-[80px] pb-[72px] bg-canvas overflow-hidden border-none relative select-none">
+    <section
+      id="visual-references"
+      style={{
+        paddingTop: 'var(--work-to-references, 80px)',
+        paddingBottom: 'var(--references-bottom, 72px)',
+      }}
+      className="w-full bg-canvas overflow-hidden border-none relative select-none"
+    >
       {/* Subtle context label */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-5 sm:pb-6">
         <span className="font-mono text-xs sm:text-[13px] text-neutral-400 uppercase tracking-[0.2em] font-semibold">

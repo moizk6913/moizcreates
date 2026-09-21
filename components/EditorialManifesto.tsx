@@ -120,7 +120,11 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
     <section
       ref={sectionRef}
       id="manifesto"
-      className="w-full pt-[120px] pb-[64px] bg-gradient-to-b from-white via-[#faf9f6] to-white border-none overflow-hidden relative"
+      style={{
+        paddingTop: 'var(--hero-to-manifesto, 120px)',
+        paddingBottom: 'var(--manifesto-to-work, 64px)',
+      }}
+      className="w-full bg-gradient-to-b from-white via-[#faf9f6] to-white border-none overflow-hidden relative"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
         <h2 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.94] tracking-tight text-primary uppercase flex flex-col items-center gap-1 sm:gap-1.5">

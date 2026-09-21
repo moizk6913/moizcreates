@@ -15,6 +15,7 @@ import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
 import CustomCursor from '@/components/CustomCursor';
 import Preloader from '@/components/Preloader';
+import SpacingTuner from '@/components/SpacingTuner';
 import {
   getStoredCanvasFiles,
   getStoredCanvasFilesAsync,
@@ -136,6 +137,8 @@ export default function Home() {
         uploadedFiles={uploadedFiles}
         userPhotos={userPhotos}
       />
+      {/* Interactive Live Spacing Tuner Drawer */}
+      <SpacingTuner />
     </main>
   );
 }

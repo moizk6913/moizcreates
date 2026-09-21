@@ -191,10 +191,17 @@ export default function ProcessSection() {
     <section
       ref={containerRef}
       id="approach"
-      className="w-full pt-[96px] pb-[96px] bg-white overflow-hidden select-none border-none relative"
+      style={{
+        paddingTop: 'var(--section-top, 96px)',
+        paddingBottom: 'var(--section-bottom, 96px)',
+      }}
+      className="w-full bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-[64px]">
+      <div
+        style={{ paddingBottom: 'var(--header-to-content, 64px)' }}
+        className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
+      >
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
           <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
             HOW I GET THERE
@@ -207,7 +214,10 @@ export default function ProcessSection() {
 
       {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Borders, Zero Clutter) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-[24px]">
+        <div
+          className="grid grid-cols-1 lg:grid-cols-3"
+          style={{ gap: 'var(--grid-gap, 24px)' }}
+        >
           {PHASES.map((phase, idx) => (
             <div
               key={phase.step}

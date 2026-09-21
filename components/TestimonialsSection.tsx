@@ -81,10 +81,14 @@ export default function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="relative w-full pt-[96px] pb-0 bg-white overflow-hidden select-none border-none"
+      style={{ paddingTop: 'var(--section-top, 96px)' }}
+      className="relative w-full pb-0 bg-white overflow-hidden select-none border-none"
     >
       {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-[64px]">
+      <div
+        style={{ paddingBottom: 'var(--header-to-content, 64px)' }}
+        className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
+      >
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
           <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
             PEOPLE I&apos;VE WORKED WITH
