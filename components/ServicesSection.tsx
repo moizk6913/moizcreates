@@ -139,7 +139,7 @@ export default function ServicesSection({ onOpenCase }: ServicesSectionProps) {
       </div>
 
       {/* 2. EDGE-ANCHORED RESPONSIVE ROWS (Pure canvas background, kinetic magnetic typography) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-2 sm:space-y-3">
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
         {SERVICES.map((item, index) => {
           const isHovered = hoveredIndex === index;
           const isAnyHovered = hoveredIndex !== null;
@@ -158,7 +158,11 @@ export default function ServicesSection({ onOpenCase }: ServicesSectionProps) {
                   onOpenCase(item.projectId);
                 }
               }}
-              className={`w-full flex flex-col lg:flex-row lg:items-center lg:justify-between py-3 sm:py-4 px-4 sm:px-6 md:px-8 border-none bg-transparent transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer group select-none ${
+              style={{
+                paddingTop: 'var(--service-row-padding, 24px)',
+                paddingBottom: 'var(--service-row-padding, 24px)',
+              }}
+              className={`w-full flex flex-col lg:flex-row lg:items-center lg:justify-between px-4 sm:px-6 md:px-8 border-b border-black/[0.08] last:border-b-0 bg-transparent transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer group select-none ${
                 isDimmed ? 'opacity-30' : 'opacity-100'
               }`}
             >

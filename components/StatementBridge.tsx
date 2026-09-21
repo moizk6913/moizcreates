@@ -83,7 +83,10 @@ export default function StatementBridge() {
       className="w-full bg-white relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
     >
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center">
-        <h2 className="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-tight leading-[1.18] text-black flex flex-col items-center justify-center gap-2 sm:gap-4">
+        <h2
+          style={{ gap: 'var(--statement-line-gap, 24px)' }}
+          className="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-tight leading-[1.25] text-black flex flex-col items-center justify-center"
+        >
           
           <span className="overflow-hidden block py-1 sm:py-0.5">
             <span className="statement-line block will-change-transform">
