@@ -41,10 +41,10 @@ export default function FaqSection() {
   return (
     <section
       id="faq"
-      className="w-full pt-10 sm:pt-14 md:pt-18 pb-12 sm:pb-16 md:pb-20 bg-white overflow-hidden select-none border-none relative"
+      className="w-full pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-36 md:pb-48 bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge) */}
-      <div className="w-full pb-6 sm:pb-8 md:pb-10 overflow-hidden">
+      <div className="w-full pb-12 sm:pb-16 md:pb-20 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             FREQUENTLY ASKED — FREQUENTLY ASKED — FREQUENTLY ASKED —
@@ -56,7 +56,7 @@ export default function FaqSection() {
       </div>
 
       {/* 2. EDGE-ANCHORED ACCORDION ROWS (Stuck strictly to 68px/100px margins, no max-w clamp on zoom out) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-1.5 sm:space-y-2 md:space-y-2.5">
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-3 sm:space-y-4">
         {FAQS.map((faq, idx) => {
           const isOpen = openIdx === idx;
 

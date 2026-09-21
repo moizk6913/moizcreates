@@ -163,7 +163,7 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
       id="services"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => setHoveredIndex(null)}
-      className="w-full pt-10 sm:pt-14 md:pt-18 pb-12 sm:pb-16 md:pb-20 bg-white overflow-hidden select-none border-none relative"
+      className="w-full pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-36 md:pb-48 bg-white overflow-hidden select-none border-none relative"
     >
       {/* Floating Curated Visual Follower (Active on desktop, pure zero-color background) */}
       <div
@@ -200,7 +200,7 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
       </div>
 
       {/* 1. GIANT RUNNING HEADER (WHAT I DO) */}
-      <div className="w-full pb-6 sm:pb-8 md:pb-10 overflow-hidden">
+      <div className="w-full pb-12 sm:pb-16 md:pb-20 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             WHAT I DO — WHAT I DO — WHAT I DO — WHAT I DO —
@@ -212,7 +212,7 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
       </div>
 
       {/* 2. EDGE-ANCHORED RESPONSIVE ROWS (Pure canvas background, kinetic magnetic typography) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-1 sm:space-y-2">
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-3 sm:space-y-4">
         {SERVICES.map((item, index) => {
           const isHovered = hoveredIndex === index;
           const isAnyHovered = hoveredIndex !== null;

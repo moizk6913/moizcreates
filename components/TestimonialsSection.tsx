@@ -82,10 +82,10 @@ export default function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="relative w-full pt-10 sm:pt-14 md:pt-18 pb-12 sm:pb-16 md:pb-20 bg-white overflow-hidden select-none border-none"
+      className="relative w-full pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-36 md:pb-48 bg-white overflow-hidden select-none border-none"
     >
       {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Zero Lines) */}
-      <div className="w-full pb-6 sm:pb-8 md:pb-10 overflow-hidden">
+      <div className="w-full pb-12 sm:pb-16 md:pb-20 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
@@ -97,7 +97,7 @@ export default function TestimonialsSection() {
       </div>
 
       {/* 2. DUAL-LANE KINETIC FLOATING MARQUEE TRACKS (Lane 1 Left, Lane 2 Right, Auto-pause on hover) */}
-      <div className="w-full space-y-3 sm:space-y-4 relative overflow-hidden">
+      <div className="w-full space-y-6 sm:space-y-8 relative overflow-hidden">
         {/* Soft edge blur masks for Apple-grade aesthetic */}
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-r from-white to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-l from-white to-transparent" />
