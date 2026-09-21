@@ -28,53 +28,21 @@ interface CloudItem {
 // CALIBRATED SACRED TYPOGRAPHIC CORE: All cards are placed outside |x| >= 18vw or |y| >= 16vh
 // Central zone is 100% UNTOUCHED so "MOIZ KHAN" commands the screen without overlap!
 const initialCloudData: CloudItem[] = [
-  // Ring 1: Mid Orbit (Framing the central title gracefully)
-  { id: 'card-1', w: 82, h: 104, x: -24, y: -15, rot: -3, z: 12, depth: 1.3, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-2', w: 96, h: 56, x: 24, y: -15, rot: 4, z: 14, depth: 1.4, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-3', w: 78, h: 96, x: 26, y: 14, rot: -4, z: 13, depth: 1.3, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-4', w: 90, h: 58, x: -25, y: 15, rot: 5, z: 11, depth: 1.3, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-5', w: 68, h: 92, x: -8, y: -26, rot: -2, z: 10, depth: 1.2, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-6', w: 64, h: 64, x: 8, y: 25, rot: 3, z: 11, depth: 1.2, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-7', w: 88, h: 52, x: 18, y: -24, rot: -5, z: 12, depth: 1.3, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-8', w: 72, h: 72, x: -18, y: 25, rot: 4, z: 10, depth: 1.2, img: '/assets/logo.png' },
+  // West Cluster (Left Wing — framing the central title with generous whitespace)
+  { id: 'card-1', w: 100, h: 125, x: -28, y: -20, rot: -3, z: 12, depth: 1.2, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-2', w: 110, h: 80, x: -36, y: -2, rot: 4, z: 11, depth: 1.1, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-3', w: 95, h: 120, x: -26, y: 18, rot: -4, z: 12, depth: 1.2, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-4', w: 85, h: 105, x: -44, y: -22, rot: 5, z: 8, depth: 0.9, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-5', w: 90, h: 65, x: -42, y: 22, rot: -3, z: 8, depth: 0.9, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-6', w: 80, h: 80, x: -14, y: 27, rot: 3, z: 10, depth: 1.0, img: '/assets/logo.png' },
 
-  // Ring 2: Mid Constellation Ring (Medium cards, depth 0.9 - 1.1)
-  { id: 'card-9', w: 56, h: 76, x: -32, y: -8, rot: -4, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-10', w: 74, h: 46, x: 33, y: -8, rot: 5, z: 8, depth: 1.1, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-11', w: 54, h: 70, x: -30, y: 16, rot: 3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-12', w: 72, h: 44, x: 31, y: 16, rot: -3, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-13', w: 52, h: 68, x: -12, y: -32, rot: 5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-14', w: 70, h: 42, x: 12, y: -32, rot: -4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-15', w: 50, h: 66, x: -10, y: 31, rot: -5, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-16', w: 68, h: 40, x: 10, y: 32, rot: 4, z: 6, depth: 0.9, img: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-17', w: 48, h: 48, x: 36, y: 4, rot: -6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-18', w: 50, h: 65, x: -36, y: 3, rot: 6, z: 7, depth: 1.0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=600&auto=format&fit=crop' },
-
-  // Ring 3: Expansive Galaxy Arms (Outer cards, depth 0.75 - 0.85)
-  { id: 'card-19', w: 46, h: 60, x: -40, y: -18, rot: -5, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-20', w: 66, h: 38, x: 40, y: -18, rot: 4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-21', w: 45, h: 58, x: -38, y: 22, rot: 5, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-22', w: 64, h: 36, x: 38, y: 22, rot: -4, z: 5, depth: 0.8, img: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-23', w: 44, h: 56, x: -24, y: -34, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-24', w: 62, h: 36, x: 24, y: -34, rot: -5, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-25', w: 45, h: 58, x: -24, y: 34, rot: -3, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-26', w: 60, h: 38, x: 24, y: 34, rot: 4, z: 4, depth: 0.75, img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-27', w: 42, h: 42, x: 44, y: -6, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-28', w: 42, h: 54, x: -44, y: -6, rot: 5, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-29', w: 44, h: 44, x: 43, y: 13, rot: 3, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-30', w: 44, h: 54, x: -43, y: 12, rot: -4, z: 4, depth: 0.8, img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=600&auto=format&fit=crop' },
-
-  // Ring 4: Micro Satellite Stars (Deep space, depth 0.5 - 0.65)
-  { id: 'card-31', w: 32, h: 40, x: -47, y: -26, rot: 6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-32', w: 40, h: 26, x: 47, y: -25, rot: -6, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-33', w: 30, h: 38, x: -46, y: 28, rot: -5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-34', w: 38, h: 24, x: 46, y: 28, rot: 5, z: 3, depth: 0.6, img: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-35', w: 28, h: 36, x: -33, y: -38, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-36', w: 36, h: 24, x: 33, y: -38, rot: 4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-37', w: 28, h: 36, x: -32, y: 38, rot: 5, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-38', w: 36, h: 24, x: 32, y: 38, rot: -4, z: 2, depth: 0.55, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-39', w: 26, h: 34, x: -2, y: -38, rot: 3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
-  { id: 'card-40', w: 34, h: 22, x: 2, y: 38, rot: -3, z: 2, depth: 0.5, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
+  // East Cluster (Right Wing — framing the central title with generous whitespace)
+  { id: 'card-7', w: 110, h: 75, x: 28, y: -19, rot: 4, z: 12, depth: 1.2, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-8', w: 95, h: 120, x: 36, y: 0, rot: -4, z: 11, depth: 1.1, img: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-9', w: 105, h: 75, x: 27, y: 18, rot: 3, z: 12, depth: 1.2, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-10', w: 90, h: 115, x: 44, y: -20, rot: -5, z: 8, depth: 0.9, img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-11', w: 95, h: 70, x: 42, y: 22, rot: 4, z: 8, depth: 0.9, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop' },
+  { id: 'card-12', w: 85, h: 105, x: 14, y: -27, rot: -3, z: 10, depth: 1.0, img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop' },
 ];
 
 export default function HeroScatter({ onOpenCase }: HeroScatterProps) {

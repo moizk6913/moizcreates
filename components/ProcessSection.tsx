@@ -193,15 +193,15 @@ export default function ProcessSection() {
       id="approach"
       className="w-full pt-[96px] pb-[96px] bg-white overflow-hidden select-none border-none relative"
     >
-      {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge, Zero Lines) */}
-      <div className="w-full pb-[64px] overflow-hidden">
-        <div className="flex items-center w-max animate-marquee-left">
-          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            HOW I GET THERE — HOW I GET THERE — HOW I GET THERE — HOW I GET THERE —
-          </div>
-          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            HOW I GET THERE — HOW I GET THERE — HOW I GET THERE — HOW I GET THERE —
-          </div>
+      {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-[64px]">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
+          <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
+            HOW I GET THERE
+          </h2>
+          <span className="font-mono text-xs sm:text-sm font-semibold text-neutral-400 uppercase tracking-[0.2em]">
+            02 / APPROACH
+          </span>
         </div>
       </div>
 

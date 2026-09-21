@@ -76,76 +76,36 @@ function StarRating() {
 
 export default function TestimonialsSection() {
   // Duplicate array for seamless infinite looping
-  const track1 = [...TESTIMONIALS, ...TESTIMONIALS];
-  const track2 = [...TESTIMONIALS.slice().reverse(), ...TESTIMONIALS.slice().reverse()];
+  const track = [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS];
 
   return (
     <section
       id="testimonials"
       className="relative w-full pt-[96px] pb-0 bg-white overflow-hidden select-none border-none"
     >
-      {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Zero Lines) */}
-      <div className="w-full pb-[64px] overflow-hidden">
-        <div className="flex items-center w-max animate-marquee-left">
-          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
-          </div>
-          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
-          </div>
+      {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-[64px]">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
+          <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
+            PEOPLE I&apos;VE WORKED WITH
+          </h2>
+          <span className="font-mono text-xs sm:text-sm font-semibold text-neutral-400 uppercase tracking-[0.2em]">
+            03 / ENDORSEMENTS
+          </span>
         </div>
       </div>
 
-      {/* 2. DUAL-LANE KINETIC FLOATING MARQUEE TRACKS (Gap between rows: 24px) */}
-      <div className="w-full space-y-[24px] relative overflow-hidden">
+      {/* 2. SINGLE KINETIC FLOATING MARQUEE TRACK (Calm, Pure, Auto-pause on hover) */}
+      <div className="w-full relative overflow-hidden">
         {/* Soft edge blur masks for Apple-grade aesthetic */}
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-r from-white to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-l from-white to-transparent" />
 
-        {/* Track 1: Gliding Left */}
+        {/* Track: Gliding Left */}
         <div className="flex items-center w-max animate-marquee-left pause-on-hover py-1">
-          {track1.map((t, idx) => (
+          {track.map((t, idx) => (
             <div
-              key={`track-1-${t.id}-${idx}`}
-              className="w-[300px] sm:w-[380px] md:w-[440px] lg:w-[480px] shrink-0 mx-2.5 sm:mx-3 bg-white apple-widget-md rounded-[32px] sm:rounded-[36px] overflow-hidden p-[28px] flex flex-col justify-between space-y-4 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
-            >
-              <div className="space-y-2">
-                <StarRating />
-                <p className="font-sans text-xs sm:text-sm md:text-[14px] text-neutral-800 leading-snug font-normal">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 pt-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={t.avatar}
-                  alt={t.name}
-                  className="w-10 h-10 apple-circle rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
-                />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h5 className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-wider truncate">
-                      {t.name}
-                    </h5>
-                    <span className="w-3.5 h-3.5 apple-circle rounded-full bg-black text-white text-[8px] flex items-center justify-center font-bold shrink-0">
-                      ✓
-                    </span>
-                  </div>
-                  <p className="font-sans text-[11px] text-neutral-500 truncate">
-                    {t.role}, {t.company}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Track 2: Gliding Right (Opposite kinetic direction) */}
-        <div className="flex items-center w-max animate-marquee-right pause-on-hover py-1">
-          {track2.map((t, idx) => (
-            <div
-              key={`track-2-${t.id}-${idx}`}
+              key={`track-${t.id}-${idx}`}
               className="w-[300px] sm:w-[380px] md:w-[440px] lg:w-[480px] shrink-0 mx-2.5 sm:mx-3 bg-white apple-widget-md rounded-[32px] sm:rounded-[36px] overflow-hidden p-[28px] flex flex-col justify-between space-y-4 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
               <div className="space-y-2">
