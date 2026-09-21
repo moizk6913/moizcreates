@@ -131,55 +131,32 @@ function DeliverDoodle({ className = '' }: { className?: string }) {
 
 interface ProcessPhase {
   step: string;
-  phaseTag: string;
   title: string;
   subtitle: string;
   description: string;
-  deliverables: string[];
 }
 
 const PHASES: ProcessPhase[] = [
   {
     step: '01',
-    phaseTag: 'PHASE 01 // DISCOVERY',
     title: 'RESEARCH',
     subtitle: 'Strategic Immersion & Audience Architecture',
     description:
       'Deep exploration into brand positioning, market whitespace, and audience psychology establishes an airtight strategic foundation before any visual exploration begins.',
-    deliverables: [
-      'Visual Audit',
-      'Audience Architecture',
-      'Cultural Forecast',
-      'Creative Brief',
-    ],
   },
   {
     step: '02',
-    phaseTag: 'PHASE 02 // SYNTHESIS',
     title: 'DESIGN',
     subtitle: 'Visual Architecture & Cross-Media Prototyping',
     description:
       'Concepts take form through rigorous typographic systems, tactile materiality, layout experimentation, and rapid iterative directorial sprints.',
-    deliverables: [
-      'Brand Identity',
-      'Editorial Systems',
-      'Motion Prototyping',
-      'Creative Direction',
-    ],
   },
   {
     step: '03',
-    phaseTag: 'PHASE 03 // DEPLOYMENT',
     title: 'DELIVER',
     subtitle: 'Production Mastering & Asset Handover',
     description:
       'Flawless production-grade master files prepared for print and screen, supported by detailed design guidelines, asset libraries, and hands-on rollout support.',
-    deliverables: [
-      'Production Assets',
-      'Style Guidelines',
-      'Packaging Specs',
-      'Rollout Support',
-    ],
   },
 ];
 
@@ -234,7 +211,7 @@ export default function ProcessSection() {
         </div>
       </div>
 
-      {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Borders, Zero Beige Boxes) */}
+      {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Clutter) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16 lg:gap-14 xl:gap-20">
           {PHASES.map((phase, idx) => (
@@ -243,7 +220,7 @@ export default function ProcessSection() {
               ref={(el) => {
                 columnsRef.current[idx] = el;
               }}
-              className="flex flex-col justify-between space-y-8 sm:space-y-10 group cursor-default border-none bg-transparent"
+              className="flex flex-col space-y-6 sm:space-y-8 group cursor-default border-none bg-transparent"
             >
               {/* Top Row: Animated Hand-drawn Doodle Icon + Phase Number */}
               <div className="flex items-center justify-between">
@@ -264,44 +241,19 @@ export default function ProcessSection() {
                 </span>
               </div>
 
-              {/* Middle Body: Phase Tag, Title, Subtitle, Narrative */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
-                  <span className="font-mono text-[11px] sm:text-xs font-bold tracking-widest text-neutral-400 uppercase">
-                    {phase.phaseTag}
-                  </span>
-                </div>
-
+              {/* Body: Title, Subtitle, Narrative */}
+              <div className="space-y-3 sm:space-y-4">
                 <h3 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black leading-none group-hover:translate-x-1.5 transition-transform duration-300">
                   {phase.title}
                 </h3>
 
-                <p className="font-mono text-xs sm:text-sm text-neutral-500 uppercase tracking-wider font-semibold pt-1">
+                <p className="font-mono text-xs sm:text-sm text-neutral-500 uppercase tracking-wider font-semibold">
                   {phase.subtitle}
                 </p>
 
-                <p className="font-sans text-sm sm:text-base md:text-[17px] text-neutral-600 leading-relaxed font-normal pt-2">
+                <p className="font-sans text-sm sm:text-base md:text-[17px] text-neutral-600 leading-relaxed font-normal pt-1">
                   {phase.description}
                 </p>
-              </div>
-
-              {/* Bottom: Clean Line-Free Deliverables with Doodle Star Glyphs (Zero Boxes, Zero Pills) */}
-              <div className="pt-2 space-y-3">
-                <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-bold block">
-                  CORE DELIVERABLES
-                </span>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-                  {phase.deliverables.map((d) => (
-                    <span
-                      key={d}
-                      className="font-mono text-xs font-medium tracking-wide text-neutral-800 uppercase flex items-center gap-1.5"
-                    >
-                      <span className="text-black text-xs">✦</span>
-                      <span>{d}</span>
-                    </span>
-                  ))}
-                </div>
               </div>
             </div>
           ))}
