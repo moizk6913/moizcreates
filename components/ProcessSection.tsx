@@ -134,6 +134,7 @@ interface ProcessPhase {
   title: string;
   subtitle: string;
   description: string;
+  deliverables: string[];
 }
 
 const PHASES: ProcessPhase[] = [
@@ -143,6 +144,12 @@ const PHASES: ProcessPhase[] = [
     subtitle: 'Strategic Immersion & Audience Architecture',
     description:
       'Deep exploration into brand positioning, market whitespace, and audience psychology establishes an airtight strategic foundation before any visual exploration begins.',
+    deliverables: [
+      'Visual Audit',
+      'Audience Architecture',
+      'Cultural Forecast',
+      'Creative Brief',
+    ],
   },
   {
     step: '02',
@@ -150,6 +157,12 @@ const PHASES: ProcessPhase[] = [
     subtitle: 'Visual Architecture & Cross-Media Prototyping',
     description:
       'Concepts take form through rigorous typographic systems, tactile materiality, layout experimentation, and rapid iterative directorial sprints.',
+    deliverables: [
+      'Brand Identity',
+      'Editorial Systems',
+      'Motion Prototyping',
+      'Creative Direction',
+    ],
   },
   {
     step: '03',
@@ -157,6 +170,12 @@ const PHASES: ProcessPhase[] = [
     subtitle: 'Production Mastering & Asset Handover',
     description:
       'Flawless production-grade master files prepared for print and screen, supported by detailed design guidelines, asset libraries, and hands-on rollout support.',
+    deliverables: [
+      'Production Assets',
+      'Style Guidelines',
+      'Packaging Specs',
+      'Rollout Support',
+    ],
   },
 ];
 
@@ -211,7 +230,7 @@ export default function ProcessSection() {
         </div>
       </div>
 
-      {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Clutter) */}
+      {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Borders, Zero Clutter) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16 lg:gap-14 xl:gap-20">
           {PHASES.map((phase, idx) => (
@@ -241,7 +260,7 @@ export default function ProcessSection() {
                 </span>
               </div>
 
-              {/* Body: Title, Subtitle, Narrative */}
+              {/* Body: Title, Subtitle, Narrative, Deliverables */}
               <div className="space-y-3 sm:space-y-4">
                 <h3 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black leading-none group-hover:translate-x-1.5 transition-transform duration-300">
                   {phase.title}
@@ -254,6 +273,19 @@ export default function ProcessSection() {
                 <p className="font-sans text-sm sm:text-base md:text-[17px] text-neutral-600 leading-relaxed font-normal pt-1">
                   {phase.description}
                 </p>
+
+                {/* Deliverables with Doodle Star Glyphs (NO "Core Deliverables" label, NO "Phase" line, NO boxes, NO lines) */}
+                <div className="flex flex-wrap gap-x-4 gap-y-2 pt-3">
+                  {phase.deliverables.map((d) => (
+                    <span
+                      key={d}
+                      className="font-mono text-xs font-medium tracking-wide text-neutral-800 uppercase flex items-center gap-1.5"
+                    >
+                      <span className="text-black text-xs">✦</span>
+                      <span>{d}</span>
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
