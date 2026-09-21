@@ -9,6 +9,126 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+// Doodle Icon 1: Research & Discovery (Hand-drawn Starburst Eye with Orbiting Spark)
+function ResearchDoodle({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Hand-drawn organic eye contour */}
+      <path
+        d="M6 32C14 18 34 16 50 24C56 27 59 32 58 33C50 46 30 48 14 40C8 37 5 33 6 32Z"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Hand-drawn iris circle */}
+      <circle
+        cx="32"
+        cy="32"
+        r="9.5"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Center pupil dot */}
+      <circle cx="32" cy="32" r="3.5" fill="currentColor" />
+      {/* Playful doodle twinkle spark top right */}
+      <path
+        d="M48 10V18M44 14H52"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      {/* Little doodle accent bottom left */}
+      <path
+        d="M12 48L16 52M16 48L12 52"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      {/* Radiating curved glance mark */}
+      <path
+        d="M32 14C34 11 38 10 40 10"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Doodle Icon 2: Design & Synthesis (Hand-drawn Fluid Scribble Loop + 4-Point Doodle Star)
+function DesignDoodle({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Hand-drawn fluid continuous loop */}
+      <path
+        d="M16 42C10 38 8 28 14 20C20 12 30 16 34 24L38 32C42 40 50 44 54 38C58 32 54 20 44 20C38 20 32 26 30 32"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Hand-drawn 4-point sparkle star */}
+      <path
+        d="M46 8C47 13 51 17 56 18C51 19 47 23 46 28C45 23 41 19 36 18C41 17 45 13 46 8Z"
+        fill="currentColor"
+        strokeWidth="1.5"
+      />
+      {/* Small playful doodle dots */}
+      <circle cx="12" cy="14" r="2" fill="currentColor" />
+      <circle cx="20" cy="52" r="2.2" fill="currentColor" />
+      <path
+        d="M50 48L54 52"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Doodle Icon 3: Deliver & Deployment (Hand-drawn Starburst Spark & Orbit Ring)
+function DeliverDoodle({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Hand-drawn organic 8-point burst star */}
+      <path
+        d="M32 6C34 18 42 26 54 28C42 30 34 38 32 50C30 38 22 30 10 28C22 26 30 18 32 6Z"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Center radiant spark */}
+      <circle cx="32" cy="28" r="3.5" fill="currentColor" />
+      {/* Diagonal doodle bursts */}
+      <path
+        d="M16 12L21 17M48 44L43 39M48 12L43 17M16 44L21 39"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      {/* Orbiting hand-drawn curved smile arc */}
+      <path
+        d="M18 54C26 58 38 58 46 54"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 interface ProcessPhase {
   step: string;
   phaseTag: string;
@@ -27,10 +147,10 @@ const PHASES: ProcessPhase[] = [
     description:
       'Deep exploration into brand positioning, market whitespace, and audience psychology establishes an airtight strategic foundation before any visual exploration begins.',
     deliverables: [
-      'VISUAL AUDIT',
-      'AUDIENCE ARCHITECTURE',
-      'CULTURAL FORECAST',
-      'CREATIVE BRIEF',
+      'Visual Audit',
+      'Audience Architecture',
+      'Cultural Forecast',
+      'Creative Brief',
     ],
   },
   {
@@ -41,10 +161,10 @@ const PHASES: ProcessPhase[] = [
     description:
       'Concepts take form through rigorous typographic systems, tactile materiality, layout experimentation, and rapid iterative directorial sprints.',
     deliverables: [
-      'BRAND IDENTITY',
-      'EDITORIAL SYSTEMS',
-      'MOTION PROTOTYPING',
-      'CREATIVE DIRECTION',
+      'Brand Identity',
+      'Editorial Systems',
+      'Motion Prototyping',
+      'Creative Direction',
     ],
   },
   {
@@ -55,26 +175,26 @@ const PHASES: ProcessPhase[] = [
     description:
       'Flawless production-grade master files prepared for print and screen, supported by detailed design guidelines, asset libraries, and hands-on rollout support.',
     deliverables: [
-      'PRODUCTION ASSETS',
-      'STYLE GUIDELINES',
-      'PACKAGING SPECS',
-      'ROLLOUT SUPPORT',
+      'Production Assets',
+      'Style Guidelines',
+      'Packaging Specs',
+      'Rollout Support',
     ],
   },
 ];
 
 export default function ProcessSection() {
   const containerRef = useRef<HTMLElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const columnsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useGSAP(
     () => {
       if (!containerRef.current) return;
-      const cards = cardsRef.current.filter(Boolean) as HTMLDivElement[];
-      if (cards.length === 0) return;
+      const cols = columnsRef.current.filter(Boolean) as HTMLDivElement[];
+      if (cols.length === 0) return;
 
       gsap.fromTo(
-        cards,
+        cols,
         {
           y: 40,
           opacity: 0,
@@ -102,8 +222,8 @@ export default function ProcessSection() {
       id="approach"
       className="w-full py-16 sm:py-24 md:py-32 bg-white overflow-hidden select-none border-none relative"
     >
-      {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge) */}
-      <div className="w-full pb-10 sm:pb-14 md:pb-20 overflow-hidden">
+      {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge, Zero Lines) */}
+      <div className="w-full pb-12 sm:pb-16 md:pb-24 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             OUR APPROACH — OUR APPROACH — OUR APPROACH — OUR APPROACH —
@@ -114,52 +234,71 @@ export default function ProcessSection() {
         </div>
       </div>
 
-      {/* 2. APPLE-GRADE ARCHITECTURAL PROCESS BENTO (Edge-Anchored 68px/100px Grid) */}
+      {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Borders, Zero Beige Boxes) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 xl:gap-10 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16 lg:gap-14 xl:gap-20">
           {PHASES.map((phase, idx) => (
             <div
               key={phase.step}
               ref={(el) => {
-                cardsRef.current[idx] = el;
+                columnsRef.current[idx] = el;
               }}
-              className="apple-widget-lg rounded-[48px] lg:rounded-[52px] overflow-hidden bg-[#faf9f6] p-8 sm:p-10 md:p-12 border border-neutral-200/70 flex flex-col justify-between space-y-8 hover:shadow-[0_16px_40px_rgba(0,0,0,0.05)] hover:-translate-y-1.5 transition-all duration-500 group"
+              className="flex flex-col justify-between space-y-8 sm:space-y-10 group cursor-default border-none bg-transparent"
             >
-              {/* Card Top Row: Phase Tag & Step Indicator */}
-              <div className="flex items-center justify-between border-b border-neutral-200/60 pb-5">
-                <span className="font-mono text-[11px] sm:text-xs font-bold tracking-widest text-neutral-400 group-hover:text-black transition-colors uppercase">
-                  {phase.phaseTag}
-                </span>
-                <span className="font-mono text-xs font-bold px-3 py-1 apple-pill rounded-full bg-white border border-neutral-200/80 text-black shadow-2xs">
+              {/* Top Row: Animated Hand-drawn Doodle Icon + Phase Number */}
+              <div className="flex items-center justify-between">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 text-black transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-115">
+                  {idx === 0 && (
+                    <ResearchDoodle className="w-full h-full text-black group-hover:rotate-12 transition-transform duration-500" />
+                  )}
+                  {idx === 1 && (
+                    <DesignDoodle className="w-full h-full text-black group-hover:-rotate-12 transition-transform duration-500" />
+                  )}
+                  {idx === 2 && (
+                    <DeliverDoodle className="w-full h-full text-black group-hover:rotate-45 transition-transform duration-600" />
+                  )}
+                </div>
+
+                <span className="font-mono text-3xl sm:text-4xl md:text-5xl font-black text-neutral-300 group-hover:text-black transition-colors duration-300">
                   {phase.step}
                 </span>
               </div>
 
-              {/* Card Body: Title, Subtitle, Narrative */}
-              <div className="space-y-3 flex-1">
-                <h3 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black group-hover:text-neutral-500 transition-colors leading-none">
+              {/* Middle Body: Phase Tag, Title, Subtitle, Narrative */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                  <span className="font-mono text-[11px] sm:text-xs font-bold tracking-widest text-neutral-400 uppercase">
+                    {phase.phaseTag}
+                  </span>
+                </div>
+
+                <h3 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black leading-none group-hover:translate-x-1.5 transition-transform duration-300">
                   {phase.title}
                 </h3>
-                <p className="font-mono text-xs text-neutral-500 uppercase tracking-wide font-medium">
+
+                <p className="font-mono text-xs sm:text-sm text-neutral-500 uppercase tracking-wider font-semibold pt-1">
                   {phase.subtitle}
                 </p>
-                <p className="font-sans text-sm sm:text-base text-neutral-600 leading-relaxed font-normal pt-2">
+
+                <p className="font-sans text-sm sm:text-base md:text-[17px] text-neutral-600 leading-relaxed font-normal pt-2">
                   {phase.description}
                 </p>
               </div>
 
-              {/* Card Bottom: Deliverables / Milestones Matrix */}
-              <div className="pt-6 border-t border-neutral-200/60 space-y-3">
+              {/* Bottom: Clean Line-Free Deliverables with Doodle Star Glyphs (Zero Boxes, Zero Pills) */}
+              <div className="pt-2 space-y-3">
                 <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-bold block">
                   CORE DELIVERABLES
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
                   {phase.deliverables.map((d) => (
                     <span
                       key={d}
-                      className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-wider text-neutral-800 bg-white px-3 py-1.5 rounded-full border border-neutral-200/80 uppercase shadow-2xs group-hover:border-neutral-300 transition-colors"
+                      className="font-mono text-xs font-medium tracking-wide text-neutral-800 uppercase flex items-center gap-1.5"
                     >
-                      {d}
+                      <span className="text-black text-xs">✦</span>
+                      <span>{d}</span>
                     </span>
                   ))}
                 </div>
