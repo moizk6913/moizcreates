@@ -191,15 +191,15 @@ export default function ProcessSection() {
     <section
       ref={containerRef}
       id="approach"
-      className="w-full pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-36 md:pb-48 bg-white overflow-hidden select-none border-none relative"
+      className="w-full pt-28 sm:pt-36 md:pt-48 pb-36 sm:pb-48 md:pb-64 bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge, Zero Lines) */}
-      <div className="w-full pb-12 sm:pb-16 md:pb-24 overflow-hidden">
+      <div className="w-full pb-16 sm:pb-24 md:pb-32 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             HOW I GET THERE — HOW I GET THERE — HOW I GET THERE — HOW I GET THERE —
           </div>
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             HOW I GET THERE — HOW I GET THERE — HOW I GET THERE — HOW I GET THERE —
           </div>
         </div>
@@ -207,18 +207,18 @@ export default function ProcessSection() {
 
       {/* 2. COMPLETELY BOX-FREE & LINE-FREE EDITORIAL PROCESS (Animated Doodles, Zero Borders, Zero Clutter) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16 lg:gap-16 xl:gap-24">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-14 sm:gap-18 lg:gap-16 xl:gap-24">
           {PHASES.map((phase, idx) => (
             <div
               key={phase.step}
               ref={(el) => {
                 columnsRef.current[idx] = el;
               }}
-              className="flex flex-col space-y-6 sm:space-y-8 group cursor-default border-none bg-transparent"
+              className="flex flex-col space-y-8 sm:space-y-10 group cursor-default border-none bg-transparent"
             >
               {/* Top Row: Animated Hand-drawn Doodle Icon + Phase Number */}
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 text-black transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-115">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 text-black transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-115">
                   {idx === 0 && (
                     <ResearchDoodle className="w-full h-full text-black group-hover:rotate-12 transition-transform duration-500" />
                   )}
@@ -236,12 +236,12 @@ export default function ProcessSection() {
               </div>
 
               {/* Body: Title & Narrative */}
-              <div className="space-y-3 sm:space-y-4">
-                <h3 className="font-display font-black text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight text-black leading-tight group-hover:translate-x-1.5 transition-transform duration-300">
+              <div className="space-y-4 sm:space-y-5 pt-1">
+                <h3 className="font-display font-black text-2xl sm:text-3xl md:text-4xl lg:text-[38px] uppercase tracking-tight text-black leading-tight group-hover:translate-x-1.5 transition-transform duration-300">
                   {phase.title}
                 </h3>
 
-                <p className="font-sans text-sm sm:text-base md:text-[17px] text-neutral-600 leading-relaxed font-normal pt-1">
+                <p className="font-sans text-base sm:text-lg md:text-[19px] text-neutral-600 leading-relaxed font-normal pt-1 max-w-sm">
                   {phase.description}
                 </p>
               </div>

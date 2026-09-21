@@ -82,28 +82,28 @@ export default function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="relative w-full pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-36 md:pb-48 bg-white overflow-hidden select-none border-none"
+      className="relative w-full pt-28 sm:pt-36 md:pt-48 pb-36 sm:pb-48 md:pb-64 bg-white overflow-hidden select-none border-none"
     >
       {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Zero Lines) */}
-      <div className="w-full pb-12 sm:pb-16 md:pb-20 overflow-hidden">
+      <div className="w-full pb-16 sm:pb-24 md:pb-32 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
           </div>
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
           </div>
         </div>
       </div>
 
       {/* 2. DUAL-LANE KINETIC FLOATING MARQUEE TRACKS (Lane 1 Left, Lane 2 Right, Auto-pause on hover) */}
-      <div className="w-full space-y-6 sm:space-y-8 relative overflow-hidden">
+      <div className="w-full space-y-8 sm:space-y-12 relative overflow-hidden">
         {/* Soft edge blur masks for Apple-grade aesthetic */}
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-r from-white to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-l from-white to-transparent" />
 
         {/* Track 1: Gliding Left */}
-        <div className="flex items-center w-max animate-marquee-left pause-on-hover py-3 sm:py-4">
+        <div className="flex items-center w-max animate-marquee-left pause-on-hover py-4 sm:py-6">
           {track1.map((t, idx) => (
             <div
               key={`track-1-${t.id}-${idx}`}

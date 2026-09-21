@@ -76,7 +76,7 @@ export default function StatementBridge() {
     <section
       ref={sectionRef}
       id="manifesto-bridge"
-      className="w-full pt-24 sm:pt-32 md:pt-40 pb-20 sm:pb-28 md:pb-36 bg-white relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
+      className="w-full pt-28 sm:pt-36 md:pt-48 pb-24 sm:pb-32 md:pb-44 bg-white relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
     >
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center">
         <h2 className="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-tight leading-[1.18] text-black flex flex-col items-center justify-center gap-2 sm:gap-4">

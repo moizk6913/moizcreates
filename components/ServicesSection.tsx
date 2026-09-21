@@ -163,7 +163,7 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
       id="services"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => setHoveredIndex(null)}
-      className="w-full pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-36 md:pb-48 bg-white overflow-hidden select-none border-none relative"
+      className="w-full pt-28 sm:pt-36 md:pt-48 pb-36 sm:pb-48 md:pb-64 bg-white overflow-hidden select-none border-none relative"
     >
       {/* Floating Curated Visual Follower (Active on desktop, pure zero-color background) */}
       <div
@@ -200,19 +200,19 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
       </div>
 
       {/* 1. GIANT RUNNING HEADER (WHAT I DO) */}
-      <div className="w-full pb-12 sm:pb-16 md:pb-20 overflow-hidden">
+      <div className="w-full pb-16 sm:pb-24 md:pb-32 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             WHAT I DO — WHAT I DO — WHAT I DO — WHAT I DO —
           </div>
-          <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
+          <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             WHAT I DO — WHAT I DO — WHAT I DO — WHAT I DO —
           </div>
         </div>
       </div>
 
       {/* 2. EDGE-ANCHORED RESPONSIVE ROWS (Pure canvas background, kinetic magnetic typography) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-3 sm:space-y-4">
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-4 sm:space-y-6 md:space-y-8">
         {SERVICES.map((item, index) => {
           const isHovered = hoveredIndex === index;
           const isAnyHovered = hoveredIndex !== null;
@@ -230,7 +230,7 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
                   onOpenCase(item.projectId);
                 }
               }}
-              className={`w-full flex flex-col lg:flex-row lg:items-center lg:justify-between py-5 sm:py-6 md:py-7 px-4 sm:px-6 md:px-8 border-none bg-transparent transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer group select-none ${
+              className={`w-full flex flex-col lg:flex-row lg:items-center lg:justify-between py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-8 border-none bg-transparent transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer group select-none ${
                 isDimmed ? 'opacity-30' : 'opacity-100'
               }`}
             >

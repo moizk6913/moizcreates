@@ -41,7 +41,7 @@ export default function Contact() {
   return (
     <footer
       id="contact"
-      className="w-full pt-20 sm:pt-28 md:pt-36 pb-0 bg-white relative select-none border-none flex flex-col justify-between overflow-x-hidden"
+      className="w-full pt-28 sm:pt-36 md:pt-48 pb-0 bg-white relative select-none border-none flex flex-col justify-between overflow-x-hidden"
     >
       {/* MAIN ARTBOARD CONTAINER (Apple Ecosystem Pure Monochrome) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] flex-1 flex flex-col justify-between relative z-10 space-y-12 sm:space-y-16 md:space-y-20">
