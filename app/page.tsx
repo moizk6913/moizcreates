@@ -109,7 +109,10 @@ export default function Home() {
       <ClientsStrip />
 
       {/* Section 03: Services (01 Art Direction ... 05 Creative Strategy) */}
-      <ServicesSection />
+      <ServicesSection
+        userPhotos={userPhotos}
+        onOpenCase={setSelectedCase}
+      />
 
       {/* Section 04: Process / Approach (Research, Direct, Deliver with Star Glyphs) */}
       <ProcessSection />

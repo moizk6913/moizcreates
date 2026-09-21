@@ -75,19 +75,19 @@ export default function FaqSection() {
           return (
             <div
               key={faq.number}
-              className="w-full apple-widget-md rounded-[36px] sm:rounded-[42px] overflow-hidden transition-all duration-300 hover:bg-[#faf9f6]"
+              className="w-full bg-transparent transition-all duration-300"
             >
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
-                className="w-full py-6 sm:py-8 md:py-10 px-6 sm:px-10 md:px-12 flex items-center justify-between gap-6 text-left cursor-pointer group"
+                className="w-full py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-8 flex items-center justify-between gap-6 text-left cursor-pointer group"
               >
                 {/* Left: Number + Question */}
-                <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 min-w-0">
-                  <span className="font-mono text-base sm:text-lg md:text-2xl font-bold text-neutral-400 group-hover:text-black transition-colors shrink-0">
+                <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 min-w-0 transition-transform duration-300 group-hover:translate-x-2">
+                  <span className="font-mono text-base sm:text-lg md:text-2xl font-bold text-neutral-300 group-hover:text-black transition-colors shrink-0">
                     {faq.number}
                   </span>
-                  <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[34px] xl:text-[40px] tracking-tight uppercase text-black group-hover:text-neutral-500 transition-colors leading-tight">
+                  <h3 className="font-display font-black text-xl sm:text-2xl md:text-3xl lg:text-[34px] xl:text-[40px] tracking-tight uppercase text-black leading-tight">
                     {faq.question}
                   </h3>
                 </div>
