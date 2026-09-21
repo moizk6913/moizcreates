@@ -411,12 +411,12 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   }
 
   return (
-    <section id="work" className="w-full py-6 sm:py-8 md:py-12 bg-canvas overflow-hidden">
+    <section id="work" className="w-full pt-2 sm:pt-4 md:pt-6 pb-8 sm:pb-10 md:pb-14 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks */}
       <div className="w-full flex flex-col gap-0 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with generous vertical shadow clearance */}
         <div
-          className="w-full py-5 sm:py-7 md:py-8 overflow-hidden"
+          className="w-full pt-2 pb-3 sm:pb-4 md:pb-5 overflow-hidden"
           onMouseEnter={() => { if (window.matchMedia('(hover: hover)').matches) setIsRowOneHovered(true); }}
           onMouseLeave={() => setIsRowOneHovered(false)}
         >
@@ -430,7 +430,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
         {/* Lane 2: Slides Right - Fixed uniform height with generous vertical shadow clearance */}
         <div
-          className="w-full py-5 sm:py-7 md:py-8 overflow-hidden"
+          className="w-full pt-3 sm:pt-4 md:pt-5 pb-3 sm:pb-4 md:pb-5 overflow-hidden"
           onMouseEnter={() => { if (window.matchMedia('(hover: hover)').matches) setIsRowTwoHovered(true); }}
           onMouseLeave={() => setIsRowTwoHovered(false)}
         >
