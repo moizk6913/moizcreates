@@ -41,10 +41,10 @@ export default function Contact() {
   return (
     <footer
       id="contact"
-      className="w-full pt-28 sm:pt-36 md:pt-48 pb-0 bg-white relative select-none border-none flex flex-col justify-between overflow-x-hidden"
+      className="w-full pt-[48px] sm:pt-[64px] md:pt-[80px] pb-0 bg-white relative select-none border-none flex flex-col justify-between overflow-x-hidden"
     >
       {/* MAIN ARTBOARD CONTAINER (Apple Ecosystem Pure Monochrome) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] flex-1 flex flex-col justify-between relative z-10 space-y-12 sm:space-y-16 md:space-y-20">
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] flex-1 flex flex-col justify-between relative z-10 space-y-8 sm:space-y-10 md:space-y-12">
         
         {/* TOP ROW: ICON / MONOGRAM (Exact position from Artboard 1) */}
         <div className="flex items-center justify-start">
@@ -65,10 +65,10 @@ export default function Contact() {
         </div>
 
         {/* MID-BODY: THE 3 EDITORIAL BLOCKS (Exact composition from Artboard 1) */}
-        <div className="w-full flex flex-col space-y-12 sm:space-y-16">
+        <div className="w-full flex flex-col space-y-6 sm:space-y-8">
           
           {/* Row 1: BUSINESS INQUIRIES (Left) & STUDIO DIRECTORY (Right) */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-12 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
             
             {/* Block 1: BUSINESS INQUIRIES (Britti Sans Medium + Regular) */}
             <div className="md:col-span-5 lg:col-span-5 space-y-2">
@@ -123,7 +123,7 @@ export default function Contact() {
           </div>
 
           {/* Row 2: DIRECT CHANNELS (Centered horizontally as in Artboard 1) */}
-          <div className="w-full flex flex-col items-center text-center space-y-2 pt-2 sm:pt-4">
+          <div className="w-full flex flex-col items-center text-center space-y-2 pt-1 sm:pt-2">
             <span className="font-britti font-medium text-xs sm:text-sm tracking-wider text-black uppercase block">
               DIRECT CHANNELS
             </span>
@@ -158,8 +158,8 @@ export default function Contact() {
 
         </div>
 
-        {/* HORIZON METADATA ROW (Britti Sans Regular, aligned above wordmark) */}
-        <div className="w-full flex items-center justify-between pt-12 sm:pt-16 pb-2 border-none text-xs sm:text-sm font-britti font-normal text-neutral-600">
+        {/* HORIZON METADATA ROW (Reduced empty area by ~45%) */}
+        <div className="w-full flex items-center justify-between pt-6 sm:pt-8 pb-1 border-none text-xs sm:text-sm font-britti font-normal text-neutral-600">
           {/* Left: Location */}
           <div className="text-left font-normal text-neutral-600 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-black" />
@@ -184,8 +184,8 @@ export default function Contact() {
 
       </div>
 
-      {/* MONUMENTAL WORDMARK — 100% EDGE-TO-EDGE FLUSH TO SCREEN BORDERS */}
-      <div className="w-full overflow-hidden select-none leading-none pt-3 sm:pt-6 pb-0">
+      {/* MONUMENTAL WORDMARK — 100% EDGE-TO-EDGE FLUSH TO SCREEN BORDERS (Reduced empty area above by ~45%) */}
+      <div className="w-full overflow-hidden select-none leading-none pt-1 sm:pt-2 pb-0">
         <svg
           viewBox="0 0 10607 1410"
           className="w-full h-auto block select-none overflow-visible"

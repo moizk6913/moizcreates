@@ -41,10 +41,10 @@ export default function FaqSection() {
   return (
     <section
       id="faq"
-      className="w-full pt-28 sm:pt-36 md:pt-48 pb-36 sm:pb-48 md:pb-64 bg-white overflow-hidden select-none border-none relative"
+      className="w-full pt-[88px] pb-0 bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Edge-to-Edge) */}
-      <div className="w-full pb-16 sm:pb-24 md:pb-32 overflow-hidden">
+      <div className="w-full pb-[64px] overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             FREQUENTLY ASKED — FREQUENTLY ASKED — FREQUENTLY ASKED —
@@ -56,7 +56,7 @@ export default function FaqSection() {
       </div>
 
       {/* 2. EDGE-ANCHORED ACCORDION ROWS (Stuck strictly to 68px/100px margins, no max-w clamp on zoom out) */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-4 sm:space-y-6">
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] space-y-2 sm:space-y-3">
         {FAQS.map((faq, idx) => {
           const isOpen = openIdx === idx;
 
@@ -68,7 +68,7 @@ export default function FaqSection() {
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
-                className="w-full py-6 sm:py-8 md:py-9 px-4 sm:px-6 md:px-8 flex items-center justify-between gap-6 text-left cursor-pointer group"
+                className="w-full py-4 sm:py-5 px-4 sm:px-6 md:px-8 flex items-center justify-between gap-6 text-left cursor-pointer group"
               >
                 {/* Left: Number + Question */}
                 <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 min-w-0 transition-transform duration-300 group-hover:translate-x-2">
@@ -88,7 +88,7 @@ export default function FaqSection() {
 
               {/* Expanded Answer */}
               {isOpen && (
-                <div className="pb-8 pt-2 pl-12 sm:pl-20 md:pl-28 pr-6 max-w-4xl animate-fadeIn">
+                <div className="pb-6 pt-1 pl-12 sm:pl-20 md:pl-28 pr-6 max-w-4xl animate-fadeIn">
                   <p className="font-sans text-sm sm:text-base md:text-lg lg:text-[19px] text-neutral-600 leading-relaxed font-normal">
                     {faq.answer}
                   </p>

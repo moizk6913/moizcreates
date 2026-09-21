@@ -82,10 +82,10 @@ export default function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="relative w-full pt-28 sm:pt-36 md:pt-48 pb-36 sm:pb-48 md:pb-64 bg-white overflow-hidden select-none border-none"
+      className="relative w-full pt-[96px] pb-0 bg-white overflow-hidden select-none border-none"
     >
       {/* 1. GIANT RUNNING MARQUEE HEADER (Monochrome, Zero Lines) */}
-      <div className="w-full pb-16 sm:pb-24 md:pb-32 overflow-hidden">
+      <div className="w-full pb-[64px] overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[84px] xl:text-[96px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
             PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
@@ -96,32 +96,32 @@ export default function TestimonialsSection() {
         </div>
       </div>
 
-      {/* 2. DUAL-LANE KINETIC FLOATING MARQUEE TRACKS (Lane 1 Left, Lane 2 Right, Auto-pause on hover) */}
-      <div className="w-full space-y-8 sm:space-y-12 relative overflow-hidden">
+      {/* 2. DUAL-LANE KINETIC FLOATING MARQUEE TRACKS (Gap between rows: 24px) */}
+      <div className="w-full space-y-[24px] relative overflow-hidden">
         {/* Soft edge blur masks for Apple-grade aesthetic */}
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-r from-white to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 md:w-44 z-10 bg-gradient-to-l from-white to-transparent" />
 
         {/* Track 1: Gliding Left */}
-        <div className="flex items-center w-max animate-marquee-left pause-on-hover py-4 sm:py-6">
+        <div className="flex items-center w-max animate-marquee-left pause-on-hover py-1">
           {track1.map((t, idx) => (
             <div
               key={`track-1-${t.id}-${idx}`}
-              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white apple-widget-md rounded-[38px] sm:rounded-[44px] overflow-hidden p-7 sm:p-9 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
+              className="w-[300px] sm:w-[380px] md:w-[440px] lg:w-[480px] shrink-0 mx-2.5 sm:mx-3 bg-white apple-widget-md rounded-[32px] sm:rounded-[36px] overflow-hidden p-[28px] flex flex-col justify-between space-y-4 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <StarRating />
-                <p className="font-sans text-xs sm:text-sm md:text-[15px] text-neutral-800 leading-relaxed font-normal">
+                <p className="font-sans text-xs sm:text-sm md:text-[14px] text-neutral-800 leading-snug font-normal">
                   &ldquo;{t.quote}&rdquo;
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-3 pt-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={t.avatar}
                   alt={t.name}
-                  className="w-11 h-11 apple-circle rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
+                  className="w-10 h-10 apple-circle rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -142,25 +142,25 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Track 2: Gliding Right (Opposite kinetic direction) */}
-        <div className="flex items-center w-max animate-marquee-right pause-on-hover py-3 sm:py-4">
+        <div className="flex items-center w-max animate-marquee-right pause-on-hover py-1">
           {track2.map((t, idx) => (
             <div
               key={`track-2-${t.id}-${idx}`}
-              className="w-[320px] sm:w-[400px] md:w-[460px] lg:w-[500px] shrink-0 mx-2.5 sm:mx-3 bg-white apple-widget-md rounded-[38px] sm:rounded-[44px] overflow-hidden p-7 sm:p-9 flex flex-col justify-between space-y-6 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
+              className="w-[300px] sm:w-[380px] md:w-[440px] lg:w-[480px] shrink-0 mx-2.5 sm:mx-3 bg-white apple-widget-md rounded-[32px] sm:rounded-[36px] overflow-hidden p-[28px] flex flex-col justify-between space-y-4 border border-neutral-200/80 hover:border-black/25 hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-400 shadow-[0_4px_24px_rgba(0,0,0,0.02)]"
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <StarRating />
-                <p className="font-sans text-xs sm:text-sm md:text-[15px] text-neutral-800 leading-relaxed font-normal">
+                <p className="font-sans text-xs sm:text-sm md:text-[14px] text-neutral-800 leading-snug font-normal">
                   &ldquo;{t.quote}&rdquo;
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-3 pt-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={t.avatar}
                   alt={t.name}
-                  className="w-11 h-11 apple-circle rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
+                  className="w-10 h-10 apple-circle rounded-full object-cover bg-neutral-200 shrink-0 grayscale contrast-125 ring-1 ring-black/10"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
