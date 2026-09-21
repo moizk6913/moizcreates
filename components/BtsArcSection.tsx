@@ -353,46 +353,23 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
             />
           )}
 
-          {/* High-End Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/60 transition-opacity duration-300" />
-
-          {/* Top Brand Logo & Format Badge */}
-          <div className="absolute top-0 left-0 right-0 p-5 md:p-6 flex justify-between items-start z-10 pointer-events-none">
-            {/* Bold Brand Watermark */}
-            <span className="font-display font-black text-base md:text-xl tracking-wider text-white uppercase drop-shadow-md">
-              {item.brand}
-            </span>
-
-            {/* Controls / Tag - Apple Pill radius */}
-            <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2.5 py-1 apple-pill rounded-full bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
-                {item.tag}
-              </span>
-
-              {item.mediaType === 'video' && (
-                <button
-                  type="button"
-                  onClick={(e) => toggleMute(item.id, e)}
-                  title={unmutedId === item.id ? 'Mute' : 'Unmute'}
-                  className="w-7 h-7 md:w-8 md:h-8 apple-circle rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
-                >
-                  {unmutedId === item.id ? (
-                    <Volume2 className="w-3.5 h-3.5" />
-                  ) : (
-                    <VolumeX className="w-3.5 h-3.5 opacity-75" />
-                  )}
-                </button>
-              )}
+          {/* Subtle Video Mute Toggle (Only for video cards, on hover) */}
+          {item.mediaType === 'video' && (
+            <div className="absolute top-4 right-4 z-10 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                type="button"
+                onClick={(e) => toggleMute(item.id, e)}
+                title={unmutedId === item.id ? 'Mute' : 'Unmute'}
+                className="w-7 h-7 md:w-8 md:h-8 apple-circle rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+              >
+                {unmutedId === item.id ? (
+                  <Volume2 className="w-3.5 h-3.5" />
+                ) : (
+                  <VolumeX className="w-3.5 h-3.5 opacity-75" />
+                )}
+              </button>
             </div>
-          </div>
-
-          {/* Center Magnetic "Expand +" Badge - Apple squircle */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="w-16 h-16 md:w-20 md:h-20 apple-circle rounded-full bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
-              <span className="font-sans text-[11px] md:text-xs font-semibold tracking-wide">Expand</span>
-              <span className="text-sm md:text-base font-light leading-none mt-0.5 text-white">+</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     );
@@ -434,17 +411,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   }
 
   return (
-    <section id="work" className="w-full pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20 bg-canvas overflow-hidden">
-      {/* Editorial Section Heading & Supporting Line */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] mb-8 sm:mb-12">
-        <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight uppercase text-black leading-none">
-          THE WORK
-        </h2>
-        <p className="font-sans text-sm sm:text-base md:text-lg text-neutral-500 font-normal pt-2 sm:pt-3 max-w-xl">
-          Some things I made. Some things I directed. Some things I probably overthought.
-        </p>
-      </div>
-
+    <section id="work" className="w-full py-6 sm:py-8 md:py-12 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks */}
       <div className="w-full flex flex-col gap-0 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with generous vertical shadow clearance */}
