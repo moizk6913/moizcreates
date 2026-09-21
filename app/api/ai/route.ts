@@ -347,7 +347,7 @@ Return ONLY valid JSON:
 
       if (apiKey) {
         try {
-          const promptText = `You are the lead Art Director & Brand Visual Designer assistant for Moiz Khan (Dubai/Worldwide).
+          const promptText = `You are the lead Art Director & Brand Visual Designer assistant for Moiz Khan (Hyderabad/Worldwide).
 Analyze this upload project context and artwork:
 Folder/Collection: ${folderName || 'Single Asset'}
 File Name: ${fileName || 'Asset'}
@@ -485,7 +485,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
 
       if (apiKey) {
         try {
-          const prompt = `You are ghostwriting a high-fashion / commercial art direction journal post for Moiz Khan (Art Director & Brand Visual Designer based in Dubai).
+          const prompt = `You are ghostwriting a high-fashion / commercial art direction journal post for Moiz Khan (Art Director & Brand Visual Designer based in Hyderabad).
 Tone: Authoritative, surgical, tactile, Swiss modernist, practical, decisive.
 Topic: ${topicText}
 Category: ${category || 'LIGHTING & ON-SET'}
@@ -578,7 +578,7 @@ Return ONLY raw JSON with:
 
       if (apiKey) {
         try {
-          const systemInstruction = `You are Moiz Khan's Senior Creative Producer & Co-Director (Dubai / Worldwide).
+          const systemInstruction = `You are Moiz Khan's Senior Creative Producer & Co-Director (Hyderabad / Worldwide).
 You collaborate directly with Moiz to curate, organize, and present his brand visual direction, cinematography, and design campaigns.
 
 Tone & Style:

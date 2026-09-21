@@ -188,15 +188,20 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
       className="relative w-full h-screen min-h-screen bg-canvas bg-[radial-gradient(#d5d3cc_1.1px,transparent_1.1px)] [background-size:28px_28px] overflow-hidden flex flex-col justify-between select-none"
     >
       {/* Central Artist Identity (SACRED TYPOGRAPHIC CORE — Always Uncluttered & Clear) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-40 select-none flex flex-col items-center justify-center gap-1.5 px-4 max-w-xl">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-40 select-none flex flex-col items-center justify-center gap-2 sm:gap-2.5 px-4 max-w-xl">
         <h1 className="font-display font-black text-5xl sm:text-7xl md:text-8xl tracking-tight text-primary uppercase leading-none drop-shadow-xs">
           MOIZ KHAN
         </h1>
-        <p className="font-mono text-[11px] sm:text-xs md:text-sm tracking-[0.14em] text-secondary uppercase font-semibold">
-          ART DIRECTOR &amp; BRAND VISUAL DESIGNER
-        </p>
-        <span className="font-mono text-[10px] sm:text-xs tracking-wider text-muted font-medium">
-          (SELECTED ARCHIVE 2022–2026)
+        <div className="flex flex-col items-center gap-0.5">
+          <p className="font-mono text-[11px] sm:text-xs md:text-sm tracking-[0.16em] text-secondary uppercase font-bold">
+            BRAND VISUAL DESIGNER
+          </p>
+          <p className="font-mono text-[10px] sm:text-xs md:text-sm tracking-[0.16em] text-secondary uppercase font-semibold">
+            ART DIRECTION
+          </p>
+        </div>
+        <span className="font-mono text-[10px] sm:text-xs tracking-[0.18em] text-neutral-400 font-medium pt-1">
+          BRANDING · CAMPAIGNS · VISUAL PRODUCTION
         </span>
       </div>
 

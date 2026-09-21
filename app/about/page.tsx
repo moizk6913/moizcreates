@@ -22,7 +22,7 @@ export default function AboutPage() {
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault();
-    navigator.clipboard.writeText('hiremoiz.works@gmail.com');
+    navigator.clipboard.writeText('hiremoiz.work@gmail.com');
     setCopied(true);
     setTimeout(() => setCopied(false), 2200);
   };
@@ -196,12 +196,12 @@ export default function AboutPage() {
           className="absolute left-[56.5vw] top-[26.5vh] z-30 font-mono text-[clamp(11px,1.08vw,14px)] uppercase tracking-wider text-primary will-change-transform"
         >
           <a
-            href="mailto:hiremoiz.works@gmail.com"
+            href="mailto:hiremoiz.work@gmail.com"
             onClick={handleCopyEmail}
             className="group inline-flex items-center gap-2 hover:text-neutral-500 transition-colors cursor-pointer"
             title="Click to copy email or open mailto"
           >
-            <span>{copied ? 'COPIED TO CLIPBOARD ✓' : 'HIREMOIZ.WORKS@GMAIL.COM'}</span>
+            <span>{copied ? 'COPIED TO CLIPBOARD ✓' : 'HIREMOIZ.WORK@GMAIL.COM'}</span>
             <span className="text-[0.8em] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
           </a>
         </div>
@@ -276,11 +276,11 @@ export default function AboutPage() {
         {/* Email Contact Pill */}
         <div className="w-full max-w-[340px] flex justify-center sm:justify-end">
           <a
-            href="mailto:hiremoiz.works@gmail.com"
+            href="mailto:hiremoiz.work@gmail.com"
             onClick={handleCopyEmail}
             className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-black/[0.06] hover:bg-black hover:text-white font-mono text-[10.5px] uppercase tracking-wider transition-all duration-200 shadow-sm"
           >
-            <span>{copied ? 'COPIED ✓' : 'HIREMOIZ.WORKS@GMAIL.COM'}</span>
+            <span>{copied ? 'COPIED ✓' : 'HIREMOIZ.WORK@GMAIL.COM'}</span>
             <span className="text-xs">↗</span>
           </a>
         </div>

@@ -143,7 +143,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       <div className="space-y-3">
         <div className="flex items-center justify-between text-[11px] font-mono text-neutral-500 uppercase tracking-wider">
           <span>PORTFOLIO PLATFORM</span>
-          <span>DUBAI // WORLDWIDE</span>
+          <span>HYDERABAD // WORLDWIDE</span>
         </div>
         {/* 1px Architectural Track Line */}
         <div className="relative w-full h-[1.5px] bg-white/10 rounded-full overflow-hidden">

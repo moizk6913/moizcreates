@@ -2,7 +2,14 @@
 
 export default function ClientsStrip() {
   return (
-    <section id="clients" className="w-full py-6 sm:py-8 md:py-10 bg-canvas overflow-hidden border-none relative select-none">
+    <section id="visual-references" className="w-full py-8 sm:py-10 md:py-14 bg-canvas overflow-hidden border-none relative select-none">
+      {/* Subtle context label */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-4 sm:pb-6">
+        <span className="font-mono text-xs sm:text-[13px] text-neutral-400 uppercase tracking-[0.2em] font-semibold">
+          VISUAL REFERENCES
+        </span>
+      </div>
+
       {/* Marquee Wrapper with soft edge masks (zero lines) */}
       <div className="w-full overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <div className="flex items-center w-max gap-14 sm:gap-20 md:gap-24 animate-marquee-left">

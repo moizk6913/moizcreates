@@ -11,39 +11,27 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     number: '01',
-    question: 'WHAT SERVICES DO YOU OFFER?',
+    question: 'WHAT DO YOU ACTUALLY DO?',
     answer:
-      'Art direction, brand identity, editorial lookbook design, UI/UX experience design, packaging, and commercial motion direction across digital and physical print formats.',
+      "I direct and design visual identities, campaigns, and creative work. Sometimes that means building a brand from zero. Sometimes that means fixing something that isn't working.",
   },
   {
     number: '02',
-    question: 'WHAT IS YOUR TYPICAL TURNAROUND TIME?',
+    question: 'DO YOU WORK WITH OTHER CREATIVES?',
     answer:
-      'Timelines typically range between 2 to 4 weeks depending on the scope of work, asset volume, and required deliverables.',
+      'Yes. Designers, 3D artists, motion designers, developers, photographers. I direct the vision and work with whoever makes it better.',
   },
   {
     number: '03',
-    question: 'CAN YOU WORK WITH MY EXISTING DESIGN?',
+    question: 'CAN YOU TAKE AN IDEA FROM CONCEPT TO PRODUCTION?',
     answer:
-      'Yes. We regularly work within existing brand guidelines to refine, elevate, or expand your visual identity system.',
+      'Yes. From the first reference board to the final export.',
   },
   {
     number: '04',
-    question: 'HOW MANY REVISIONS DO YOU OFFER?',
+    question: 'LOOKING TO WORK TOGETHER?',
     answer:
-      'Each project includes structured rounds of revision to ensure every detail is refined and aligned with your goals.',
-  },
-  {
-    number: '05',
-    question: 'WHAT’S YOUR PROCESS LIKE?',
-    answer:
-      'A collaborative three-phase framework: Research, Design, and Deliver, with continuous updates throughout.',
-  },
-  {
-    number: '06',
-    question: 'HOW DO WE GET STARTED?',
-    answer:
-      'Send a brief via the direct contact section below with your project goals and timeline, and we’ll schedule an intro conversation.',
+      "Send an email with what you're working on, timeline, and what you need. If it makes sense, we'll talk.",
   },
 ];
 

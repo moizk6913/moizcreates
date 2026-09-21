@@ -88,10 +88,10 @@ export default function TestimonialsSection() {
       <div className="w-full pb-10 sm:pb-14 md:pb-16 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            CLIENT ENDORSEMENTS — CLIENT ENDORSEMENTS — CLIENT ENDORSEMENTS —
+            PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
           </div>
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            CLIENT ENDORSEMENTS — CLIENT ENDORSEMENTS — CLIENT ENDORSEMENTS —
+            PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH — PEOPLE I&apos;VE WORKED WITH —
           </div>
         </div>
       </div>

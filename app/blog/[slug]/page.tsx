@@ -174,7 +174,7 @@ export default function BlogPostReaderPage() {
                 {post.author.name}
               </span>
               <span className="font-mono text-xs text-secondary">
-                {post.author.role} • Dubai / Worldwide
+                {post.author.role} • Hyderabad / Worldwide
               </span>
             </div>
           </div>

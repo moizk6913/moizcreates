@@ -10,10 +10,9 @@ interface HeaderProps {
 }
 
 const WORLD_CITIES = [
-  { city: 'DUBAI', zone: 'Asia/Dubai', code: 'GST' },
+  { city: 'HYDERABAD', zone: 'Asia/Kolkata', code: 'IST' },
   { city: 'NEW YORK', zone: 'America/New_York', code: 'EDT' },
   { city: 'LONDON', zone: 'Europe/London', code: 'BST' },
-  { city: 'MUMBAI', zone: 'Asia/Kolkata', code: 'IST' },
   { city: 'TOKYO', zone: 'Asia/Tokyo', code: 'JST' },
   { city: 'PARIS', zone: 'Europe/Paris', code: 'CEST' },
 ];
@@ -181,7 +180,7 @@ export default function Header({ visible = true }: HeaderProps) {
           >
             <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
             <span className="text-neutral-700 font-medium whitespace-nowrap">
-              {worldTime || 'DUBAI 12:00:00 PM GST'}
+              {worldTime || 'HYDERABAD 12:00:00 PM IST'}
             </span>
           </div>
         </div>
@@ -238,8 +237,8 @@ export default function Header({ visible = true }: HeaderProps) {
               <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
               <span className="text-black font-semibold uppercase">{worldTime}</span>
             </div>
-            <span>MOIZ KHAN • ART DIRECTOR</span>
-            <span className="text-black font-semibold">HIREMOIZ.WORKS@GMAIL.COM</span>
+            <span>MOIZ KHAN • BRAND VISUAL DESIGNER / ART DIRECTOR</span>
+            <span className="text-black font-semibold">HIREMOIZ.WORK@GMAIL.COM</span>
           </div>
         </div>
       )}

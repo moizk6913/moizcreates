@@ -53,8 +53,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Art Director & Brand Visual Designer',
-  description: 'Art Director & Brand Visual Designer. Commercial campaigns, shoot direction, visual systems. Dubai / Worldwide.',
+  title: 'Moiz Khan — Brand Visual Designer & Art Director',
+  description: 'Moiz Khan is a Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production. Hyderabad / Worldwide.',
   icons: {
     icon: [
       { url: '/icon-square.png', sizes: '512x512', type: 'image/png' },

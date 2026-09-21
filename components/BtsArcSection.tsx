@@ -22,7 +22,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-1',
       projectId: 'art-direction',
       brand: 'PARIS REPERTORY',
-      tag: 'CINEMA 16:9',
+      tag: 'ART DIRECTION',
       aspectClass: 'aspect-[16/9]',
       bgAccent: 'bg-[#0f1115]',
       mediaType: 'image',
@@ -33,7 +33,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-2',
       projectId: 'brand-identity',
       brand: 'TOKYO KINETIC',
-      tag: 'REEL 9:16',
+      tag: 'BRANDING',
       aspectClass: 'aspect-[9/16]',
       bgAccent: 'bg-[#181329]',
       mediaType: 'image',
@@ -44,7 +44,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-3',
       projectId: 'cinematography',
       brand: '35MM ANAMORPHIC',
-      tag: 'LOOKBOOK 4:5',
+      tag: 'CAMPAIGNS',
       aspectClass: 'aspect-[4/5]',
       bgAccent: 'bg-[#0b2416]',
       mediaType: 'image',
@@ -55,7 +55,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-4',
       projectId: 'motion-graphics',
       brand: 'IRIDESCENT 3D',
-      tag: 'POST 1:1',
+      tag: 'DIGITAL',
       aspectClass: 'aspect-square',
       bgAccent: 'bg-[#141414]',
       mediaType: 'image',
@@ -66,7 +66,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-5',
       projectId: 'photography',
       brand: 'MILAN LOOKBOOK',
-      tag: 'DIRECTOR 16:10',
+      tag: 'ART DIRECTION',
       aspectClass: 'aspect-[16/10]',
       bgAccent: 'bg-[#111317]',
       mediaType: 'image',
@@ -79,7 +79,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-6',
       projectId: 'video-editing',
       brand: 'DIRECTOR CUT 9:16',
-      tag: 'STREET REEL 9:16',
+      tag: 'CAMPAIGNS',
       aspectClass: 'aspect-[9/16]',
       bgAccent: 'bg-[#ff4e00]',
       mediaType: 'image',
@@ -90,7 +90,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-7',
       projectId: 'color-grading',
       brand: 'TUNGSTEN 35MM',
-      tag: 'COMMERCIAL 4:5',
+      tag: 'BRANDING',
       aspectClass: 'aspect-[4/5]',
       bgAccent: 'bg-[#966b2d]',
       mediaType: 'image',
@@ -101,7 +101,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-8',
       projectId: 'art-direction',
       brand: 'MONOLITHIC STILL',
-      tag: 'CINEMA 16:9',
+      tag: 'ART DIRECTION',
       aspectClass: 'aspect-[16/9]',
       bgAccent: 'bg-[#0f1115]',
       mediaType: 'image',
@@ -112,7 +112,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-9',
       projectId: 'cinematography',
       brand: '35MM STILL 24A',
-      tag: 'LOOKBOOK 4:5',
+      tag: 'CAMPAIGNS',
       aspectClass: 'aspect-[4/5]',
       bgAccent: 'bg-[#0b2416]',
       mediaType: 'image',
@@ -123,7 +123,7 @@ const FALLBACK_BENTO_ITEMS: { rowOne: BentoItem[]; rowTwo: BentoItem[] } = {
       id: 'fallback-10',
       projectId: 'photography',
       brand: 'AVANT-GARDE',
-      tag: 'POST 1:1',
+      tag: 'DIGITAL',
       aspectClass: 'aspect-square',
       bgAccent: 'bg-[#141414]',
       mediaType: 'image',
@@ -155,13 +155,13 @@ function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: Bento
   }
 
   const aspectConfigs = [
-    { tag: 'CINEMA 16:9', aspectClass: 'aspect-[16/9]', bgAccent: 'bg-[#0f1115]' },
-    { tag: 'REEL 9:16', aspectClass: 'aspect-[9/16]', bgAccent: 'bg-[#181329]' },
-    { tag: 'LOOKBOOK 4:5', aspectClass: 'aspect-[4/5]', bgAccent: 'bg-[#0b2416]' },
-    { tag: 'POST 1:1', aspectClass: 'aspect-square', bgAccent: 'bg-[#141414]' },
-    { tag: 'DIRECTOR 16:10', aspectClass: 'aspect-[16/10]', bgAccent: 'bg-[#111317]' },
-    { tag: 'STREET REEL 9:16', aspectClass: 'aspect-[9/16]', bgAccent: 'bg-[#ff4e00]' },
-    { tag: 'COMMERCIAL 4:5', aspectClass: 'aspect-[4/5]', bgAccent: 'bg-[#966b2d]' },
+    { tag: 'ART DIRECTION', aspectClass: 'aspect-[16/9]', bgAccent: 'bg-[#0f1115]' },
+    { tag: 'BRANDING', aspectClass: 'aspect-[9/16]', bgAccent: 'bg-[#181329]' },
+    { tag: 'CAMPAIGNS', aspectClass: 'aspect-[4/5]', bgAccent: 'bg-[#0b2416]' },
+    { tag: 'DIGITAL', aspectClass: 'aspect-square', bgAccent: 'bg-[#141414]' },
+    { tag: 'ART DIRECTION', aspectClass: 'aspect-[16/10]', bgAccent: 'bg-[#111317]' },
+    { tag: 'CAMPAIGNS', aspectClass: 'aspect-[9/16]', bgAccent: 'bg-[#ff4e00]' },
+    { tag: 'BRANDING', aspectClass: 'aspect-[4/5]', bgAccent: 'bg-[#966b2d]' },
   ];
 
   const targetPerLane = Math.max(5, Math.min(10, Math.ceil(flatPhotos.length / 2)));
@@ -434,8 +434,18 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   }
 
   return (
-    <section id="work" className="w-full pt-8 sm:pt-12 md:pt-14 pb-12 sm:pb-16 md:pb-20 bg-canvas overflow-hidden">
-      {/* Sliding Horizontal Bento Tracks (Zero External Text) */}
+    <section id="work" className="w-full pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20 bg-canvas overflow-hidden">
+      {/* Editorial Section Heading & Supporting Line */}
+      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] mb-8 sm:mb-12">
+        <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight uppercase text-black leading-none">
+          THE WORK
+        </h2>
+        <p className="font-sans text-sm sm:text-base md:text-lg text-neutral-500 font-normal pt-2 sm:pt-3 max-w-xl">
+          Some things I made. Some things I directed. Some things I probably overthought.
+        </p>
+      </div>
+
+      {/* Sliding Horizontal Bento Tracks */}
       <div className="w-full flex flex-col gap-0 overflow-hidden">
         {/* Lane 1: Slides Left - Fixed uniform height with generous vertical shadow clearance */}
         <div

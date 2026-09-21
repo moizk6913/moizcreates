@@ -132,50 +132,25 @@ function DeliverDoodle({ className = '' }: { className?: string }) {
 interface ProcessPhase {
   step: string;
   title: string;
-  subtitle: string;
   description: string;
-  deliverables: string[];
 }
 
 const PHASES: ProcessPhase[] = [
   {
     step: '01',
-    title: 'RESEARCH',
-    subtitle: 'Strategic Immersion & Audience Architecture',
-    description:
-      'Deep exploration into brand positioning, market whitespace, and audience psychology establishes an airtight strategic foundation before any visual exploration begins.',
-    deliverables: [
-      'Visual Audit',
-      'Audience Architecture',
-      'Cultural Forecast',
-      'Creative Brief',
-    ],
+    title: 'FIND THE PROBLEM',
+    description: "Before touching the pixels, figure out what's actually wrong.",
   },
   {
     step: '02',
-    title: 'DESIGN',
-    subtitle: 'Visual Architecture & Cross-Media Prototyping',
-    description:
-      'Concepts take form through rigorous typographic systems, tactile materiality, layout experimentation, and rapid iterative directorial sprints.',
-    deliverables: [
-      'Brand Identity',
-      'Editorial Systems',
-      'Motion Prototyping',
-      'Creative Direction',
-    ],
+    title: 'FIND THE IDEA',
+    description: 'Build the visual direction around something worth saying.',
   },
   {
     step: '03',
-    title: 'DELIVER',
-    subtitle: 'Production Mastering & Asset Handover',
+    title: 'MAKE IT REAL & FEEL RIGHT',
     description:
-      'Flawless production-grade master files prepared for print and screen, supported by detailed design guidelines, asset libraries, and hands-on rollout support.',
-    deliverables: [
-      'Production Assets',
-      'Style Guidelines',
-      'Packaging Specs',
-      'Rollout Support',
-    ],
+      'Design it. Shoot it. Build it. Break it. Try again. The last 10% is usually where the work becomes the work.',
   },
 ];
 
@@ -222,10 +197,10 @@ export default function ProcessSection() {
       <div className="w-full pb-12 sm:pb-16 md:pb-24 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            OUR APPROACH — OUR APPROACH — OUR APPROACH — OUR APPROACH —
+            HOW I GET THERE — HOW I GET THERE — HOW I GET THERE — HOW I GET THERE —
           </div>
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            OUR APPROACH — OUR APPROACH — OUR APPROACH — OUR APPROACH —
+            HOW I GET THERE — HOW I GET THERE — HOW I GET THERE — HOW I GET THERE —
           </div>
         </div>
       </div>
@@ -260,32 +235,15 @@ export default function ProcessSection() {
                 </span>
               </div>
 
-              {/* Body: Title, Subtitle, Narrative, Deliverables */}
+              {/* Body: Title & Narrative */}
               <div className="space-y-3 sm:space-y-4">
-                <h3 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black leading-none group-hover:translate-x-1.5 transition-transform duration-300">
+                <h3 className="font-display font-black text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight text-black leading-tight group-hover:translate-x-1.5 transition-transform duration-300">
                   {phase.title}
                 </h3>
-
-                <p className="font-mono text-xs sm:text-sm text-neutral-500 uppercase tracking-wider font-semibold">
-                  {phase.subtitle}
-                </p>
 
                 <p className="font-sans text-sm sm:text-base md:text-[17px] text-neutral-600 leading-relaxed font-normal pt-1">
                   {phase.description}
                 </p>
-
-                {/* Deliverables with Doodle Star Glyphs (NO "Core Deliverables" label, NO "Phase" line, NO boxes, NO lines) */}
-                <div className="flex flex-wrap gap-x-4 gap-y-2 pt-3">
-                  {phase.deliverables.map((d) => (
-                    <span
-                      key={d}
-                      className="font-mono text-xs font-medium tracking-wide text-neutral-800 uppercase flex items-center gap-1.5"
-                    >
-                      <span className="text-black text-xs">✦</span>
-                      <span>{d}</span>
-                    </span>
-                  ))}
-                </div>
               </div>
             </div>
           ))}

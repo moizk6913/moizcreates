@@ -6,22 +6,22 @@ import Link from 'next/link';
 
 export default function Contact() {
   const [copied, setCopied] = useState(false);
-  const [dubaiTime, setDubaiTime] = useState('');
-  const email = 'hiremoiz.works@gmail.com';
+  const [indiaTime, setIndiaTime] = useState('');
+  const email = 'hiremoiz.work@gmail.com';
 
   useEffect(() => {
     const updateTime = () => {
       try {
         const now = new Date();
         const formatted = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'Asia/Dubai',
+          timeZone: 'Asia/Kolkata',
           hour: '2-digit',
           minute: '2-digit',
           hour12: true,
         }).format(now);
-        setDubaiTime(formatted);
+        setIndiaTime(formatted);
       } catch {
-        setDubaiTime('');
+        setIndiaTime('');
       }
     };
     updateTime();
@@ -129,7 +129,7 @@ export default function Contact() {
             </span>
             <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-2 font-britti font-medium text-xs sm:text-sm uppercase tracking-wider text-black">
               <a
-                href="https://instagram.com/moizcreates"
+                href="https://www.instagram.com/moizcreates_/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-neutral-500 transition-colors flex items-center gap-1 group"
@@ -138,7 +138,7 @@ export default function Contact() {
                 <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </a>
               <a
-                href="https://linkedin.com/in/moizkhan"
+                href="https://www.linkedin.com/in/moizcreates/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-neutral-500 transition-colors flex items-center gap-1 group"
@@ -147,12 +147,10 @@ export default function Contact() {
                 <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </a>
               <a
-                href="https://wa.me/971500000000"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:hiremoiz.work@gmail.com"
                 className="hover:text-neutral-500 transition-colors flex items-center gap-1 group"
               >
-                <span>WHATSAPP</span>
+                <span>EMAIL</span>
                 <span className="text-[11px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
               </a>
             </div>
@@ -162,22 +160,23 @@ export default function Contact() {
 
         {/* HORIZON METADATA ROW (Britti Sans Regular, aligned above wordmark) */}
         <div className="w-full flex items-center justify-between pt-12 sm:pt-16 pb-2 border-none text-xs sm:text-sm font-britti font-normal text-neutral-600">
-          {/* Left: All right reserved */}
-          <div className="text-left font-normal text-neutral-600">
-            All right reserved
+          {/* Left: Location */}
+          <div className="text-left font-normal text-neutral-600 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+            <span>Hyderabad, India</span>
           </div>
 
-          {/* Center: 2026 */}
+          {/* Center: Rights & Year */}
           <div className="text-center font-normal text-neutral-600">
-            2026
+            All rights reserved // 2026
           </div>
 
-          {/* Right: Time (GMT+4) */}
+          {/* Right: Time (IST) */}
           <div className="text-right text-neutral-600 font-normal flex items-center gap-1.5">
-            <span>Time (GMT+4)</span>
-            {dubaiTime && (
+            <span>Time (IST)</span>
+            {indiaTime && (
               <span className="font-britti font-normal text-[11px] sm:text-xs text-neutral-500 hidden sm:inline-block">
-                [{dubaiTime}]
+                [{indiaTime}]
               </span>
             )}
           </div>

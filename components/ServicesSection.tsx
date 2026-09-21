@@ -14,6 +14,7 @@ interface ServiceRow {
   title: string;
   discipline: string;
   projectId?: string;
+  quote: string;
   description: string;
   previewImage: string;
   tag: string;
@@ -25,55 +26,48 @@ const SERVICES: ServiceRow[] = [
     title: 'ART DIRECTION',
     discipline: 'Art Direction',
     projectId: 'art-direction',
+    quote: 'When the idea needs a visual direction.',
     description:
-      'Strategic visual thinking guides projects from concept to execution, shaping cohesive narratives built around clarity, emotion, and impact.',
+      'Concepts, references, visual language, shoot direction and creative decisions from idea through execution.',
     previewImage:
       'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=900&auto=format&fit=crop&q=80',
-    tag: 'CINEMATIC & DIRECTORIAL',
+    tag: 'VISUAL DIRECTION',
   },
   {
     number: '02',
     title: 'BRAND IDENTITY',
     discipline: 'Brand Identity',
     projectId: 'brand-identity',
+    quote: 'When a brand needs more than a logo.',
     description:
-      'Distinct identities are built from the ground up, with every element working together to create a clear, cohesive, and lasting presence.',
+      'Identity systems, typography, visual language and the pieces that make a brand feel consistent.',
     previewImage:
       'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=900&auto=format&fit=crop&q=80',
-    tag: 'VISUAL ARCHITECTURE',
+    tag: 'IDENTITY SYSTEMS',
   },
   {
     number: '03',
-    title: 'EDITORIAL DESIGN',
-    discipline: 'Editorial Design',
+    title: 'CAMPAIGNS',
+    discipline: 'Campaigns',
     projectId: 'cinematography',
+    quote: 'When one idea needs to live everywhere.',
     description:
-      'Posters, magazines, books, and print systems combine visual impact with clear communication and thoughtfully structured information.',
+      'Campaign concepts, key visuals, advertising, social and digital executions.',
     previewImage:
       'https://images.unsplash.com/photo-1544717305-2782549b5136?w=900&auto=format&fit=crop&q=80',
-    tag: 'TYPOGRAPHY & PUBLICATIONS',
+    tag: 'CAMPAIGN CONCEPTS',
   },
   {
     number: '04',
-    title: 'EXPERIENCE DESIGN',
-    discipline: 'Experience Design',
+    title: 'CREATIVE PRODUCTION',
+    discipline: 'Creative Production',
     projectId: 'motion-graphics',
+    quote: 'When the idea has to leave the screen.',
     description:
-      'Intuitive digital experiences bring usability, flow, and interaction together through clear, seamless, and purposeful design.',
+      'Photography, video, social content and AI-assisted creative production.',
     previewImage:
       'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=900&auto=format&fit=crop&q=80',
-    tag: 'DIGITAL & SPATIAL',
-  },
-  {
-    number: '05',
-    title: 'PACKAGING DESIGN',
-    discipline: 'Packaging Design',
-    projectId: 'photography',
-    description:
-      'Packaging combines shelf presence with strategic communication, expressing product value through clarity, distinction, and thoughtful detail.',
-    previewImage:
-      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=900&auto=format&fit=crop&q=80',
-    tag: 'TACTILE LUXURY',
+    tag: 'CREATIVE PRODUCTION',
   },
 ];
 
@@ -205,14 +199,14 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
         </div>
       </div>
 
-      {/* 1. GIANT RUNNING HEADER (Zero lines, clean continuous silky marquee) */}
+      {/* 1. GIANT RUNNING HEADER (WHAT I DO) */}
       <div className="w-full pb-10 sm:pb-14 md:pb-20 overflow-hidden">
         <div className="flex items-center w-max animate-marquee-left">
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            OUR SERVICES — OUR SERVICES — OUR SERVICES — OUR SERVICES —
+            WHAT I DO — WHAT I DO — WHAT I DO — WHAT I DO —
           </div>
           <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-[108px] tracking-tight uppercase text-black leading-none whitespace-nowrap pr-12">
-            OUR SERVICES — OUR SERVICES — OUR SERVICES — OUR SERVICES —
+            WHAT I DO — WHAT I DO — WHAT I DO — WHAT I DO —
           </div>
         </div>
       </div>
@@ -256,9 +250,12 @@ export default function ServicesSection({ userPhotos, onOpenCase }: ServicesSect
                 </div>
               </div>
 
-              {/* Right Frame: Strategic Description - Anchored strictly to Right edge */}
-              <div className="max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl text-left lg:text-right pt-3 lg:pt-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-2 sm:group-hover:-translate-x-4">
-                <p className="font-sans text-sm sm:text-base md:text-lg lg:text-[19px] text-neutral-500 group-hover:text-black transition-colors duration-300 leading-relaxed font-normal">
+              {/* Right Frame: Quote & Concise Factual Description */}
+              <div className="max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl text-left lg:text-right pt-3 lg:pt-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-2 sm:group-hover:-translate-x-4 space-y-1 sm:space-y-1.5">
+                <p className="font-display font-bold text-sm sm:text-base md:text-lg text-black">
+                  &ldquo;{item.quote}&rdquo;
+                </p>
+                <p className="font-sans text-xs sm:text-sm md:text-[15px] text-neutral-500 group-hover:text-neutral-800 transition-colors duration-300 leading-relaxed font-normal">
                   {item.description}
                 </p>
               </div>
