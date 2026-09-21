@@ -23,21 +23,21 @@ export interface SpacingSettings {
 }
 
 export const DEFAULT_SPACING: SpacingSettings = {
-  heroToManifesto: 120,
-  manifestoToWork: 64,
-  workToReferences: 80,
+  heroToManifesto: 44,
+  manifestoToWork: 156,
+  workToReferences: 128,
   referencesBottom: 72,
-  sectionTop: 96,
-  sectionBottom: 96,
-  headerToContent: 64,
-  gridGap: 24,
-  faqTop: 88,
-  ctaPadding: 120,
-  footerTop: 64,
-  manifestoLineGap: 24,
-  serviceRowPadding: 24,
-  faqRowPadding: 24,
-  statementLineGap: 24,
+  sectionTop: 148,
+  sectionBottom: 56,
+  headerToContent: 128,
+  gridGap: 34,
+  faqTop: 180,
+  ctaPadding: 200,
+  footerTop: 56,
+  manifestoLineGap: 28,
+  serviceRowPadding: 28,
+  faqRowPadding: 28,
+  statementLineGap: 28,
 };
 
 const STORAGE_KEY = 'moiz_spacing_custom_v1';

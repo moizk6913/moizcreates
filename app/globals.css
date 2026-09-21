@@ -216,24 +216,24 @@
   --border-hairline: #e8e6e1;
   --border-medium: #d3d0c8;
 
-  /* Live Spacing Tokens (Adjustable via Spacing Tuner) */
-  --hero-to-manifesto: 120px;
-  --manifesto-to-work: 64px;
-  --work-to-references: 80px;
+  /* Live Spacing Tokens (Calibrated by Moiz) */
+  --hero-to-manifesto: 44px;
+  --manifesto-to-work: 156px;
+  --work-to-references: 128px;
   --references-bottom: 72px;
-  --section-top: 96px;
-  --section-bottom: 96px;
-  --header-to-content: 64px;
-  --grid-gap: 24px;
-  --faq-top: 88px;
-  --cta-padding: 120px;
-  --footer-top: 64px;
+  --section-top: 148px;
+  --section-bottom: 56px;
+  --header-to-content: 128px;
+  --grid-gap: 34px;
+  --faq-top: 180px;
+  --cta-padding: 200px;
+  --footer-top: 56px;
 
   /* Line & Row Spacing Tokens (Ensures every line and row has generous breathing room) */
-  --manifesto-line-gap: 24px;
-  --service-row-padding: 24px;
-  --faq-row-padding: 24px;
-  --statement-line-gap: 24px;
+  --manifesto-line-gap: 28px;
+  --service-row-padding: 28px;
+  --faq-row-padding: 28px;
+  --statement-line-gap: 28px;
 }
 
 html.lenis {
