@@ -75,12 +75,12 @@ export default function FaqSection() {
           return (
             <div
               key={faq.number}
-              className="w-full rounded-[16px] sm:rounded-[20px] transition-all duration-300 hover:bg-[#faf9f6]"
+              className="w-full apple-widget-md rounded-[36px] sm:rounded-[42px] overflow-hidden transition-all duration-300 hover:bg-[#faf9f6]"
             >
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
-                className="w-full py-6 sm:py-8 md:py-10 px-5 sm:px-8 md:px-10 flex items-center justify-between gap-6 text-left cursor-pointer group"
+                className="w-full py-6 sm:py-8 md:py-10 px-6 sm:px-10 md:px-12 flex items-center justify-between gap-6 text-left cursor-pointer group"
               >
                 {/* Left: Number + Question */}
                 <div className="flex items-baseline gap-4 sm:gap-6 md:gap-10 min-w-0">
@@ -92,8 +92,8 @@ export default function FaqSection() {
                   </h3>
                 </div>
 
-                {/* Right: + / − Sign stuck to right edge */}
-                <span className="font-mono text-2xl sm:text-3xl md:text-4xl text-black font-light shrink-0 transition-transform duration-200 group-hover:scale-110">
+                {/* Right: + / − Sign stuck to right edge in circular control */}
+                <span className="w-8 h-8 sm:w-10 sm:h-10 apple-circle rounded-full bg-black/5 group-hover:bg-black group-hover:text-white text-black flex items-center justify-center font-mono text-xl sm:text-2xl font-light shrink-0 transition-all duration-200">
                   {isOpen ? '−' : '+'}
                 </span>
               </button>

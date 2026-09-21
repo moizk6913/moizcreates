@@ -123,14 +123,14 @@ export default function ProcessSection() {
               ref={(el) => {
                 cardsRef.current[idx] = el;
               }}
-              className="rounded-[24px] sm:rounded-[28px] bg-[#faf9f6] p-7 sm:p-9 md:p-10 border border-neutral-200/70 flex flex-col justify-between space-y-8 hover:shadow-[0_16px_40px_rgba(0,0,0,0.05)] hover:-translate-y-1.5 transition-all duration-500 group"
+              className="apple-widget-lg rounded-[48px] lg:rounded-[52px] overflow-hidden bg-[#faf9f6] p-8 sm:p-10 md:p-12 border border-neutral-200/70 flex flex-col justify-between space-y-8 hover:shadow-[0_16px_40px_rgba(0,0,0,0.05)] hover:-translate-y-1.5 transition-all duration-500 group"
             >
               {/* Card Top Row: Phase Tag & Step Indicator */}
               <div className="flex items-center justify-between border-b border-neutral-200/60 pb-5">
                 <span className="font-mono text-[11px] sm:text-xs font-bold tracking-widest text-neutral-400 group-hover:text-black transition-colors uppercase">
                   {phase.phaseTag}
                 </span>
-                <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-white border border-neutral-200/80 text-black shadow-2xs">
+                <span className="font-mono text-xs font-bold px-3 py-1 apple-pill rounded-full bg-white border border-neutral-200/80 text-black shadow-2xs">
                   {phase.step}
                 </span>
               </div>

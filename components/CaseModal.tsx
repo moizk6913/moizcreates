@@ -141,7 +141,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
       {/* Apple-Style Continuous Rounded Modal Window */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-6xl max-h-[92vh] bg-white text-black shadow-[0_30px_90px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col rounded-[32px] sm:rounded-[36px] border-none"
+        className="relative w-full max-w-6xl max-h-[92vh] bg-white text-black shadow-[0_30px_90px_rgba(0,0,0,0.4)] apple-widget-lg rounded-[48px] sm:rounded-[56px] overflow-hidden flex flex-col border-none"
       >
         {/* Top Minimal Bar (Matching User Image 2 Header) */}
         <div className="sticky top-0 z-30 flex items-center justify-between px-6 sm:px-10 py-5 bg-white/95 backdrop-blur-md gap-4 flex-shrink-0">
@@ -149,7 +149,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             <span className="font-mono text-xs text-neutral-400 font-bold uppercase tracking-wider">
               PROJECT
             </span>
-            <span className="font-mono text-[11px] text-black bg-neutral-100 font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="font-mono text-[11px] text-black bg-neutral-100 font-bold px-3 py-1 apple-pill rounded-full uppercase tracking-wider">
               {projectData.tag}
             </span>
           </div>
@@ -164,7 +164,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                     onClose();
                   }
                 }}
-                className="font-mono text-xs px-3.5 py-1.5 rounded-full bg-neutral-100 text-neutral-700 hover:bg-black hover:text-white transition-all font-bold flex items-center gap-1 cursor-pointer"
+                className="font-mono text-xs px-3.5 py-1.5 apple-pill rounded-full bg-neutral-100 text-neutral-700 hover:bg-black hover:text-white transition-all font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>🗑️</span>
                 <span>Delete</span>
@@ -174,7 +174,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             <button
               type="button"
               onClick={onClose}
-              className="font-mono text-xs px-4 py-2 rounded-full bg-neutral-100 hover:bg-black hover:text-white text-black transition-all flex items-center gap-1.5 cursor-pointer font-bold"
+              className="font-mono text-xs px-4 py-2 apple-pill rounded-full bg-neutral-100 hover:bg-black hover:text-white text-black transition-all flex items-center gap-1.5 cursor-pointer font-bold"
               aria-label="Close Case Study"
             >
               <span>✕</span>
@@ -267,7 +267,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                 <div
                   key={idx}
                   onClick={() => setEnlargedPhoto(imgUrl)}
-                  className="group relative rounded-[20px] sm:rounded-[24px] overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] transition-all duration-300"
+                  className="group relative apple-widget-sm rounded-[30px] sm:rounded-[34px] overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] transition-all duration-300"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -277,7 +277,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                     loading="lazy"
                   />
                   {/* Bottom-left pill badge (Matching Image 2: FRAME XX) */}
-                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-2.5 py-1 rounded-[6px] tracking-wider uppercase pointer-events-none">
+                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-3 py-1 apple-pill rounded-full tracking-wider uppercase pointer-events-none">
                     FRAME {80 + idx}
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               {bentoWide && (
                 <div
                   onClick={() => setEnlargedPhoto(bentoWide)}
-                  className="lg:col-span-8 rounded-[24px] sm:rounded-[28px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
+                  className="lg:col-span-8 apple-widget-lg rounded-[48px] sm:rounded-[52px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -301,7 +301,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                     alt={`${projectData.title} Master Visual`}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                   />
-                  <div className="absolute top-5 left-5 font-mono text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-[8px] uppercase tracking-wider">
+                  <div className="absolute top-5 left-5 font-mono text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-3.5 py-1 apple-pill rounded-full uppercase tracking-wider">
                     PRIMARY KEY VISUAL (16:9)
                   </div>
                 </div>
@@ -311,7 +311,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               {bentoVertical && (
                 <div
                   onClick={() => setEnlargedPhoto(bentoVertical)}
-                  className="lg:col-span-4 rounded-[24px] sm:rounded-[28px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
+                  className="lg:col-span-4 apple-widget-lg rounded-[48px] sm:rounded-[52px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -319,7 +319,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                     alt={`${projectData.title} Editorial Lookbook`}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                   />
-                  <div className="absolute top-5 left-5 font-mono text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-[8px] uppercase tracking-wider">
+                  <div className="absolute top-5 left-5 font-mono text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-3.5 py-1 apple-pill rounded-full uppercase tracking-wider">
                     EDITORIAL LOOKBOOK
                   </div>
                 </div>

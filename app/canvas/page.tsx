@@ -547,11 +547,11 @@ function InfiniteCanvasContent() {
 
       {/* Bottom Center Floating Mode Switcher (Pure Black & White • Clean Text) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-        <div className="pointer-events-auto flex items-center p-1 rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
+        <div className="pointer-events-auto flex items-center p-1 apple-pill rounded-full bg-white/95 backdrop-blur-xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.08)] font-mono text-[11px] font-bold text-neutral-800">
           <button
             type="button"
             onClick={() => setActiveCanvasMode('playground')}
-            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+            className={`px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'playground'
                 ? 'bg-black text-white shadow-sm'
                 : 'text-neutral-500 hover:text-black'
@@ -562,7 +562,7 @@ function InfiniteCanvasContent() {
           <button
             type="button"
             onClick={() => setActiveCanvasMode('archive')}
-            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+            className={`px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer ${
               activeCanvasMode === 'archive'
                 ? 'bg-black text-white shadow-sm'
                 : 'text-neutral-500 hover:text-black'
@@ -619,7 +619,7 @@ function InfiniteCanvasContent() {
             <div
               data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[1240px] h-[92vh] max-h-[920px] bg-white rounded-[32px] sm:rounded-[44px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
+              className="relative w-full max-w-[1240px] h-[92vh] max-h-[920px] bg-white apple-widget-lg rounded-[48px] sm:rounded-[56px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
             >
               {/* TOP NAVIGATION BAR (Clean, Prominent Tabs, Single Close Button) */}
               <header
@@ -642,7 +642,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('all')}
-                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                      className={`px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer ${
                         activeTab === 'all'
                           ? 'bg-black text-white font-bold shadow-xs'
                           : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
@@ -653,7 +653,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('stills')}
-                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                      className={`px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer ${
                         activeTab === 'stills'
                           ? 'bg-black text-white font-bold shadow-xs'
                           : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
@@ -664,7 +664,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('banners')}
-                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                      className={`px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer ${
                         activeTab === 'banners'
                           ? 'bg-black text-white font-bold shadow-xs'
                           : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
@@ -675,7 +675,7 @@ function InfiniteCanvasContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('social')}
-                      className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                      className={`px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer ${
                         activeTab === 'social'
                           ? 'bg-black text-white font-bold shadow-xs'
                           : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
@@ -691,7 +691,7 @@ function InfiniteCanvasContent() {
                   <button
                     type="button"
                     onClick={() => setSelectedFile(null)}
-                    className="px-6 py-2 rounded-full bg-black text-white hover:bg-neutral-800 text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
+                    className="px-6 py-2 apple-pill rounded-full bg-black text-white hover:bg-neutral-800 text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
                   >
                     Close
                   </button>
@@ -713,14 +713,14 @@ function InfiniteCanvasContent() {
               {/* Generous space to write: What is project, about project, what I done */}
               {/* ======================================================= */}
               {activeTab === 'all' && (
-                <section className="w-full bg-[#f6f5f2] rounded-[24px] sm:rounded-[28px] p-6 sm:p-8 md:p-9 space-y-4 select-text">
+                <section className="w-full bg-[#f6f5f2] apple-widget-md rounded-[36px] sm:rounded-[44px] overflow-hidden p-6 sm:p-8 md:p-9 space-y-4 select-text">
                   {/* Micro Metadata Row */}
                   <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono tracking-wider uppercase text-neutral-500">
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full bg-black text-white font-semibold text-[11px]">
+                      <span className="px-3 py-1 apple-pill rounded-full bg-black text-white font-semibold text-[11px]">
                         {selectedFile.code || selectedFile.id} • {selectedFile.year || '2026'}
                       </span>
-                      <span className="px-3 py-1 rounded-full bg-black/5 text-neutral-800 font-medium text-[11px]">
+                      <span className="px-3 py-1 apple-pill rounded-full bg-black/5 text-neutral-800 font-medium text-[11px]">
                         Role: {selectedFile.role || 'Lead Creative Director'}
                       </span>
                     </div>
@@ -774,7 +774,7 @@ function InfiniteCanvasContent() {
                         <div
                           key={`${asset.url}-${asset.title}`}
                           onClick={() => setEnlargedIndex(clickIndex)}
-                          className="group relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[4/5] w-full"
+                          className="group relative apple-widget-sm rounded-[28px] sm:rounded-[34px] overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[4/5] w-full"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -788,10 +788,10 @@ function InfiniteCanvasContent() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
                             <div className="flex justify-between items-start">
-                              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                              <span className="px-3 py-1 apple-pill rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
                                 STILL // 4:5
                               </span>
-                              <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                              <span className="w-8 h-8 apple-circle rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
                                 ↗
                               </span>
                             </div>
@@ -816,7 +816,7 @@ function InfiniteCanvasContent() {
                             return (
                               <div
                                 onClick={() => setEnlargedIndex(origIdx >= 0 ? origIdx : 0)}
-                                className="group relative w-full aspect-[21/9] sm:aspect-[24/8] md:aspect-[28/9] overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
+                                className="group relative w-full aspect-[21/9] sm:aspect-[24/8] md:aspect-[28/9] apple-widget-sm rounded-[28px] sm:rounded-[34px] overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
@@ -830,10 +830,10 @@ function InfiniteCanvasContent() {
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-5 text-white pointer-events-none">
                                   <div className="flex justify-between items-start">
-                                    <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                    <span className="px-3 py-1 apple-pill rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
                                       PANORAMIC BANNER // 21:9
                                     </span>
-                                    <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                    <span className="w-8 h-8 apple-circle rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
                                       ↗
                                     </span>
                                   </div>
@@ -853,7 +853,7 @@ function InfiniteCanvasContent() {
                                   <div
                                     key={item.url}
                                     onClick={() => setEnlargedIndex(origIdx >= 0 ? origIdx : 0)}
-                                    className="group relative w-full aspect-[16/9] sm:aspect-[16/10] overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
+                                    className="group relative w-full aspect-[16/9] sm:aspect-[16/10] apple-widget-sm rounded-[28px] sm:rounded-[34px] overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300"
                                   >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
@@ -867,10 +867,10 @@ function InfiniteCanvasContent() {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
                                       <div className="flex justify-between items-start">
-                                        <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                                        <span className="px-3 py-1 apple-pill rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
                                           WIDESCREEN // 16:10
                                         </span>
-                                        <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                                        <span className="w-8 h-8 apple-circle rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
                                           ↗
                                         </span>
                                       </div>
@@ -898,7 +898,7 @@ function InfiniteCanvasContent() {
                         <div
                           key={`${asset.url}-${asset.title}`}
                           onClick={() => setEnlargedIndex(clickIndex)}
-                          className="group relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
+                          className="group relative apple-widget-sm rounded-[28px] sm:rounded-[34px] overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -912,10 +912,10 @@ function InfiniteCanvasContent() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
                             <div className="flex justify-between items-start">
-                              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                              <span className="px-3 py-1 apple-pill rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
                                 9:16 REEL
                               </span>
-                              <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                              <span className="w-8 h-8 apple-circle rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
                                 ↗
                               </span>
                             </div>
@@ -943,7 +943,7 @@ function InfiniteCanvasContent() {
                         <div
                           key={`${item.url}-${item.title}`}
                           onClick={() => setEnlargedIndex(clickIdx)}
-                          className={`group relative overflow-hidden rounded-[20px] sm:rounded-[24px] bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 ${extraClasses}`}
+                          className={`group relative apple-widget-sm rounded-[28px] sm:rounded-[34px] overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 ${extraClasses}`}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -957,10 +957,10 @@ function InfiniteCanvasContent() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 sm:p-4 text-white pointer-events-none">
                             <div className="flex justify-between items-start">
-                              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
+                              <span className="px-3 py-1 apple-pill rounded-full bg-black/60 backdrop-blur-md text-white/90 font-mono text-[10px] font-semibold tracking-wider uppercase">
                                 {badge}
                               </span>
-                              <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
+                              <span className="w-8 h-8 apple-circle rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-xs">
                                 ↗
                               </span>
                             </div>
@@ -1099,7 +1099,7 @@ function InfiniteCanvasContent() {
                 e.stopPropagation();
                 setEnlargedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : photosList.length - 1));
               }}
-              className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
+              className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 apple-circle rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
               title="Previous Photo (Left Arrow)"
             >
               ←
@@ -1112,7 +1112,7 @@ function InfiniteCanvasContent() {
                 e.stopPropagation();
                 setEnlargedIndex((prev) => (prev !== null && prev < photosList.length - 1 ? prev + 1 : 0));
               }}
-              className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
+              className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 apple-circle rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center font-mono text-lg cursor-pointer"
               title="Next Photo (Right Arrow)"
             >
               →
@@ -1126,7 +1126,7 @@ function InfiniteCanvasContent() {
               <img
                 src={currentPhoto}
                 alt={currentTitle}
-                className="max-w-full max-h-[84vh] object-contain rounded-[10px] shadow-2xl select-none"
+                className="max-w-full max-h-[84vh] object-contain apple-widget-md rounded-[36px] overflow-hidden shadow-2xl select-none"
                 onError={(e) => {
                   e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop';
                 }}
@@ -1138,7 +1138,7 @@ function InfiniteCanvasContent() {
                 <button
                   type="button"
                   onClick={() => setEnlargedIndex(null)}
-                  className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold uppercase tracking-wider"
+                  className="px-4 py-1.5 apple-pill rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all cursor-pointer font-bold uppercase tracking-wider"
                 >
                   Close ✕
                 </button>

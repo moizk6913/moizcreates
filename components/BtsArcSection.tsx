@@ -319,9 +319,9 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
         onClick={() => handleCardClick(item.projectId)}
         className={`h-full flex-shrink-0 cursor-pointer group select-none relative ${item.aspectClass}`}
       >
-        {/* Visual Bento Container - Deep Apple continuous squircle radius */}
+        {/* Visual Bento Container - Deep Apple continuous superellipse squircle radius with unclipped ambient shadow */}
         <div
-          className={`relative w-full h-full rounded-[24px] sm:rounded-[28px] md:rounded-[30px] overflow-hidden ${item.bgAccent} shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] group-hover:-translate-y-1`}
+          className={`relative w-full h-full apple-widget-lg rounded-[48px] md:rounded-[52px] overflow-hidden ${item.bgAccent} ring-1 ring-black/5 shadow-[0_8px_24px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-500 group-hover:shadow-[0_16px_36px_rgba(0,0,0,0.16),0_4px_12px_rgba(0,0,0,0.06)] group-hover:-translate-y-1.5`}
         >
           {/* Media: Looping Video on Desktop or High-Speed Photography on Mobile */}
           {isVideoAllowed ? (
@@ -365,7 +365,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
             {/* Controls / Tag - Apple Pill radius */}
             <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2.5 py-1 rounded-[8px] bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
+              <span className="font-mono text-[8px] md:text-[9px] font-bold px-2.5 py-1 apple-pill rounded-full bg-black/45 backdrop-blur-md text-white/90 uppercase tracking-widest">
                 {item.tag}
               </span>
 
@@ -374,7 +374,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
                   type="button"
                   onClick={(e) => toggleMute(item.id, e)}
                   title={unmutedId === item.id ? 'Mute' : 'Unmute'}
-                  className="w-7 h-7 md:w-8 md:h-8 rounded-[10px] bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
+                  className="w-7 h-7 md:w-8 md:h-8 apple-circle rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
                 >
                   {unmutedId === item.id ? (
                     <Volume2 className="w-3.5 h-3.5" />
@@ -388,7 +388,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
 
           {/* Center Magnetic "Expand +" Badge - Apple squircle */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+            <div className="w-16 h-16 md:w-20 md:h-20 apple-circle rounded-full bg-black/85 backdrop-blur-md text-white shadow-2xl flex flex-col items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
               <span className="font-sans text-[11px] md:text-xs font-semibold tracking-wide">Expand</span>
               <span className="text-sm md:text-base font-light leading-none mt-0.5 text-white">+</span>
             </div>
@@ -434,16 +434,16 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   }
 
   return (
-    <section id="work" className="w-full py-12 sm:py-16 md:py-20 bg-canvas overflow-hidden">
+    <section id="work" className="w-full pt-8 sm:pt-12 md:pt-14 pb-12 sm:pb-16 md:pb-20 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks (Zero External Text) */}
-      <div className="w-full flex flex-col gap-6 md:gap-8 overflow-hidden">
-        {/* Lane 1: Slides Left - Fixed uniform height with mixed bento widths */}
+      <div className="w-full flex flex-col gap-0 overflow-hidden">
+        {/* Lane 1: Slides Left - Fixed uniform height with generous vertical shadow clearance */}
         <div
-          className="w-full h-[260px] sm:h-[320px] md:h-[380px] overflow-hidden"
+          className="w-full py-5 sm:py-7 md:py-8 overflow-hidden"
           onMouseEnter={() => { if (window.matchMedia('(hover: hover)').matches) setIsRowOneHovered(true); }}
           onMouseLeave={() => setIsRowOneHovered(false)}
         >
-          <div ref={rowOneRef} className="flex gap-3 sm:gap-5 md:gap-7 h-full w-max will-change-transform">
+          <div ref={rowOneRef} className="flex gap-4 sm:gap-6 md:gap-8 h-[260px] sm:h-[320px] md:h-[380px] w-max will-change-transform items-center">
             {/* Duplicated for seamless infinite marquee */}
             {Array.from({ length: REPETITIONS }).flatMap(() => rowOne).map((item, idx) =>
               renderBentoCard(item, `lane1-${item.id}-${idx}`)
@@ -451,13 +451,13 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
           </div>
         </div>
 
-        {/* Lane 2: Slides Right - Fixed uniform height with mixed bento widths */}
+        {/* Lane 2: Slides Right - Fixed uniform height with generous vertical shadow clearance */}
         <div
-          className="w-full h-[260px] sm:h-[320px] md:h-[380px] overflow-hidden"
+          className="w-full py-5 sm:py-7 md:py-8 overflow-hidden"
           onMouseEnter={() => { if (window.matchMedia('(hover: hover)').matches) setIsRowTwoHovered(true); }}
           onMouseLeave={() => setIsRowTwoHovered(false)}
         >
-          <div ref={rowTwoRef} className="flex gap-3 sm:gap-5 md:gap-7 h-full w-max will-change-transform">
+          <div ref={rowTwoRef} className="flex gap-4 sm:gap-6 md:gap-8 h-[260px] sm:h-[320px] md:h-[380px] w-max will-change-transform items-center">
             {/* Duplicated for seamless infinite marquee */}
             {Array.from({ length: REPETITIONS }).flatMap(() => rowTwo).map((item, idx) =>
               renderBentoCard(item, `lane2-${item.id}-${idx}`)

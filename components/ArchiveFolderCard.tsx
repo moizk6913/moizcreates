@@ -94,37 +94,37 @@ export default function ArchiveFolderCard({
       <div className="relative w-[196px] sm:w-[216px] h-[170px] sm:h-[185px] flex items-end justify-center">
         
         {/* LAYER 1: BACK PLATE (Silver-Grey Apple Squircle) */}
-        <div className="absolute bottom-0 w-[184px] sm:w-[204px] h-[126px] sm:h-[138px] rounded-[16px] sm:rounded-[20px] bg-gradient-to-b from-[#e3e1dd] to-[#cdc9c2] shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-black/5" />
+        <div className="absolute bottom-0 w-[184px] sm:w-[204px] h-[126px] sm:h-[138px] apple-widget-sm rounded-[28px] sm:rounded-[32px] overflow-hidden bg-gradient-to-b from-[#e3e1dd] to-[#cdc9c2] shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-black/5" />
 
         {/* LAYER 2: 3 FANNED-OUT PHOTO CARDS (With Apple-grade white border frames) */}
         <div className="absolute bottom-6 w-full flex items-center justify-center pointer-events-none z-10">
           {/* Left Photo (Tilted -12deg) */}
-          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white rounded-[10px] sm:rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform -rotate-12 -translate-x-6 -translate-y-4 group-hover:-rotate-[16deg] group-hover:-translate-x-8 group-hover:-translate-y-6 transition-transform duration-500 ease-out overflow-hidden">
+          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white apple-widget-sm rounded-[24px] sm:rounded-[28px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform -rotate-12 -translate-x-6 -translate-y-4 group-hover:-rotate-[16deg] group-hover:-translate-x-8 group-hover:-translate-y-6 transition-transform duration-500 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img1}
               alt="Campaign Still 1"
-              className="w-full h-full object-cover rounded-[7px] sm:rounded-[9px]"
+              className="w-full h-full object-cover apple-widget-sm rounded-[20px] sm:rounded-[24px]"
             />
           </div>
 
           {/* Center Photo (Standing Highest, Upright) */}
-          <div className="absolute w-[86px] sm:w-[94px] h-[112px] sm:h-[124px] p-1.5 bg-white rounded-[10px] sm:rounded-[12px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] z-10 transform -translate-y-6 sm:-translate-y-7 group-hover:-translate-y-9 sm:group-hover:-translate-y-10 transition-transform duration-500 ease-out overflow-hidden">
+          <div className="absolute w-[86px] sm:w-[94px] h-[112px] sm:h-[124px] p-1.5 bg-white apple-widget-sm rounded-[24px] sm:rounded-[28px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] z-10 transform -translate-y-6 sm:-translate-y-7 group-hover:-translate-y-9 sm:group-hover:-translate-y-10 transition-transform duration-500 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img2}
               alt="Campaign Still 2"
-              className="w-full h-full object-cover rounded-[7px] sm:rounded-[9px]"
+              className="w-full h-full object-cover apple-widget-sm rounded-[20px] sm:rounded-[24px]"
             />
           </div>
 
           {/* Right Photo (Tilted +12deg) */}
-          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white rounded-[10px] sm:rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform rotate-12 translate-x-6 -translate-y-3 group-hover:rotate-[16deg] group-hover:translate-x-8 group-hover:-translate-y-5 transition-transform duration-500 ease-out overflow-hidden">
+          <div className="absolute w-[80px] sm:w-[88px] h-[104px] sm:h-[116px] p-1.5 bg-white apple-widget-sm rounded-[24px] sm:rounded-[28px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform rotate-12 translate-x-6 -translate-y-3 group-hover:rotate-[16deg] group-hover:translate-x-8 group-hover:-translate-y-5 transition-transform duration-500 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img3}
               alt="Campaign Still 3"
-              className="w-full h-full object-cover rounded-[7px] sm:rounded-[9px]"
+              className="w-full h-full object-cover apple-widget-sm rounded-[20px] sm:rounded-[24px]"
             />
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function ArchiveFolderCard({
 
           {/* Bottom-Right Circular Black Action Button (Matches Reference Images 3 & 4) */}
           <div className="relative z-10 self-end">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center shadow-md group-hover:scale-110 group-hover:bg-neutral-800 transition-all duration-300">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 apple-circle rounded-full bg-black text-white flex items-center justify-center shadow-md group-hover:scale-110 group-hover:bg-neutral-800 transition-all duration-300">
               {isMusicOrReel ? (
                 <span className="text-xs font-bold leading-none">♫</span>
               ) : (
@@ -174,7 +174,7 @@ export default function ArchiveFolderCard({
         <h3 className="font-display font-black text-base sm:text-lg md:text-xl uppercase tracking-tight text-black group-hover:text-neutral-600 transition-colors leading-tight">
           {name}
         </h3>
-        <span className="font-mono text-[11px] text-neutral-500 bg-neutral-200/60 px-3.5 py-0.5 rounded-full font-medium inline-block mt-1">
+        <span className="font-mono text-[11px] text-neutral-500 bg-neutral-200/60 px-3.5 py-0.5 apple-pill rounded-full font-medium inline-block mt-1">
           {year || '2026'}
         </span>
       </div>

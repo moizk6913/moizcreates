@@ -340,3 +340,39 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+/* ==========================================================================
+   APPLE SQUIRCLE / SUPERELLIPSE WIDGET GEOMETRY (Continuous iOS Curve System)
+   ========================================================================== */
+
+.apple-widget,
+.apple-widget-lg {
+  border-radius: 52px;
+  corner-shape: squircle;
+  -webkit-corner-shape: squircle;
+  overflow: hidden;
+}
+
+.apple-widget-md {
+  border-radius: 40px;
+  corner-shape: squircle;
+  -webkit-corner-shape: squircle;
+  overflow: hidden;
+}
+
+.apple-widget-sm {
+  border-radius: 32px;
+  corner-shape: squircle;
+  -webkit-corner-shape: squircle;
+  overflow: hidden;
+}
+
+.apple-circle {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.apple-pill {
+  border-radius: 9999px;
+  overflow: hidden;
+}
