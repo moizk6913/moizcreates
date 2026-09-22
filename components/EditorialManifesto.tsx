@@ -121,14 +121,14 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
       ref={sectionRef}
       id="manifesto"
       style={{
-        paddingTop: 'var(--hero-to-manifesto, 120px)',
-        paddingBottom: 'var(--manifesto-to-work, 64px)',
+        paddingTop: 'var(--hero-to-manifesto, 44px)',
+        paddingBottom: 'var(--manifesto-to-work, 156px)',
       }}
       className="w-full bg-gradient-to-b from-white via-[#faf9f6] to-white border-none overflow-hidden relative"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 text-center">
         <h2
-          style={{ gap: 'var(--manifesto-line-gap, 24px)' }}
+          style={{ gap: 'var(--manifesto-line-gap, 28px)' }}
           className="font-display font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] sm:leading-[1.15] tracking-tight text-primary uppercase flex flex-col items-center"
         >
           {/* Line 1 */}

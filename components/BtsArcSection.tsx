@@ -413,7 +413,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
   return (
     <section id="work" className="w-full pt-0 pb-0 bg-canvas overflow-hidden">
       {/* Sliding Horizontal Bento Tracks */}
-      <div className="w-full flex flex-col overflow-hidden" style={{ gap: 'var(--grid-gap, 24px)' }}>
+      <div className="w-full flex flex-col overflow-hidden" style={{ gap: 'var(--grid-gap, 34px)' }}>
         {/* Lane 1: Slides Left - Fixed uniform height with generous vertical shadow clearance */}
         <div
           className="w-full py-1 overflow-hidden"

@@ -5,7 +5,7 @@ export default function ClientsStrip() {
     <section
       id="visual-references"
       style={{
-        paddingTop: 'var(--work-to-references, 80px)',
+        paddingTop: 'var(--work-to-references, 128px)',
         paddingBottom: 'var(--references-bottom, 72px)',
       }}
       className="w-full bg-canvas overflow-hidden border-none relative select-none"

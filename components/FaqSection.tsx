@@ -42,14 +42,14 @@ export default function FaqSection() {
     <section
       id="faq"
       style={{
-        paddingTop: 'var(--faq-top, 88px)',
+        paddingTop: 'var(--faq-top, 132px)',
         paddingBottom: 'var(--faq-bottom, 80px)',
       }}
       className="w-full bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
       <div
-        style={{ paddingBottom: 'var(--faq-header-gap, var(--header-to-content, 48px))' }}
+        style={{ paddingBottom: 'var(--faq-header-gap, 54px)' }}
         className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
       >
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">

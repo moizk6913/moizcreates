@@ -216,41 +216,41 @@
   --border-hairline: #e8e6e1;
   --border-medium: #d3d0c8;
 
-  /* Live Spacing Tokens (Calibrated by Moiz) */
+  /* Live Spacing Tokens (Calibrated by Moiz with Council) */
   --hero-to-manifesto: 44px;
+  --manifesto-line-gap: 28px;
   --manifesto-to-work: 156px;
+  --grid-gap: 34px;
   --work-to-references: 128px;
   --references-bottom: 72px;
-  --section-top: 148px;
-  --section-bottom: 56px;
-  --header-to-content: 128px;
-  --grid-gap: 34px;
-  --faq-top: 180px;
-  --cta-padding: 200px;
-  --footer-top: 56px;
 
-  /* Line & Row Spacing Tokens (Ensures every line and row has generous breathing room) */
-  --manifesto-line-gap: 28px;
-  --service-row-padding: 28px;
-  --faq-row-padding: 28px;
-  --statement-line-gap: 28px;
+  /* Section-Wise: Services (What I Do) */
+  --services-top: 64px;
+  --services-bottom: 52px;
+  --services-header-gap: 54px;
+  --service-row-padding: 24px;
 
-  /* Section-Wise Controls (Allows each section to be tuned independently) */
-  --services-top: 80px;
-  --services-bottom: 56px;
-  --services-header-gap: 40px; /* Closes the gap between 'WHAT I DO' and '01 to 04' */
-
-  --process-top: 80px;
+  /* Section-Wise: Process (How I Get There) */
+  --process-top: 88px;
   --process-bottom: 56px;
-  --process-header-gap: 48px;
-  --process-grid-gap: 34px;
+  --process-header-gap: 86px;
+  --process-grid-gap: 44px;
 
-  --testimonials-top: 80px;
+  /* Section-Wise: Testimonials (Endorsements) */
+  --testimonials-top: 104px;
   --testimonials-bottom: 56px;
-  --testimonials-header-gap: 48px;
+  --testimonials-header-gap: 126px;
 
+  /* Section-Wise: FAQ (Inquiries) */
+  --faq-top: 132px;
   --faq-bottom: 80px;
-  --faq-header-gap: 48px;
+  --faq-header-gap: 54px;
+  --faq-row-padding: 24px;
+
+  /* Section-Wise: CTA & Footer */
+  --cta-padding: 200px;
+  --statement-line-gap: 28px;
+  --footer-top: 56px;
 }
 
 html.lenis {

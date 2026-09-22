@@ -41,7 +41,7 @@ export default function Contact() {
   return (
     <footer
       id="contact"
-      style={{ paddingTop: 'var(--footer-top, 64px)' }}
+      style={{ paddingTop: 'var(--footer-top, 56px)' }}
       className="w-full pb-0 bg-white relative select-none border-none flex flex-col justify-between overflow-x-hidden"
     >
       {/* MAIN ARTBOARD CONTAINER (Apple Ecosystem Pure Monochrome) */}

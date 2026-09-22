@@ -43,27 +43,27 @@ export interface SpacingSettings {
 }
 
 export const DEFAULT_SPACING: SpacingSettings = {
-  // Services: calibrated with a tight, intentional gap between "WHAT I DO" and "01"
-  servicesHeaderGap: 36,
-  serviceRowPadding: 28,
-  servicesTop: 80,
-  servicesBottom: 56,
+  // Services
+  servicesHeaderGap: 54,
+  serviceRowPadding: 24,
+  servicesTop: 64,
+  servicesBottom: 52,
 
   // Process
-  processHeaderGap: 48,
-  processGridGap: 34,
-  processTop: 80,
+  processHeaderGap: 86,
+  processGridGap: 44,
+  processTop: 88,
   processBottom: 56,
 
   // Testimonials
-  testimonialsHeaderGap: 48,
-  testimonialsTop: 80,
+  testimonialsHeaderGap: 126,
+  testimonialsTop: 104,
   testimonialsBottom: 56,
 
   // FAQ
-  faqHeaderGap: 48,
-  faqRowPadding: 28,
-  faqTop: 140,
+  faqHeaderGap: 54,
+  faqRowPadding: 24,
+  faqTop: 132,
   faqBottom: 80,
 
   // Hero & Manifesto

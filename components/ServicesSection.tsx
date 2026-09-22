@@ -118,14 +118,14 @@ export default function ServicesSection({ onOpenCase }: ServicesSectionProps) {
       id="services"
       onMouseLeave={() => setHoveredIndex(null)}
       style={{
-        paddingTop: 'var(--services-top, var(--section-top, 96px))',
-        paddingBottom: 'var(--services-bottom, var(--section-bottom, 96px))',
+        paddingTop: 'var(--services-top, 64px)',
+        paddingBottom: 'var(--services-bottom, 52px)',
       }}
       className="w-full bg-white overflow-hidden select-none border-none relative"
     >
       {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
       <div
-        style={{ paddingBottom: 'var(--services-header-gap, var(--header-to-content, 40px))' }}
+        style={{ paddingBottom: 'var(--services-header-gap, 54px)' }}
         className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
       >
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">

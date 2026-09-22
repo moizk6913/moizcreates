@@ -77,14 +77,14 @@ export default function StatementBridge() {
       ref={sectionRef}
       id="manifesto-bridge"
       style={{
-        paddingTop: 'var(--cta-padding, 120px)',
-        paddingBottom: 'var(--cta-padding, 120px)',
+        paddingTop: 'var(--cta-padding, 200px)',
+        paddingBottom: 'var(--cta-padding, 200px)',
       }}
       className="w-full bg-white relative overflow-hidden flex flex-col items-center justify-center text-center select-none border-none"
     >
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center">
         <h2
-          style={{ gap: 'var(--statement-line-gap, 24px)' }}
+          style={{ gap: 'var(--statement-line-gap, 28px)' }}
           className="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-5xl uppercase tracking-tight leading-[1.25] text-black flex flex-col items-center justify-center"
         >
           
