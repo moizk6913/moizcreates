@@ -234,6 +234,23 @@
   --service-row-padding: 28px;
   --faq-row-padding: 28px;
   --statement-line-gap: 28px;
+
+  /* Section-Wise Controls (Allows each section to be tuned independently) */
+  --services-top: 80px;
+  --services-bottom: 56px;
+  --services-header-gap: 40px; /* Closes the gap between 'WHAT I DO' and '01 to 04' */
+
+  --process-top: 80px;
+  --process-bottom: 56px;
+  --process-header-gap: 48px;
+  --process-grid-gap: 34px;
+
+  --testimonials-top: 80px;
+  --testimonials-bottom: 56px;
+  --testimonials-header-gap: 48px;
+
+  --faq-bottom: 80px;
+  --faq-header-gap: 48px;
 }
 
 html.lenis {

@@ -81,12 +81,12 @@ export default function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      style={{ paddingTop: 'var(--section-top, 96px)' }}
+      style={{ paddingTop: 'var(--testimonials-top, var(--section-top, 96px))' }}
       className="relative w-full pb-0 bg-white overflow-hidden select-none border-none"
     >
       {/* 1. EDITORIAL CHAPTER HEADER (Static, Monumental, Line-Free) */}
       <div
-        style={{ paddingBottom: 'var(--header-to-content, 64px)' }}
+        style={{ paddingBottom: 'var(--testimonials-header-gap, var(--header-to-content, 48px))' }}
         className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
       >
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
