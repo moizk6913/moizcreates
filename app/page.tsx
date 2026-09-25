@@ -15,7 +15,6 @@ import Contact from '@/components/Contact';
 import CaseModal from '@/components/CaseModal';
 import CustomCursor from '@/components/CustomCursor';
 import Preloader from '@/components/Preloader';
-import SpacingTuner from '@/components/SpacingTuner';
 import {
   getStoredCanvasFiles,
   getStoredCanvasFilesAsync,
@@ -79,6 +78,15 @@ export default function Home() {
     }
   }, [isIntroDone]);
 
+  // Deep-link to case study modal if ?project= or ?case= is present in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const proj = params.get('project') || params.get('case');
+      if (proj) setSelectedCase(proj);
+    }
+  }, []);
+
   return (
     <main className="relative min-h-screen bg-canvas">
       {/* Ultra-Luxury High-Fashion Cinema Preloader */}
@@ -137,8 +145,6 @@ export default function Home() {
         uploadedFiles={uploadedFiles}
         userPhotos={userPhotos}
       />
-      {/* Interactive Live Spacing Tuner Drawer */}
-      <SpacingTuner />
     </main>
   );
 }

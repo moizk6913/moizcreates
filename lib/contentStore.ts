@@ -111,9 +111,17 @@ export interface SeriesGroup {
   projectId: string | null;
 }
 
-// ==========================================
-// LEGACY INTERFACE (FOR 100% BACKWARD COMPATIBILITY)
-// ==========================================
+export interface CanvasProjectSection {
+  id: string;
+  title: string;
+  type: 'grid' | 'lookbook' | 'stories' | 'banner' | 'deck' | 'video';
+  items: Array<{
+    url: string;
+    aspectRatio?: string;
+    title?: string;
+    type?: 'image' | 'video';
+  }>;
+}
 
 export interface DynamicCanvasFile {
   id: string;
@@ -134,8 +142,10 @@ export interface DynamicCanvasFile {
   photos?: string[];
   photoCount?: number;
   stickers?: any;
+  variant?: string;
   desc: string;
   deliverables: string[];
+  sections?: CanvasProjectSection[];
 }
 
 export interface SeoConfig {
@@ -225,6 +235,101 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
     await purgeMockAndCaldharProjectsAsync();
   } catch {}
 
+  // 1. Try to get works from server database API first
+  try {
+    const res = await fetch('/api/admin/projects');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.projects)) {
+        const serverWorks: WorkItem[] = [];
+
+        data.projects.forEach((proj: any) => {
+          if (Array.isArray(proj.gallery)) {
+            proj.gallery.forEach((g: any, idx: number) => {
+              serverWorks.push({
+                id: g.id || `work-${proj.id}-${idx}`,
+                title: g.altText || `${proj.title} Frame #${idx + 1}`,
+                mediaUrl: g.optimizedUrl || g.url,
+                thumbnailUrl: g.thumbnailUrl || g.optimizedUrl || g.url,
+                mediaType: g.type || 'image',
+                fileType: g.mimeType || 'image/webp',
+                fileName: g.fileName || `${proj.slug}-${idx + 1}.webp`,
+                fileSize: g.fileSize || 100000,
+                dimensions: g.dimensions || {
+                  width: 1920,
+                  height: 1080,
+                  aspectRatio: '16:9',
+                  orientation: 'horizontal',
+                },
+                workType: g.type === 'video' ? 'Horizontal Video' : 'Photography',
+                disciplines: [proj.subcategory || 'Art Direction'],
+                tags: Array.isArray(proj.tags) ? proj.tags : ['Archive'],
+                projectId: proj.id,
+                collectionIds: [],
+                seriesId: null,
+                client: proj.client || proj.title,
+                year: proj.year || '2026',
+                status: proj.status || 'published',
+                createdAt: g.createdAt ? new Date(g.createdAt).getTime() : Date.now(),
+                updatedAt: g.createdAt ? new Date(g.createdAt).getTime() : Date.now(),
+              });
+            });
+          }
+
+          if (Array.isArray(proj.videos)) {
+            proj.videos.forEach((v: any, vIdx: number) => {
+              serverWorks.push({
+                id: v.id || `video-${proj.id}-${vIdx}`,
+                title: v.title || `${proj.title} Motion Sequence`,
+                mediaUrl: v.url,
+                thumbnailUrl: v.posterUrl || proj.coverImage,
+                mediaType: 'video',
+                fileType: 'video/mp4',
+                fileName: `video-${proj.slug}.mp4`,
+                fileSize: 5000000,
+                dimensions: v.dimensions || {
+                  width: 1920,
+                  height: 1080,
+                  aspectRatio: '16:9',
+                  orientation: 'horizontal',
+                  duration: v.duration || 15,
+                },
+                workType: 'Horizontal Video',
+                disciplines: ['Motion', 'Cinematography'],
+                tags: ['Directorial Cut', proj.subcategory || 'Art Direction'],
+                projectId: proj.id,
+                collectionIds: [],
+                seriesId: null,
+                client: proj.client || proj.title,
+                year: proj.year || '2026',
+                status: proj.status || 'published',
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              });
+            });
+          }
+        });
+
+        // Merge any locally added standalone works from IDB
+        try {
+          const idbWorks = await getAllWorksIDB();
+          if (idbWorks && idbWorks.length > 0) {
+            const serverIds = new Set(serverWorks.map((w) => w.id));
+            const standalone = (idbWorks as WorkItem[]).filter((w) => !serverIds.has(w.id));
+            serverWorks.push(...standalone);
+          }
+        } catch {}
+
+        if (serverWorks.length > 0) {
+          return serverWorks;
+        }
+      }
+    }
+  } catch (apiErr) {
+    console.warn('API fetch for works failed, checking local IDB:', apiErr);
+  }
+
+  // Fallback to local IndexedDB & localStorage
   try {
     const idbWorks = await getAllWorksIDB();
     if (idbWorks && idbWorks.length > 0) {
@@ -234,13 +339,11 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
     console.warn('IDB works read failed, checking localStorage fallback:', err);
   }
 
-  // Check lightweight localStorage index
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.WORKS_INDEX);
     if (raw) return JSON.parse(raw);
   } catch {}
 
-  // Auto-migration check: if legacy canvas files exist, convert them to Projects + Works
   const migrated = await migrateLegacyCanvasFiles();
   return migrated;
 }
@@ -294,7 +397,15 @@ export async function saveWorksBatchAsync(works: WorkItem[]): Promise<void> {
 
 export async function deleteWorkAsync(id: string): Promise<void> {
   if (typeof window === 'undefined') return;
-  // 1. Delete from Works IDB
+
+  // 1. Delete on server database API
+  try {
+    await fetch(`/api/admin/media/${id}`, { method: 'DELETE' });
+  } catch (apiErr) {
+    console.warn('Could not delete media on server API:', apiErr);
+  }
+
+  // 2. Delete from Works IDB
   try {
     await deleteWorkIDB(id);
   } catch (err) {
@@ -369,6 +480,45 @@ export async function deleteWorksBatchAsync(ids: string[]): Promise<void> {
 
 export async function getStoredProjectsAsync(): Promise<Project[]> {
   if (typeof window === 'undefined') return [];
+
+  // 1. Try Live Server API First
+  try {
+    const res = await fetch('/api/admin/projects');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.projects) && data.projects.length > 0) {
+        const serverProjects: Project[] = data.projects.map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug || p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          tag: p.subcategory || (p.tags && p.tags[0]) || 'COMMERCIAL CAMPAIGN',
+          client: p.client || p.title,
+          role: p.role || 'Director of Visuals',
+          year: p.year || '2026',
+          overview: p.fullDescription || p.shortDescription || '',
+          coverWorkId: p.coverMediaId || null,
+          status: p.status || 'published',
+          featured: p.featured ?? true,
+          createdAt: p.createdAt ? new Date(p.createdAt).getTime() : Date.now(),
+          updatedAt: p.updatedAt ? new Date(p.updatedAt).getTime() : Date.now(),
+        }));
+
+        // Cache into IDB and localStorage
+        try {
+          for (const sp of serverProjects) {
+            await saveProjectIDB(sp as any);
+          }
+          localStorage.setItem(STORAGE_KEYS.PROJECTS_INDEX, JSON.stringify(serverProjects));
+        } catch {}
+
+        return serverProjects;
+      }
+    }
+  } catch (apiErr) {
+    console.warn('API fetch for projects failed, checking local IDB:', apiErr);
+  }
+
+  // Fallback to local IndexedDB & localStorage
   try {
     const idbProjects = await getAllProjectsIDB();
     if (idbProjects && idbProjects.length > 0) {
@@ -396,6 +546,43 @@ export async function saveProjectAsync(project: Project): Promise<void> {
     slug: project.slug || project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
   };
 
+  // 1. Sync to Server Database API
+  try {
+    const payload = {
+      title: prepared.title,
+      slug: prepared.slug,
+      shortDescription: prepared.overview?.slice(0, 140) || '',
+      fullDescription: prepared.overview || '',
+      client: prepared.client,
+      role: prepared.role,
+      year: prepared.year,
+      subcategory: prepared.tag,
+      tags: [prepared.role, prepared.tag].filter(Boolean),
+      status: prepared.status || 'published',
+      featured: prepared.featured ?? true,
+    };
+
+    const putRes = await fetch(`/api/admin/projects/${prepared.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!putRes.ok && putRes.status === 404) {
+      await fetch('/api/admin/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...payload,
+          id: prepared.id,
+        }),
+      });
+    }
+  } catch (apiErr) {
+    console.warn('Could not sync project to server API:', apiErr);
+  }
+
+  // 2. Cache in IDB & localStorage
   try {
     await saveProjectIDB(prepared as IDBProject);
   } catch (err) {
@@ -403,7 +590,7 @@ export async function saveProjectAsync(project: Project): Promise<void> {
   }
 
   try {
-    const existing = await getStoredProjectsAsync();
+    const existing = await getAllProjectsIDB();
     const updated = [prepared, ...existing.filter((p) => p.id !== project.id)];
     localStorage.setItem(STORAGE_KEYS.PROJECTS_INDEX, JSON.stringify(updated));
   } catch {}
@@ -414,14 +601,21 @@ export async function saveProjectAsync(project: Project): Promise<void> {
 export async function deleteProjectAsync(id: string, deleteContainedWorks: boolean = true): Promise<void> {
   if (typeof window === 'undefined') return;
   
-  // 1. Delete project container from IDB
+  // 1. Delete on Server Database API
+  try {
+    await fetch(`/api/admin/projects/${id}`, { method: 'DELETE' });
+  } catch (apiErr) {
+    console.warn('Could not delete project on server API:', apiErr);
+  }
+
+  // 2. Delete project container from IDB
   try {
     await deleteProjectIDB(id);
   } catch (err) {
     console.warn('Error deleting project from IDB:', err);
   }
 
-  // 2. Also delete corresponding legacy canvas store entry
+  // 3. Also delete corresponding legacy canvas store entry
   try {
     await deleteCanvasFileIDB(id);
   } catch {}
@@ -732,6 +926,52 @@ export function filterWorks(works: WorkItem[], query: WorkQueryFilter): WorkItem
 // ==========================================
 
 export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> {
+  // 1. Try Live Server API First
+  try {
+    if (typeof window !== 'undefined') {
+      const res = await fetch('/api/projects', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.projects) && data.projects.length > 0) {
+          const mapped: DynamicCanvasFile[] = data.projects.map((proj: any) => {
+            const photos = proj.gallery?.map((g: any) => g.optimizedUrl || g.url) || [];
+            return {
+              id: proj.slug || proj.id,
+              code: proj.tags?.[0] || 'ARCHIVE',
+              name: proj.title,
+              discipline: proj.subcategory || proj.categoryId,
+              client: proj.client,
+              year: proj.year || '2026',
+              role: proj.role || 'Lead Art Director',
+              x: 0,
+              y: 0,
+              rot: 0,
+              img: proj.coverImage || photos[0] || '',
+              aspect: proj.gallery?.[0]?.dimensions?.aspectRatio === '9:16' ? 'aspect-[9/16]' : proj.gallery?.[0]?.dimensions?.aspectRatio === '4:5' ? 'aspect-[4/5]' : 'aspect-[16/10]',
+              colorTag: 'bg-[#cbd5e1]',
+              assetType: 'folder',
+              videoUrl: proj.videos?.[0]?.url,
+              photos,
+              photoCount: photos.length,
+              desc: proj.fullDescription || proj.shortDescription || '',
+              deliverables: proj.services || ['Creative Direction', 'Visual Architecture'],
+            };
+          });
+
+          // Sync into localStorage for instant offline/initial loads
+          try {
+            localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(mapped));
+          } catch {}
+
+          return mapped;
+        }
+      }
+    }
+  } catch (apiErr) {
+    console.warn('API fetch for canvas files failed, checking local stores:', apiErr);
+  }
+
+  // 2. Fallback to relational IDB model
   try {
     const [works, projects] = await Promise.all([
       getStoredWorksAsync(),
@@ -832,6 +1072,26 @@ export function getStoredCanvasFiles(): DynamicCanvasFile[] {
 
 export async function saveCanvasFileAsync(file: DynamicCanvasFile): Promise<void> {
   if (typeof window === 'undefined') return;
+
+  // 1. Sync to server API if authenticated
+  try {
+    await fetch(`/api/admin/projects/${file.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: file.name,
+        fullDescription: file.desc,
+        overview: file.desc,
+        role: file.role,
+        services: file.deliverables,
+        year: file.year,
+      }),
+    });
+  } catch (apiErr) {
+    console.warn('Could not sync canvas file to server API:', apiErr);
+  }
+
+  // 2. Also save to local IDB & localStorage
   try {
     await saveCanvasFileIDB(file);
   } catch (err) {
@@ -857,6 +1117,13 @@ export function saveCanvasFile(file: DynamicCanvasFile): void {
 
 export function deleteCanvasFile(id: string): void {
   if (typeof window === 'undefined') return;
+
+  // 1. Sync deletion to server API
+  try {
+    fetch(`/api/admin/projects/${id}`, { method: 'DELETE' }).catch(() => {});
+  } catch {}
+
+  // 2. Clean local storage
   deleteCanvasFileIDB(id).catch(console.warn);
   deleteProjectAsync(id, true).catch(console.warn);
   deleteWorkAsync(id).catch(console.warn);
@@ -866,6 +1133,22 @@ export function deleteCanvasFile(id: string): void {
     localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(updated));
   } catch {}
   notifyCanvasUpdated();
+}
+
+export async function submitContactInquiry(data: {
+  name: string;
+  email: string;
+  message: string;
+  service?: string;
+  budget?: string;
+  _hp?: string;
+}) {
+  const res = await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
 }
 
 // ==========================================

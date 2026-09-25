@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { DynamicCanvasFile, deleteCanvasFile } from '@/lib/contentStore';
+import { DynamicCanvasFile, deleteCanvasFile, saveCanvasFile } from '@/lib/contentStore';
+import { DEFAULT_DISCIPLINE_FOLDERS } from '@/lib/defaultDisciplines';
 
 interface CaseModalProps {
   projectId: string | null;
@@ -20,6 +21,18 @@ export interface CaseMediaItem {
   items?: Array<{ image: string }>;
 }
 
+export interface CaseSectionItem {
+  id: string;
+  title: string;
+  type: 'grid' | 'lookbook' | 'stories' | 'banner' | 'deck' | 'video';
+  items: Array<{
+    url: string;
+    aspectRatio?: string;
+    title?: string;
+    type?: 'image' | 'video';
+  }>;
+}
+
 export interface CaseProjectData {
   tag: string;
   title: string;
@@ -29,12 +42,28 @@ export interface CaseProjectData {
   market: string;
   narrative: string;
   media: CaseMediaItem[];
+  sections?: CaseSectionItem[];
   videoUrl?: string;
   scopePills?: string[];
 }
 
 export default function CaseModal({ projectId, onClose, uploadedFiles, userPhotos }: CaseModalProps) {
   const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
+  const [editingNarrative, setEditingNarrative] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (projectId) {
+      setEditingNarrative(null);
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+      });
+      const t = setTimeout(() => {
+        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [projectId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,7 +94,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
     const lowerId = projectId.toLowerCase().trim();
 
     // Check user uploaded files first
-    const matchedUser = uploadedFiles?.find(
+    let matchedUser = uploadedFiles?.find(
       (f) =>
         f.id.toLowerCase() === lowerId ||
         f.name.toLowerCase() === lowerId ||
@@ -73,12 +102,39 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
         f.name.toLowerCase().includes(lowerId)
     );
 
+    // Fallback to default discipline folders
+    if (!matchedUser) {
+      matchedUser = DEFAULT_DISCIPLINE_FOLDERS.find(
+        (f) =>
+          f.id.toLowerCase() === lowerId ||
+          f.name.toLowerCase() === lowerId ||
+          f.code?.toLowerCase() === lowerId ||
+          f.name.toLowerCase().includes(lowerId) ||
+          f.discipline.toLowerCase().includes(lowerId.replace(/-/g, ' '))
+      ) as any;
+    }
+
     if (matchedUser) {
       const photos =
         matchedUser.photos && matchedUser.photos.length > 0
           ? matchedUser.photos
           : matchedUser.img
           ? [matchedUser.img]
+          : [];
+
+      const sections: CaseSectionItem[] =
+        matchedUser.sections && matchedUser.sections.length > 0
+          ? matchedUser.sections.map((s: any) => ({
+              id: s.id,
+              title: s.title,
+              type: s.type,
+              items: (s.items || []).map((it: any) => ({
+                url: typeof it === 'string' ? it : it.url,
+                aspectRatio: it.aspectRatio,
+                title: it.title,
+                type: it.type || (typeof it === 'string' && it.endsWith('.mp4') ? 'video' : 'image'),
+              })),
+            }))
           : [];
 
       const pData: CaseProjectData = {
@@ -94,6 +150,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
           matchedUser.desc ||
           `${matchedUser.name} — Directorial campaign with ${photos.length} deliverable(s).`,
         videoUrl: matchedUser.videoUrl,
+        sections,
         scopePills:
           matchedUser.deliverables && matchedUser.deliverables.length > 0
             ? matchedUser.deliverables
@@ -112,10 +169,14 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
 
   if (!projectData) return null;
 
-  // Extract all images
+  // Extract all images smartly from photos, sections, or media
   const allImages: string[] =
     userProject?.photos && userProject.photos.length > 0
       ? userProject.photos
+      : projectData.sections && projectData.sections.length > 0
+      ? projectData.sections.flatMap((s) =>
+          s.items.filter((it) => it.type !== 'video' && !it.url.endsWith('.mp4')).map((it) => it.url)
+        )
       : userProject?.img
       ? [userProject.img]
       : projectData.media
@@ -134,17 +195,33 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-8 overscroll-contain transition-opacity duration-300"
+      style={{
+        paddingTop: 'var(--modal-top-spacing, 40px)',
+        paddingBottom: 'var(--modal-top-spacing, 40px)',
+      }}
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center px-2 sm:px-4 md:px-8 overscroll-contain transition-opacity duration-300"
       role="dialog"
       aria-modal="true"
     >
       {/* Apple-Style Continuous Rounded Modal Window */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-6xl max-h-[92vh] bg-white text-black shadow-[0_30px_90px_rgba(0,0,0,0.4)] apple-widget-lg rounded-[48px] sm:rounded-[56px] overflow-hidden flex flex-col border-none"
+        style={{
+          height: 'calc(100vh - (var(--modal-top-spacing, 40px) * 2))',
+          maxHeight: '920px',
+        }}
+        className="relative w-full max-w-6xl bg-white text-black shadow-[0_30px_90px_rgba(0,0,0,0.4)] apple-widget-lg rounded-[48px] sm:rounded-[56px] overflow-hidden flex flex-col border-none"
       >
         {/* Top Minimal Bar (Matching User Image 2 Header) */}
-        <div className="sticky top-0 z-30 flex items-center justify-between px-6 sm:px-10 py-5 bg-white/95 backdrop-blur-md gap-4 flex-shrink-0">
+        <div
+          style={{
+            paddingLeft: 'clamp(16px, 4vw, var(--modal-side-spacing, 36px))',
+            paddingRight: 'clamp(16px, 4vw, var(--modal-side-spacing, 36px))',
+            paddingTop: 'var(--modal-nav-top-spacing, 30px)',
+            paddingBottom: 'var(--modal-nav-top-spacing, 30px)',
+          }}
+          className="sticky top-0 z-30 flex items-center justify-between bg-white/95 backdrop-blur-md gap-4 flex-shrink-0 border-b border-black/[0.04]"
+        >
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs text-neutral-400 font-bold uppercase tracking-wider">
               PROJECT
@@ -174,7 +251,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             <button
               type="button"
               onClick={onClose}
-              className="font-mono text-xs px-4 py-2 apple-pill rounded-full bg-neutral-100 hover:bg-black hover:text-white text-black transition-all flex items-center gap-1.5 cursor-pointer font-bold"
+              className="px-4 sm:px-6 py-2 apple-pill rounded-full bg-black text-white hover:bg-neutral-800 text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
               aria-label="Close Case Study"
             >
               <span>✕</span>
@@ -185,55 +262,72 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
 
         {/* Modal Scroll Body */}
         <div
+          ref={scrollContainerRef}
           data-lenis-prevent
-          className="modal-scroll-content overflow-y-auto px-6 sm:px-10 md:px-14 pb-14 pt-2 overscroll-contain space-y-12"
+          style={{
+            paddingLeft: 'clamp(16px, 4vw, var(--modal-side-spacing, 36px))',
+            paddingRight: 'clamp(16px, 4vw, var(--modal-side-spacing, 36px))',
+            gap: 'var(--modal-grid-gap, 12px)',
+          }}
+          className="modal-scroll-content overflow-y-auto pb-14 pt-4 overscroll-contain flex flex-col"
         >
-          {/* Project Title & Metadata Header (Matching media_1789049860810.png) */}
-          <div className="space-y-6 max-w-5xl">
-            <div className="space-y-2">
-              <span className="font-mono text-xs font-bold text-black uppercase tracking-widest block">
-                {projectData.market.toUpperCase()}
-              </span>
-              <h1 className="font-display font-black text-4xl sm:text-6xl md:text-7xl text-black uppercase tracking-tight leading-[0.92]">
+          {/* Brand Name & Paragraph ONLY on clean canvas */}
+          <section
+            className="w-full bg-transparent select-text transition-all pt-2 pb-6"
+          >
+            <div
+              style={{ gap: 'var(--modal-title-gap, 10px)' }}
+              className="flex flex-col max-w-4xl"
+            >
+              <h1 className="text-2xl sm:text-3xl md:text-[34px] font-black text-neutral-900 uppercase tracking-tight leading-tight">
                 {projectData.title}
               </h1>
-            </div>
 
-            <p className="font-sans text-sm sm:text-base md:text-lg text-neutral-600 leading-relaxed font-normal max-w-4xl">
-              {projectData.narrative}
-            </p>
-
-            {/* 4 Metadata Columns with Dot Indicator */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 text-xs font-sans">
-              <div className="space-y-1">
-                <span className="font-mono text-[11px] text-neutral-400 font-bold uppercase tracking-wider block">
-                  ROLE
-                </span>
-                <span className="font-bold text-black block">{projectData.role}</span>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[11px] text-neutral-400 font-bold uppercase tracking-wider">
-                    CREW / LEADERSHIP
-                  </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
+              {editingNarrative !== null ? (
+                <div className="space-y-3 mt-1">
+                  <textarea
+                    value={editingNarrative}
+                    onChange={(e) => setEditingNarrative(e.target.value)}
+                    rows={4}
+                    placeholder="Describe what the project is, your directorial execution (can be long or short)..."
+                    className="w-full p-3.5 sm:p-4 rounded-2xl bg-white border border-neutral-300 text-neutral-900 text-sm sm:text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-black shadow-xs font-normal"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (userProject) {
+                          saveCanvasFile({ ...userProject, desc: editingNarrative });
+                        }
+                        projectData.narrative = editingNarrative;
+                        setEditingNarrative(null);
+                      }}
+                      className="px-4 py-1.5 apple-pill rounded-full bg-black text-white hover:bg-neutral-800 text-xs font-bold transition shadow-xs cursor-pointer"
+                    >
+                      Save Narrative
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingNarrative(null)}
+                      className="px-4 py-1.5 apple-pill rounded-full bg-neutral-200 text-neutral-800 hover:bg-neutral-300 text-xs font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                <span className="font-bold text-black block">{projectData.team}</span>
-              </div>
-              <div className="space-y-1">
-                <span className="font-mono text-[11px] text-neutral-400 font-bold uppercase tracking-wider block">
-                  SCOPE
-                </span>
-                <span className="font-bold text-black block">{projectData.scope}</span>
-              </div>
-              <div className="space-y-1">
-                <span className="font-mono text-[11px] text-neutral-400 font-bold uppercase tracking-wider block">
-                  MARKET
-                </span>
-                <span className="font-bold text-black block">{projectData.market}</span>
-              </div>
+              ) : (
+                <div>
+                  <p
+                    onDoubleClick={() => setEditingNarrative(projectData.narrative)}
+                    className="text-neutral-700 text-sm sm:text-base leading-relaxed font-normal whitespace-pre-line"
+                    title="Double-click to edit narrative"
+                  >
+                    {projectData.narrative}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          </section>
 
           {/* SECTION 1: CAMPAIGN MOTION VIDEO (IF PRESENT) */}
           {projectData.videoUrl && (
@@ -250,50 +344,220 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             </div>
           )}
 
-          {/* SECTION 2: THE 4-COLUMN DELIVERABLES GALLERY (Matching User Image 2 media_1789053470192.png) */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-neutral-500 tracking-wider uppercase font-semibold">
-                Archived Campaign Frames ({allImages.length} Plates)
-              </span>
-              <span className="font-mono text-xs text-neutral-400 tracking-wider">
-                Click any frame to inspect
-              </span>
-            </div>
-
-            {/* Apple-Style Rounded 4-Column Grid with FRAME XX Tags */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-              {allImages.map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setEnlargedPhoto(imgUrl)}
-                  className="group relative apple-widget-sm rounded-[30px] sm:rounded-[34px] overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] transition-all duration-300"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={imgUrl}
-                    alt={`${projectData.title} Frame ${idx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    loading="lazy"
-                  />
-                  {/* Bottom-left pill badge (Matching Image 2: FRAME XX) */}
-                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-3 py-1 apple-pill rounded-full tracking-wider uppercase pointer-events-none">
-                    FRAME {80 + idx}
+          {/* SECTION 2: DELIVERABLES / STRUCTURED PROJECT SECTIONS */}
+          {projectData.sections && projectData.sections.length > 0 ? (
+            <div className="space-y-10">
+              {projectData.sections.map((section, sIdx) => (
+                <div key={section.id || sIdx} className="space-y-4">
+                  {/* Section Editorial Header */}
+                  <div className="flex items-center justify-between pb-2 border-b border-black/[0.06]">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                      <h3 className="font-display font-black text-sm uppercase tracking-wider text-neutral-900">
+                        {section.title}
+                      </h3>
+                      <span className="font-mono text-[10px] text-neutral-500 bg-neutral-100 font-bold px-2 py-0.5 rounded-full">
+                        {section.items.length} {section.items.length === 1 ? 'asset' : 'assets'}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-widest">
+                      {section.type}
+                    </span>
                   </div>
+
+                  {/* Section Content based on Type */}
+                  {section.type === 'banner' ? (
+                    <div className="space-y-4">
+                      {section.items.map((item, iIdx) => (
+                        <div
+                          key={iIdx}
+                          onClick={() => setEnlargedPhoto(item.url)}
+                          style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                          className="relative overflow-hidden bg-neutral-900 w-full aspect-[21/9] sm:aspect-[3/1] max-h-[460px] cursor-zoom-in group shadow-xs hover:shadow-xl transition-all"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.url}
+                            alt={item.title || `${section.title} Banner ${iIdx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                            loading="lazy"
+                          />
+                          <div className="absolute top-4 left-4 font-mono text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full uppercase tracking-wider">
+                            WEB BANNER • WIDE FORMAT
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : section.type === 'stories' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                      {section.items.map((item, iIdx) => (
+                        <div
+                          key={iIdx}
+                          onClick={() => setEnlargedPhoto(item.url)}
+                          style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                          className="relative overflow-hidden bg-neutral-900 aspect-[9/16] cursor-zoom-in group shadow-xs hover:shadow-xl transition-all"
+                        >
+                          {item.type === 'video' || item.url.endsWith('.mp4') ? (
+                            <video
+                              src={item.url}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                            />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={item.url}
+                              alt={item.title || `${section.title} Frame ${iIdx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                              loading="lazy"
+                            />
+                          )}
+                          <div className="absolute bottom-3 left-3 font-mono text-[9px] font-bold text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                            STORY 9:16
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : section.type === 'lookbook' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                      {section.items.map((item, iIdx) => (
+                        <div
+                          key={iIdx}
+                          onClick={() => setEnlargedPhoto(item.url)}
+                          style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                          className="relative overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in group shadow-xs hover:shadow-xl transition-all"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.url}
+                            alt={item.title || `${section.title} Frame ${iIdx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                            loading="lazy"
+                          />
+                          <div className="absolute top-3 left-3 font-mono text-[9px] font-bold text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                            LOOKBOOK (4:5)
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : section.type === 'deck' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {section.items.map((item, iIdx) => (
+                        <div
+                          key={iIdx}
+                          onClick={() => setEnlargedPhoto(item.url)}
+                          style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                          className="relative overflow-hidden bg-neutral-900 aspect-[16/9] cursor-zoom-in group shadow-xs hover:shadow-xl transition-all"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.url}
+                            alt={item.title || `${section.title} Slide ${iIdx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                            loading="lazy"
+                          />
+                          <div className="absolute top-3 left-3 font-mono text-[9px] font-bold text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                            SLIDE {iIdx + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : section.type === 'video' ? (
+                    <div className="space-y-4">
+                      {section.items.map((item, iIdx) => (
+                        <div
+                          key={iIdx}
+                          style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                          className="overflow-hidden bg-black p-2 shadow-xl"
+                        >
+                          <video
+                            src={item.url}
+                            controls
+                            playsInline
+                            muted
+                            loop
+                            className="w-full h-auto max-h-[70vh] object-contain mx-auto block rounded-[20px]"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div
+                      style={{ gap: 'var(--modal-grid-gap, 10px)' }}
+                      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+                    >
+                      {section.items.map((item, iIdx) => (
+                        <div
+                          key={iIdx}
+                          onClick={() => setEnlargedPhoto(item.url)}
+                          style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                          className="group relative overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-xs hover:shadow-xl transition-all duration-300"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.url}
+                            alt={item.title || `${section.title} Frame ${iIdx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Tunable Grid with Zero Missing Card Slots */}
+              <div
+                style={{ gap: 'var(--modal-grid-gap, 10px)' }}
+                className={`grid ${
+                  allImages.length === 1
+                    ? 'grid-cols-1'
+                    : allImages.length === 2
+                    ? 'grid-cols-1 sm:grid-cols-2'
+                    : allImages.length === 3
+                    ? 'grid-cols-1 sm:grid-cols-3'
+                    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                }`}
+              >
+                {allImages.map((imgUrl, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setEnlargedPhoto(imgUrl)}
+                    style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                    className="group relative overflow-hidden bg-neutral-900 aspect-[4/5] cursor-zoom-in shadow-xs hover:shadow-xl transition-all duration-300"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imgUrl}
+                      alt={`${projectData.title} Frame ${idx + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {/* SECTION 3: THE END PART - SIGNATURE APPLE-STYLE ASYMMETRIC BENTO SPREAD (Image 1 media_1789053458855.png) */}
-          <div className="space-y-6 pt-6">
+          {/* SECTION 3: THE END PART - SIGNATURE ASYMMETRIC BENTO SPREAD */}
+          <div className="space-y-6 pt-2">
             {/* Bento Row with Strictly Locked Equal Height and Apple-Style Continuous Curvature */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+            <div
+              style={{ gap: 'var(--modal-grid-gap, 10px)' }}
+              className="grid grid-cols-1 lg:grid-cols-12 items-stretch"
+            >
               {/* Left Bento: Wide Key Visual (~65% width, lg:col-span-8) */}
               {bentoWide && (
                 <div
                   onClick={() => setEnlargedPhoto(bentoWide)}
-                  className="lg:col-span-8 apple-widget-lg rounded-[48px] sm:rounded-[52px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
+                  style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                  className="lg:col-span-8 overflow-hidden bg-[#111111] cursor-zoom-in group shadow-xs hover:shadow-xl transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -311,7 +575,8 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               {bentoVertical && (
                 <div
                   onClick={() => setEnlargedPhoto(bentoVertical)}
-                  className="lg:col-span-4 apple-widget-lg rounded-[48px] sm:rounded-[52px] overflow-hidden bg-[#111111] cursor-zoom-in group shadow-[0_10px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
+                  style={{ borderRadius: 'var(--modal-media-radius, 28px)' }}
+                  className="lg:col-span-4 overflow-hidden bg-[#111111] cursor-zoom-in group shadow-xs hover:shadow-xl transition-all h-[360px] sm:h-[460px] lg:h-[520px] relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -326,7 +591,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
               )}
             </div>
 
-            {/* Subtitle Under Bento Row (Matching Image 1: Left Narrative + Right ALL RIGHTS RESERVED + Logo) */}
+            {/* Subtitle Under Bento Row */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 text-xs font-mono text-neutral-500 uppercase tracking-wider">
               <span className="max-w-2xl font-medium leading-relaxed">
                 {projectData.title} — {projectData.narrative.toUpperCase()}
@@ -343,34 +608,7 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
                 />
               </div>
             </div>
-
-            {/* Directorial Vision & Strategy Summary Card */}
-            <div className="bg-[#faf9f6] rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 space-y-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-              <div className="space-y-2">
-                <span className="font-mono text-xs font-bold text-black uppercase tracking-widest block">
-                  DIRECTORIAL VISION &amp; STRATEGY
-                </span>
-                <p className="font-sans text-sm sm:text-base text-neutral-800 leading-relaxed font-normal max-w-4xl">
-                  {projectData.narrative}
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-1">
-                <span className="font-mono text-[11px] text-neutral-500 font-bold uppercase tracking-wider block">
-                  CAMPAIGN SCOPE:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {projectData.scopePills?.map((pill, i) => (
-                    <span
-                      key={i}
-                      className="px-3.5 py-1.5 rounded-lg bg-neutral-100 font-mono text-[11px] text-neutral-700 font-semibold"
-                    >
-                      {pill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+          </div>
 
             {/* SECTION 4: THE EXACT BOTTOM ACTION BAR (Matching Image 2 media_1789053470192.png) */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
@@ -415,7 +653,6 @@ export default function CaseModal({ projectId, onClose, uploadedFiles, userPhoto
             </div>
           </div>
         </div>
-      </div>
 
       {/* Full-Resolution Lightbox Zoom */}
       {enlargedPhoto && (

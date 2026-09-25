@@ -53,8 +53,40 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Moiz Khan — Brand Visual Designer & Art Director',
-  description: 'Moiz Khan is a Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production. Hyderabad / Worldwide.',
+  metadataBase: new URL('https://moizkhan.com'),
+  title: {
+    default: 'Moiz Khan — Brand Visual Designer & Art Director',
+    template: '%s | Moiz Khan Studio',
+  },
+  description:
+    'Moiz Khan is a Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production. Hyderabad / Worldwide.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Moiz Khan — Brand Visual Designer & Art Director',
+    description:
+      'Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production. Hyderabad / Worldwide.',
+    url: 'https://moizkhan.com',
+    siteName: 'Moiz Khan Studio',
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: '/assets/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'Moiz Khan — Brand Visual Designer & Art Director',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Moiz Khan — Brand Visual Designer & Art Director',
+    description:
+      'Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production.',
+    images: ['/assets/logo.png'],
+  },
   icons: {
     icon: [
       { url: '/icon-square.png', sizes: '512x512', type: 'image/png' },
@@ -63,6 +95,35 @@ export const metadata: Metadata = {
     shortcut: '/icon-square.png',
     apple: '/icon-square.png',
   },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': 'https://moizkhan.com/#person',
+      name: 'Moiz Khan',
+      jobTitle: 'Brand Visual Designer & Art Director',
+      url: 'https://moizkhan.com',
+      sameAs: [
+        'https://www.linkedin.com/in/moiz-khan',
+        'https://instagram.com/moizkhan',
+      ],
+      description:
+        'Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production.',
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://moizkhan.com/#website',
+      url: 'https://moizkhan.com',
+      name: 'Moiz Khan Studio',
+      description: 'Creative Archive of Moiz Khan — Brand Visual Designer & Art Director.',
+      publisher: {
+        '@id': 'https://moizkhan.com/#person',
+      },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -76,6 +137,10 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrains.variable} ${dmMono.variable} ${spaceMono.variable} ${syne.variable} ${archivoBlack.variable} ${plusJakarta.variable}`}
     >
       <body className="font-sans bg-canvas text-primary selection:bg-black selection:text-white">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <SeoScriptInjector />
         <SmoothScroll>{children}</SmoothScroll>
         <Analytics />

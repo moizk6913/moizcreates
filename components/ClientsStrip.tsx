@@ -5,21 +5,19 @@ export default function ClientsStrip() {
     <section
       id="visual-references"
       style={{
-        paddingTop: 'var(--work-to-references, 128px)',
-        paddingBottom: 'var(--references-bottom, 72px)',
+        paddingTop: 'var(--work-to-references, 160px)',
+        paddingBottom: 'var(--references-bottom, 124px)',
       }}
       className="w-full bg-canvas overflow-hidden border-none relative select-none"
     >
-      {/* Subtle context label */}
-      <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px] pb-5 sm:pb-6">
-        <span className="font-mono text-xs sm:text-[13px] text-neutral-400 uppercase tracking-[0.2em] font-semibold">
-          VISUAL REFERENCES
-        </span>
-      </div>
+
 
       {/* Marquee Wrapper with soft edge masks (zero lines) */}
       <div className="w-full overflow-hidden relative [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <div className="flex items-center w-max gap-14 sm:gap-20 md:gap-24 animate-marquee-left">
+        <div
+          style={{ gap: 'var(--references-logo-gap, 80px)' }}
+          className="flex items-center w-max animate-marquee-left"
+        >
           {/* Set 1 of B&W Logos */}
           <div className="flex items-center justify-center h-8 sm:h-10 opacity-80 hover:opacity-100 transition-all duration-200 shrink-0 cursor-pointer hover:scale-110" title="Nike">
             <svg viewBox="0 0 96 36" fill="currentColor" className="h-full w-auto max-w-[140px] text-black block">

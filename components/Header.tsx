@@ -157,8 +157,8 @@ export default function Header({ visible = true }: HeaderProps) {
           </Link>
         </div>
 
-        {/* RIGHT NAV LINKS (Desktop: ARCHIVE, CONTACT, Live Worldwide Clock Right Last) */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-9 pointer-events-auto flex-1 justify-end">
+        {/* RIGHT NAV LINKS (Desktop: ARCHIVE, CONTACT, 5-Dot Activity Indicator, Live Worldwide Clock) */}
+        <div className="hidden md:flex items-center gap-6 lg:gap-8 pointer-events-auto flex-1 justify-end">
           <Link
             href="/canvas?view=archive"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
@@ -172,13 +172,25 @@ export default function Header({ visible = true }: HeaderProps) {
             CONTACT
           </Link>
 
+          {/* Quiet 5-Dot Studio Activity Indicator */}
+          <div
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] cursor-help"
+            title="Studio Pulse: Active / Available for 2026 Commissions"
+            aria-label="Studio Activity Status"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/75" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/55" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/35" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/20" />
+          </div>
+
           {/* Live Worldwide Clock (Right Last) */}
           <div
-            className={`flex items-center gap-2 font-mono text-xs tracking-wider transition-opacity duration-300 pl-2 lg:pl-3 ${
+            className={`flex items-center gap-2 font-mono text-xs tracking-wider transition-opacity duration-300 pl-1 ${
               isFading ? 'opacity-20' : 'opacity-100'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
             <span className="text-neutral-700 font-medium whitespace-nowrap">
               {worldTime || 'HYDERABAD 12:00:00 PM IST'}
             </span>
@@ -233,9 +245,18 @@ export default function Header({ visible = true }: HeaderProps) {
           </nav>
 
           <div className="pt-8 flex flex-col gap-3 font-mono text-xs text-neutral-500">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-              <span className="text-black font-semibold uppercase">{worldTime}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                <span className="text-black font-semibold uppercase">{worldTime}</span>
+              </div>
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/5" title="Studio Active">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/30" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/15" />
+              </div>
             </div>
             <span>MOIZ KHAN • BRAND VISUAL DESIGNER / ART DIRECTOR</span>
             <span className="text-black font-semibold">HIREMOIZ.WORK@GMAIL.COM</span>

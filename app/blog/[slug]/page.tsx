@@ -17,13 +17,37 @@ export default function BlogPostReaderPage() {
 
   useEffect(() => {
     if (!slug) return;
-    const all = getStoredBlogPosts();
-    const found = all.find((p) => p.slug === slug);
-    if (found) {
-      setPost(found);
-      setRelated(all.filter((p) => p.slug !== slug).slice(0, 2));
+    let isMounted = true;
+
+    async function loadPost() {
+      try {
+        const res = await fetch(`/api/blog/${slug}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.post && isMounted) {
+            setPost(data.post);
+            const all = getStoredBlogPosts();
+            setRelated(all.filter((p) => p.slug !== slug).slice(0, 2));
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {}
+
+      // Fallback to local store
+      if (isMounted) {
+        const all = getStoredBlogPosts();
+        const found = all.find((p) => p.slug === slug);
+        if (found) {
+          setPost(found);
+          setRelated(all.filter((p) => p.slug !== slug).slice(0, 2));
+        }
+        setLoading(false);
+      }
     }
-    setLoading(false);
+
+    loadPost();
+    return () => { isMounted = false; };
   }, [slug]);
 
   if (loading) {
@@ -150,16 +174,57 @@ export default function BlogPostReaderPage() {
           </div>
         )}
 
-        {/* Body Paragraphs */}
-        <div className="flex flex-col gap-6 text-base sm:text-lg md:text-xl text-primary leading-[1.75] mb-16">
-          {post.content.map((paragraph, idx) => (
-            <p
-              key={idx}
-              className={idx === 0 ? 'first-letter:text-5xl first-letter:font-display first-letter:font-black first-letter:mr-2 first-letter:float-left first-letter:text-black' : ''}
-            >
-              {paragraph}
-            </p>
-          ))}
+        {/* Body Paragraphs, Headings, and Highlight Pullquotes */}
+        <div className="flex flex-col gap-6 text-base sm:text-lg md:text-xl text-primary leading-[1.75] mb-16 font-sans">
+          {post.content.map((paragraph, idx) => {
+            const trimmed = paragraph.trim();
+
+            // 1. Highlight / Pullquote Block
+            if (trimmed.startsWith('>') || trimmed.startsWith('“') || (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+              const quoteText = trimmed.replace(/^[>“"]+\s*/, '').replace(/["”]+$/, '');
+              return (
+                <blockquote
+                  key={idx}
+                  className="my-6 sm:my-8 p-6 sm:p-8 rounded-2xl bg-[#141416] text-white border-l-4 border-white shadow-xl relative overflow-hidden group"
+                >
+                  <span className="font-display font-black text-4xl sm:text-6xl text-white/10 absolute top-2 right-4 select-none pointer-events-none">
+                    ”
+                  </span>
+                  <p className="font-display font-bold text-xl sm:text-2xl md:text-3xl tracking-tight leading-snug relative z-10 text-white">
+                    "{quoteText}"
+                  </p>
+                </blockquote>
+              );
+            }
+
+            // 2. Section Heading
+            if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+              const headingText = trimmed.replace(/^#+\s*/, '');
+              return (
+                <h2
+                  key={idx}
+                  className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-black uppercase tracking-tight mt-8 mb-2 pt-6 border-t border-black/10"
+                >
+                  {headingText}
+                </h2>
+              );
+            }
+
+            // 3. Technical Divider
+            if (trimmed === '---' || trimmed === '***') {
+              return <div key={idx} className="w-full h-px bg-black/10 my-6" />;
+            }
+
+            // 4. Standard Paragraph with Drop-Cap on opening
+            return (
+              <p
+                key={idx}
+                className={idx === 0 ? 'first-letter:text-5xl first-letter:font-display first-letter:font-black first-letter:mr-2 first-letter:float-left first-letter:text-black leading-relaxed text-neutral-900' : 'leading-relaxed text-neutral-800'}
+              >
+                {paragraph}
+              </p>
+            );
+          })}
         </div>
 
         {/* Author Bio Card */}

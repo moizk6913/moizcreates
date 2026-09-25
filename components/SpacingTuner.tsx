@@ -3,48 +3,67 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface SpacingSettings {
-  // 1. SERVICES ("WHAT I DO")
+  // 1. MANIFESTO ("I FIX THINGS THAT WERE / ALREADY APPROVED.")
+  heroToManifesto: number; // Space above Manifesto
+  manifestoLineGap: number; // Line spacing between Line 1 and Line 2
+  manifestoToWork: number; // Space below Manifesto to Work Bento
+
+  // 2. WORK BENTO & BRAND MARQUEE
+  gridGap: number; // Bento lane gap
+  workToReferences: number; // Space above logos (Work → Brand Logos)
+  referencesBottom: number; // Space below logos (Brand Logos → "WHAT I DO")
+  referencesLogoGap: number; // Horizontal gap between logos in marquee
+
+  // 3. SERVICES ("WHAT I DO")
   servicesHeaderGap: number; // Gap between "WHAT I DO" title and "01 ART DIRECTION"
-  serviceRowPadding: number; // Vertical padding for each service row (01, 02, 03, 04)
+  serviceRowPadding: number; // Vertical padding for each service row (01–05)
   servicesTop: number;
   servicesBottom: number;
 
-  // 2. PROCESS ("HOW I GET THERE")
+  // 4. PROCESS ("HOW I GET THERE")
   processHeaderGap: number;
   processGridGap: number;
   processTop: number;
   processBottom: number;
 
-  // 3. TESTIMONIALS ("PEOPLE I'VE WORKED WITH")
+  // 5. TESTIMONIALS ("PEOPLE I'VE WORKED WITH")
   testimonialsHeaderGap: number;
   testimonialsTop: number;
   testimonialsBottom: number;
 
-  // 4. FAQ ("FREQUENTLY ASKED")
+  // 6. FAQ ("FREQUENTLY ASKED")
   faqHeaderGap: number;
   faqRowPadding: number;
   faqTop: number;
   faqBottom: number;
 
-  // 5. HERO & MANIFESTO
-  heroToManifesto: number;
-  manifestoLineGap: number;
-  manifestoToWork: number;
-
-  // 6. WORK & BRAND REFERENCES
-  gridGap: number;
-  workToReferences: number;
-  referencesBottom: number;
-
   // 7. STATEMENT BRIDGE & FOOTER
   ctaPadding: number;
   statementLineGap: number;
   footerTop: number;
+
+  // 8. CASE MODAL & DELIVERABLES (CANVAS)
+  modalCardPadding: number; // Brand Overview Card Padding
+  modalCardRadius: number; // Brand Overview Card Roundness
+  modalMediaRadius: number; // Deliverables Media Cards Roundness
+  modalGridGap: number; // Deliverables Grid Gap
+  modalTitleGap: number; // Brand Name to Paragraph Gap
 }
 
 export const DEFAULT_SPACING: SpacingSettings = {
+  // Manifesto
+  heroToManifesto: 24,
+  manifestoLineGap: 0,
+  manifestoToWork: 144,
+
+  // Work & References
+  gridGap: 34,
+  workToReferences: 160,
+  referencesBottom: 124,
+  referencesLogoGap: 80,
+
   // Services
-  servicesHeaderGap: 54,
+  servicesHeaderGap: 124,
   serviceRowPadding: 24,
   servicesTop: 64,
   servicesBottom: 52,
@@ -66,30 +85,35 @@ export const DEFAULT_SPACING: SpacingSettings = {
   faqTop: 132,
   faqBottom: 80,
 
-  // Hero & Manifesto
-  heroToManifesto: 44,
-  manifestoLineGap: 28,
-  manifestoToWork: 156,
-
-  // Work & References
-  gridGap: 34,
-  workToReferences: 128,
-  referencesBottom: 72,
-
   // CTA & Footer
   ctaPadding: 200,
   statementLineGap: 28,
   footerTop: 56,
+
+  // Case Modal
+  modalCardPadding: 32,
+  modalCardRadius: 40,
+  modalMediaRadius: 28,
+  modalGridGap: 10,
+  modalTitleGap: 10,
 };
 
-const STORAGE_KEY = 'moiz_spacing_custom_v2';
+const STORAGE_KEY = 'moiz_spacing_custom_v6';
 
-type SectionTab = 'all' | 'services' | 'process' | 'testimonials' | 'faq' | 'hero-work' | 'cta-footer';
+type SectionTab =
+  | 'manifesto'
+  | 'work-marquee'
+  | 'services'
+  | 'process'
+  | 'testimonials'
+  | 'faq'
+  | 'cta-footer'
+  | 'all';
 
 export default function SpacingTuner() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState<SectionTab>('services');
+  const [activeTab, setActiveTab] = useState<SectionTab>('manifesto');
   const [copied, setCopied] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [settings, setSettings] = useState<SpacingSettings>(DEFAULT_SPACING);
@@ -100,43 +124,51 @@ export default function SpacingTuner() {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
 
-    // Services
+    // 1. Manifesto
+    root.style.setProperty('--hero-to-manifesto', `${cfg.heroToManifesto}px`);
+    root.style.setProperty('--manifesto-line-gap', `${cfg.manifestoLineGap}px`);
+    root.style.setProperty('--manifesto-to-work', `${cfg.manifestoToWork}px`);
+
+    // 2. Work & Brand Logos
+    root.style.setProperty('--grid-gap', `${cfg.gridGap}px`);
+    root.style.setProperty('--work-to-references', `${cfg.workToReferences}px`);
+    root.style.setProperty('--references-bottom', `${cfg.referencesBottom}px`);
+    root.style.setProperty('--references-logo-gap', `${cfg.referencesLogoGap ?? 80}px`);
+
+    // 3. Services
     root.style.setProperty('--services-header-gap', `${cfg.servicesHeaderGap}px`);
     root.style.setProperty('--service-row-padding', `${cfg.serviceRowPadding}px`);
     root.style.setProperty('--services-top', `${cfg.servicesTop}px`);
     root.style.setProperty('--services-bottom', `${cfg.servicesBottom}px`);
 
-    // Process
+    // 4. Process
     root.style.setProperty('--process-header-gap', `${cfg.processHeaderGap}px`);
     root.style.setProperty('--process-grid-gap', `${cfg.processGridGap}px`);
     root.style.setProperty('--process-top', `${cfg.processTop}px`);
     root.style.setProperty('--process-bottom', `${cfg.processBottom}px`);
 
-    // Testimonials
+    // 5. Testimonials
     root.style.setProperty('--testimonials-header-gap', `${cfg.testimonialsHeaderGap}px`);
     root.style.setProperty('--testimonials-top', `${cfg.testimonialsTop}px`);
     root.style.setProperty('--testimonials-bottom', `${cfg.testimonialsBottom}px`);
 
-    // FAQ
+    // 6. FAQ
     root.style.setProperty('--faq-header-gap', `${cfg.faqHeaderGap}px`);
     root.style.setProperty('--faq-row-padding', `${cfg.faqRowPadding}px`);
     root.style.setProperty('--faq-top', `${cfg.faqTop}px`);
     root.style.setProperty('--faq-bottom', `${cfg.faqBottom}px`);
 
-    // Hero & Manifesto
-    root.style.setProperty('--hero-to-manifesto', `${cfg.heroToManifesto}px`);
-    root.style.setProperty('--manifesto-line-gap', `${cfg.manifestoLineGap}px`);
-    root.style.setProperty('--manifesto-to-work', `${cfg.manifestoToWork}px`);
-
-    // Work & References
-    root.style.setProperty('--grid-gap', `${cfg.gridGap}px`);
-    root.style.setProperty('--work-to-references', `${cfg.workToReferences}px`);
-    root.style.setProperty('--references-bottom', `${cfg.referencesBottom}px`);
-
-    // CTA & Footer
+    // 7. CTA & Footer
     root.style.setProperty('--cta-padding', `${cfg.ctaPadding}px`);
     root.style.setProperty('--statement-line-gap', `${cfg.statementLineGap}px`);
     root.style.setProperty('--footer-top', `${cfg.footerTop}px`);
+
+    // 8. Case Modal & Deliverables (Canvas)
+    root.style.setProperty('--modal-card-padding', `${cfg.modalCardPadding ?? 32}px`);
+    root.style.setProperty('--modal-card-radius', `${cfg.modalCardRadius ?? 40}px`);
+    root.style.setProperty('--modal-media-radius', `${cfg.modalMediaRadius ?? 28}px`);
+    root.style.setProperty('--modal-grid-gap', `${cfg.modalGridGap ?? 10}px`);
+    root.style.setProperty('--modal-title-gap', `${cfg.modalTitleGap ?? 10}px`);
   }, []);
 
   const syncToServer = useCallback(async (cfg: SpacingSettings) => {
@@ -202,8 +234,20 @@ export default function SpacingTuner() {
         setIsOpen((prev) => !prev);
       }
     };
+    const handleOpenCustom = (e: any) => {
+      setIsOpen(true);
+      setIsMinimized(false);
+      if (e.detail?.tab) {
+        setActiveTab(e.detail.tab);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-spacing-tuner', handleOpenCustom);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-spacing-tuner', handleOpenCustom);
+    };
   }, []);
 
   const handleChange = (key: keyof SpacingSettings, value: number) => {
@@ -247,7 +291,7 @@ export default function SpacingTuner() {
           type="button"
           onClick={() => setIsOpen(true)}
           title="Open Live Spacing Tuner (or press Shift + S)"
-          className="fixed bottom-6 left-6 z-50 group flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/90 hover:bg-black text-white backdrop-blur-md font-mono text-[11px] font-bold tracking-wider uppercase shadow-[0_12px_36px_rgba(0,0,0,0.3)] ring-1 ring-white/20 transition-all hover:scale-105 cursor-pointer"
+          className="fixed bottom-6 left-6 z-[20000] group flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/90 hover:bg-black text-white backdrop-blur-md font-mono text-[11px] font-bold tracking-wider uppercase shadow-[0_12px_36px_rgba(0,0,0,0.3)] ring-1 ring-white/20 transition-all hover:scale-105 cursor-pointer"
         >
           <span className="text-sm">🎚️</span>
           <span>SPACING TUNER</span>
@@ -261,7 +305,7 @@ export default function SpacingTuner() {
       {isOpen && (
         <aside
           aria-label="Live Spacing Tuner"
-          className={`fixed bottom-6 left-6 z-50 w-[360px] sm:w-[420px] max-h-[88vh] bg-[#141414]/95 backdrop-blur-xl text-white rounded-[28px] ring-1 ring-white/15 shadow-[0_24px_70px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden transition-all duration-300 select-none ${
+          className={`fixed bottom-6 left-6 z-[20000] w-[360px] sm:w-[420px] max-h-[88vh] bg-[#141414]/95 backdrop-blur-xl text-white rounded-[28px] ring-1 ring-white/15 shadow-[0_24px_70px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden transition-all duration-300 select-none ${
             isMinimized ? 'h-auto' : ''
           }`}
         >
@@ -304,24 +348,33 @@ export default function SpacingTuner() {
             </div>
           </div>
 
-          {/* Section Navigation Tabs (Section-Wise) */}
+          {/* Section Navigation Tabs (Section-Wise in Page Order) */}
           {!isMinimized && (
             <div className="px-4 py-2.5 border-b border-white/10 bg-black/30 shrink-0 overflow-x-auto no-scrollbar flex items-center gap-1.5">
               {(
                 [
-                  { id: 'services', label: 'Services 01' },
-                  { id: 'process', label: 'Process 02' },
-                  { id: 'testimonials', label: 'Endorsements 03' },
-                  { id: 'faq', label: 'FAQ 04' },
-                  { id: 'hero-work', label: 'Hero & Work' },
-                  { id: 'cta-footer', label: 'CTA & Footer' },
+                  { id: 'manifesto', label: 'Manifesto', sectionId: 'manifesto' },
+                  { id: 'work-marquee', label: 'Work & Logos', sectionId: 'visual-references' },
+                  { id: 'services', label: 'Services', sectionId: 'services' },
+                  { id: 'process', label: 'Process', sectionId: 'approach' },
+                  { id: 'testimonials', label: 'Testimonials', sectionId: 'testimonials' },
+                  { id: 'faq', label: 'FAQ', sectionId: 'faq' },
+                  { id: 'cta-footer', label: 'CTA & Footer', sectionId: 'contact' },
                   { id: 'all', label: 'All Sections' },
                 ] as const
               ).map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    if ('sectionId' in tab && tab.sectionId && typeof document !== 'undefined') {
+                      const el = document.getElementById(tab.sectionId);
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }
+                  }}
                   className={`px-3 py-1 rounded-full text-[10px] font-mono tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
                     activeTab === tab.id
                       ? 'bg-white text-black font-bold shadow-sm'
@@ -339,7 +392,181 @@ export default function SpacingTuner() {
             <>
               <div className="p-5 space-y-6 overflow-y-auto flex-1 text-xs custom-scrollbar">
 
-                {/* 1. SERVICES SECTION ("WHAT I DO" + 01 to 04) */}
+                {/* 1. MANIFESTO SECTION (Image 1 in User Screenshot) */}
+                {(activeTab === 'manifesto' || activeTab === 'all') && (
+                  <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
+                          MANIFESTO
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-neutral-400 font-mono">&ldquo;I FIX THINGS...&rdquo;</span>
+                    </div>
+
+                    {/* Prominent Control: Manifesto Line Spacing */}
+                    <div className="space-y-1.5 p-2.5 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/30">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-white font-bold flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          Line Spacing (Line 1 &rarr; Line 2)
+                        </span>
+                        <span className="font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">
+                          {settings.manifestoLineGap}px
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-neutral-300 leading-tight">
+                        Gap between &ldquo;I FIX THINGS THAT WERE&rdquo; and &ldquo;ALREADY APPROVED.&rdquo;
+                      </p>
+                      <input
+                        type="range"
+                        min={0}
+                        max={80}
+                        step={2}
+                        value={settings.manifestoLineGap}
+                        onChange={(e) => handleChange('manifestoLineGap', Number(e.target.value))}
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-emerald-400 mt-1"
+                      />
+                    </div>
+
+                    {/* Space Above Manifesto */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Space Above (Hero &rarr; Manifesto)</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.heroToManifesto}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={10}
+                        max={220}
+                        step={2}
+                        value={settings.heroToManifesto}
+                        onChange={(e) => handleChange('heroToManifesto', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+
+                    {/* Space Below Manifesto */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Space Below (Manifesto &rarr; Work Bento)</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.manifestoToWork}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={20}
+                        max={260}
+                        step={4}
+                        value={settings.manifestoToWork}
+                        onChange={(e) => handleChange('manifestoToWork', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. WORK BENTO & BRAND LOGOS (Image 2 in User Screenshot) */}
+                {(activeTab === 'work-marquee' || activeTab === 'all') && (
+                  <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
+                          WORK BENTO &amp; BRAND LOGOS
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Space Above Logos */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Space Above Logos (Work &rarr; Logos)</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.workToReferences}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={16}
+                        max={240}
+                        step={4}
+                        value={settings.workToReferences}
+                        onChange={(e) => handleChange('workToReferences', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+
+                    {/* Prominent Control: Space Below Logos to WHAT I DO */}
+                    <div className="space-y-1.5 p-2.5 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/30">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-white font-bold flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          Space Below Logos (Logos &rarr; &ldquo;WHAT I DO&rdquo;)
+                        </span>
+                        <span className="font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">
+                          {settings.referencesBottom}px
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-neutral-300 leading-tight">
+                        Controls distance between the client logo marquee and WHAT I DO title.
+                      </p>
+                      <input
+                        type="range"
+                        min={16}
+                        max={240}
+                        step={4}
+                        value={settings.referencesBottom}
+                        onChange={(e) => handleChange('referencesBottom', Number(e.target.value))}
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-emerald-400 mt-1"
+                      />
+                    </div>
+
+                    {/* Horizontal Gap Between Logos */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Horizontal Gap Between Logos</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.referencesLogoGap}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={24}
+                        max={160}
+                        step={4}
+                        value={settings.referencesLogoGap}
+                        onChange={(e) => handleChange('referencesLogoGap', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+
+                    {/* Work Bento Vertical Grid Gap */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Work Bento Vertical Grid Gap</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.gridGap}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={12}
+                        max={80}
+                        step={2}
+                        value={settings.gridGap}
+                        onChange={(e) => handleChange('gridGap', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. SERVICES SECTION ("WHAT I DO") */}
                 {(activeTab === 'services' || activeTab === 'all') && (
                   <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
@@ -349,21 +576,20 @@ export default function SpacingTuner() {
                           SERVICES: WHAT I DO
                         </span>
                       </div>
-                      <span className="text-[10px] text-neutral-400 font-mono">01 / CAPABILITIES</span>
                     </div>
 
-                    {/* The EXACT Control Requested: WHAT I DO Title to 01-04 Gap */}
+                    {/* WHAT I DO Title to 01-05 Gap */}
                     <div className="space-y-1.5 p-2.5 rounded-xl bg-white/5 ring-1 ring-white/15">
                       <div className="flex justify-between font-mono text-[11px]">
                         <span className="text-white font-bold">
-                          &ldquo;WHAT I DO&rdquo; → 01-04 Gap
+                          &ldquo;WHAT I DO&rdquo; &rarr; 01-05 Table Gap
                         </span>
                         <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded">
                           {settings.servicesHeaderGap}px
                         </span>
                       </div>
                       <p className="text-[10px] text-neutral-400 leading-tight">
-                        Pulls 01 ART DIRECTION closer or farther from the title (your screenshot).
+                        Pulls 01 ART DIRECTION closer or farther from the title.
                       </p>
                       <input
                         type="range"
@@ -379,7 +605,7 @@ export default function SpacingTuner() {
                     {/* Services Row Line Padding */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Each Row Line Padding (01–04)</span>
+                        <span className="text-neutral-300">Each Row Line Padding (01–05)</span>
                         <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
                           {settings.serviceRowPadding}px
                         </span>
@@ -435,47 +661,46 @@ export default function SpacingTuner() {
                   </div>
                 )}
 
-                {/* 2. PROCESS SECTION ("HOW I GET THERE") */}
+                {/* 4. PROCESS SECTION ("HOW I GET THERE") */}
                 {(activeTab === 'process' || activeTab === 'all') && (
                   <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                       <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
                         PROCESS: HOW I GET THERE
                       </span>
-                      <span className="text-[10px] text-neutral-400 font-mono">02 / APPROACH</span>
                     </div>
 
                     {/* Process Title to Cards Gap */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Title → Step Cards Gap</span>
+                        <span className="text-neutral-300">Title &rarr; Process Cards Gap</span>
                         <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
                           {settings.processHeaderGap}px
                         </span>
                       </div>
                       <input
                         type="range"
-                        min={12}
-                        max={140}
-                        step={2}
+                        min={20}
+                        max={160}
+                        step={4}
                         value={settings.processHeaderGap}
                         onChange={(e) => handleChange('processHeaderGap', Number(e.target.value))}
                         className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
                       />
                     </div>
 
-                    {/* Process Step Grid Gap */}
+                    {/* Process 3-Column Grid Gap */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Between Step Cards (Grid Gap)</span>
+                        <span className="text-neutral-300">3-Column Grid Gap</span>
                         <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
                           {settings.processGridGap}px
                         </span>
                       </div>
                       <input
                         type="range"
-                        min={12}
-                        max={56}
+                        min={16}
+                        max={80}
                         step={2}
                         value={settings.processGridGap}
                         onChange={(e) => handleChange('processGridGap', Number(e.target.value))}
@@ -483,78 +708,12 @@ export default function SpacingTuner() {
                       />
                     </div>
 
-                    {/* Process Top & Bottom */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between font-mono text-[10px]">
-                          <span className="text-neutral-300">Top Space</span>
-                          <span className="font-bold text-white">{settings.processTop}px</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={20}
-                          max={180}
-                          step={4}
-                          value={settings.processTop}
-                          onChange={(e) => handleChange('processTop', Number(e.target.value))}
-                          className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between font-mono text-[10px]">
-                          <span className="text-neutral-300">Bottom Space</span>
-                          <span className="font-bold text-white">{settings.processBottom}px</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={20}
-                          max={180}
-                          step={4}
-                          value={settings.processBottom}
-                          onChange={(e) => handleChange('processBottom', Number(e.target.value))}
-                          className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. TESTIMONIALS SECTION ("PEOPLE I'VE WORKED WITH") */}
-                {(activeTab === 'testimonials' || activeTab === 'all') && (
-                  <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
-                        TESTIMONIALS
-                      </span>
-                      <span className="text-[10px] text-neutral-400 font-mono">03 / ENDORSEMENTS</span>
-                    </div>
-
-                    {/* Testimonials Title to Stream Gap */}
+                    {/* Space Above Process */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Title → Testimonials Stream Gap</span>
+                        <span className="text-neutral-300">Space Above Process</span>
                         <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
-                          {settings.testimonialsHeaderGap}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={12}
-                        max={140}
-                        step={2}
-                        value={settings.testimonialsHeaderGap}
-                        onChange={(e) => handleChange('testimonialsHeaderGap', Number(e.target.value))}
-                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                      />
-                    </div>
-
-                    {/* Testimonials Top Space */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Testimonials Top Space</span>
-                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
-                          {settings.testimonialsTop}px
+                          {settings.processTop}px
                         </span>
                       </div>
                       <input
@@ -562,35 +721,121 @@ export default function SpacingTuner() {
                         min={20}
                         max={180}
                         step={4}
-                        value={settings.testimonialsTop}
-                        onChange={(e) => handleChange('testimonialsTop', Number(e.target.value))}
+                        value={settings.processTop}
+                        onChange={(e) => handleChange('processTop', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+
+                    {/* Space Below Process */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Space Below Process</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.processBottom}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={20}
+                        max={180}
+                        step={4}
+                        value={settings.processBottom}
+                        onChange={(e) => handleChange('processBottom', Number(e.target.value))}
                         className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
                       />
                     </div>
                   </div>
                 )}
 
-                {/* 4. FAQ SECTION ("FREQUENTLY ASKED") */}
+                {/* 5. TESTIMONIALS SECTION ("PEOPLE I'VE WORKED WITH") */}
+                {(activeTab === 'testimonials' || activeTab === 'all') && (
+                  <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
+                        TESTIMONIALS
+                      </span>
+                    </div>
+
+                    {/* Testimonials Header Gap */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Title &rarr; Cards Marquee Gap</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.testimonialsHeaderGap}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={20}
+                        max={160}
+                        step={4}
+                        value={settings.testimonialsHeaderGap}
+                        onChange={(e) => handleChange('testimonialsHeaderGap', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+
+                    {/* Space Above Testimonials */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Space Above Testimonials</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.testimonialsTop}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={20}
+                        max={200}
+                        step={4}
+                        value={settings.testimonialsTop}
+                        onChange={(e) => handleChange('testimonialsTop', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+
+                    {/* Space Below Testimonials */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[11px]">
+                        <span className="text-neutral-300">Space Below Testimonials</span>
+                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                          {settings.testimonialsBottom}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={20}
+                        max={180}
+                        step={4}
+                        value={settings.testimonialsBottom}
+                        onChange={(e) => handleChange('testimonialsBottom', Number(e.target.value))}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. FAQ SECTION ("FREQUENTLY ASKED") */}
                 {(activeTab === 'faq' || activeTab === 'all') && (
                   <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                       <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
-                        FAQ: INQUIRIES
+                        FAQ: FREQUENTLY ASKED
                       </span>
-                      <span className="text-[10px] text-neutral-400 font-mono">04 / QUESTIONS</span>
                     </div>
 
-                    {/* FAQ Title to Questions Gap */}
+                    {/* FAQ Header Gap */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Title → Questions Gap</span>
+                        <span className="text-neutral-300">Title &rarr; Questions Gap</span>
                         <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
                           {settings.faqHeaderGap}px
                         </span>
                       </div>
                       <input
                         type="range"
-                        min={12}
+                        min={16}
                         max={140}
                         step={2}
                         value={settings.faqHeaderGap}
@@ -639,94 +884,7 @@ export default function SpacingTuner() {
                   </div>
                 )}
 
-                {/* 5. HERO & MANIFESTO & WORK */}
-                {(activeTab === 'hero-work' || activeTab === 'all') && (
-                  <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <span className="font-mono text-[11px] uppercase font-bold tracking-widest text-white">
-                        HERO &amp; MANIFESTO &amp; WORK
-                      </span>
-                    </div>
-
-                    {/* Hero to Manifesto */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Hero Scatter → Manifesto Gap</span>
-                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
-                          {settings.heroToManifesto}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={20}
-                        max={220}
-                        step={4}
-                        value={settings.heroToManifesto}
-                        onChange={(e) => handleChange('heroToManifesto', Number(e.target.value))}
-                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                      />
-                    </div>
-
-                    {/* Manifesto Text Lines */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Manifesto Text Lines Gap</span>
-                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
-                          {settings.manifestoLineGap}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={8}
-                        max={64}
-                        step={2}
-                        value={settings.manifestoLineGap}
-                        onChange={(e) => handleChange('manifestoLineGap', Number(e.target.value))}
-                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                      />
-                    </div>
-
-                    {/* Manifesto to Work */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Manifesto → Work Reels Gap</span>
-                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
-                          {settings.manifestoToWork}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={20}
-                        max={200}
-                        step={4}
-                        value={settings.manifestoToWork}
-                        onChange={(e) => handleChange('manifestoToWork', Number(e.target.value))}
-                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                      />
-                    </div>
-
-                    {/* Work to References */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between font-mono text-[11px]">
-                        <span className="text-neutral-300">Work → Visual References</span>
-                        <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">
-                          {settings.workToReferences}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={20}
-                        max={180}
-                        step={4}
-                        value={settings.workToReferences}
-                        onChange={(e) => handleChange('workToReferences', Number(e.target.value))}
-                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* 6. CTA & FOOTER */}
+                {/* 7. CTA & FOOTER */}
                 {(activeTab === 'cta-footer' || activeTab === 'all') && (
                   <div className="space-y-4 rounded-2xl bg-white/[0.03] p-4 ring-1 ring-white/10">
                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
@@ -774,6 +932,7 @@ export default function SpacingTuner() {
                     </div>
                   </div>
                 )}
+
 
               </div>
 

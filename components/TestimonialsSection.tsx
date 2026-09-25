@@ -92,13 +92,10 @@ export default function TestimonialsSection() {
         style={{ paddingBottom: 'var(--testimonials-header-gap, 126px)' }}
         className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
       >
-        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
-          <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-display font-black text-3xl sm:text-5xl md:text-6xl lg:text-[68px] xl:text-[76px] tracking-tight uppercase text-black leading-none whitespace-normal lg:whitespace-nowrap">
             PEOPLE I&apos;VE WORKED WITH
           </h2>
-          <span className="font-mono text-xs sm:text-sm font-semibold text-neutral-400 uppercase tracking-[0.2em]">
-            03 / ENDORSEMENTS
-          </span>
         </div>
       </div>
 

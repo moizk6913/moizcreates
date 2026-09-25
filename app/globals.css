@@ -217,11 +217,11 @@
   --border-medium: #d3d0c8;
 
   /* Live Spacing Tokens (Calibrated by Moiz with Council) */
-  --hero-to-manifesto: 44px;
+  --hero-to-manifesto: 72px;
   --manifesto-line-gap: 28px;
-  --manifesto-to-work: 156px;
+  --manifesto-to-work: 96px;
   --grid-gap: 34px;
-  --work-to-references: 128px;
+  --work-to-references: 80px;
   --references-bottom: 72px;
 
   /* Section-Wise: Services (What I Do) */
@@ -239,7 +239,7 @@
   /* Section-Wise: Testimonials (Endorsements) */
   --testimonials-top: 104px;
   --testimonials-bottom: 56px;
-  --testimonials-header-gap: 126px;
+  --testimonials-header-gap: 64px;
 
   /* Section-Wise: FAQ (Inquiries) */
   --faq-top: 132px;
@@ -248,9 +248,21 @@
   --faq-row-padding: 24px;
 
   /* Section-Wise: CTA & Footer */
-  --cta-padding: 200px;
+  --cta-padding: 120px;
   --statement-line-gap: 28px;
   --footer-top: 56px;
+
+  /* Archive Detail View Calibrated Design System Tokens */
+  --modal-top-spacing: 40px;
+  --modal-nav-top-spacing: 30px;
+  --modal-side-spacing: 36px;
+  --modal-header-gap: 16px;
+  --modal-title-size: 34px;
+  --modal-title-gap: 10px;
+  --modal-overview-gap: 34px;
+  --modal-grid-gap: 12px;
+  --modal-row-gap: 16px;
+  --modal-media-radius: 28px;
 }
 
 html.lenis {

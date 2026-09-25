@@ -98,8 +98,8 @@ export default function ArchiveDirectorDesk({
       {/* 2. MAIN DIRECTOR'S DESK STAGE (Spacious Apple Showcase Canvas) */}
       <main className="relative z-10 w-full max-w-7xl my-auto py-8 sm:py-12 flex items-center justify-center min-h-[700px]">
         
-        {/* Desktop Absolute Desk Layout (All 7 Apple Folders Guaranteed Distinct and Non-Colliding) */}
-        <div className="hidden md:flex relative w-full max-w-6xl h-[680px] items-center justify-center">
+        {/* Desktop Absolute Desk Layout (All 7 Apple Folders Guaranteed Distinct and Non-Colliding on 1024px+ viewports) */}
+        <div className="hidden lg:flex relative w-full max-w-6xl h-[680px] items-center justify-center">
           {files.map((file, index) => {
             const slot = getSlot(file, index);
             return (
@@ -134,8 +134,8 @@ export default function ArchiveDirectorDesk({
           })}
         </div>
 
-        {/* Mobile Responsive Grid Layout (Clean 1/2-Column Display with Ample Breathing Room) */}
-        <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-12 w-full max-w-xs sm:max-w-lg mx-auto pt-6">
+        {/* Tablet & Mobile Responsive Grid Layout (Clean 1/2/3-Column Display with Ample Breathing Room) */}
+        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-12 w-full max-w-xs sm:max-w-xl md:max-w-4xl mx-auto pt-6">
           {files.map((file) => (
             <div key={file.id} className="flex justify-center">
               <ArchiveFolderCard

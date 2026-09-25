@@ -206,20 +206,17 @@ export default function ProcessSection() {
         style={{ paddingBottom: 'var(--process-header-gap, 86px)' }}
         className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]"
       >
-        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3">
+        <div className="flex items-baseline justify-between">
           <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-[80px] xl:text-[92px] tracking-tight uppercase text-black leading-none">
             HOW I GET THERE
           </h2>
-          <span className="font-mono text-xs sm:text-sm font-semibold text-neutral-400 uppercase tracking-[0.2em]">
-            02 / APPROACH
-          </span>
         </div>
       </div>
 
-      {/* 2. MIDDLE-ALIGNED EDITORIAL PROCESS PILLARS (Harmonious Central Axis, Zero Collision) */}
+      {/* 2. ARCHITECTURAL EDITORIAL PROCESS PILLARS (Disciplined Left-Aligned Swiss Grid) */}
       <div className="w-full px-6 sm:px-10 md:px-14 lg:px-[68px] xl:px-[100px]">
         <div
-          className="grid grid-cols-1 lg:grid-cols-3"
+          className="grid grid-cols-1 md:grid-cols-3"
           style={{ gap: 'var(--process-grid-gap, 44px)' }}
         >
           {PHASES.map((phase, idx) => (
@@ -228,33 +225,34 @@ export default function ProcessSection() {
               ref={(el) => {
                 columnsRef.current[idx] = el;
               }}
-              className="flex flex-col items-center text-center group cursor-default border-none bg-transparent px-2 sm:px-4 md:px-6 transition-all duration-300"
+              className="flex flex-col items-start text-left group cursor-default border-none bg-transparent transition-all duration-300"
             >
-              {/* 1. Centered Doodle Icon */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 text-black flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-115 mb-3 sm:mb-4">
-                {idx === 0 && (
-                  <ResearchDoodle className="w-full h-full text-black group-hover:rotate-12 transition-transform duration-500" />
-                )}
-                {idx === 1 && (
-                  <DesignDoodle className="w-full h-full text-black group-hover:-rotate-12 transition-transform duration-500" />
-                )}
-                {idx === 2 && (
-                  <DeliverDoodle className="w-full h-full text-black group-hover:rotate-45 transition-transform duration-600" />
-                )}
+              {/* 1. Top Bar: Left-aligned Doodle Icon & Right-aligned Step Number */}
+              <div className="w-full flex items-center justify-between mb-5 sm:mb-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 text-black flex items-center justify-start transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110">
+                  {idx === 0 && (
+                    <ResearchDoodle className="w-full h-full text-black group-hover:rotate-12 transition-transform duration-500" />
+                  )}
+                  {idx === 1 && (
+                    <DesignDoodle className="w-full h-full text-black group-hover:-rotate-12 transition-transform duration-500" />
+                  )}
+                  {idx === 2 && (
+                    <DeliverDoodle className="w-full h-full text-black group-hover:rotate-45 transition-transform duration-600" />
+                  )}
+                </div>
+
+                <span className="font-mono text-xl sm:text-2xl md:text-3xl font-bold text-neutral-300 group-hover:text-black transition-colors duration-300">
+                  {phase.step}
+                </span>
               </div>
 
-              {/* 2. Centered Phase Tag */}
-              <span className="font-mono text-xs sm:text-[13px] font-bold tracking-[0.22em] text-neutral-400 group-hover:text-black uppercase transition-colors duration-300 mb-2 sm:mb-3 block">
-                {phase.tag}
-              </span>
-
-              {/* 3. Centered Title (Harmonized baseline across columns) */}
-              <h3 className="font-display font-black text-2xl sm:text-3xl md:text-[28px] lg:text-[32px] uppercase tracking-tight text-black leading-tight group-hover:text-neutral-900 transition-colors duration-300 mb-3 min-h-[3rem] sm:min-h-[3.5rem] lg:min-h-[4rem] flex items-center justify-center max-w-xs">
+              {/* 2. Left-Aligned Title */}
+              <h3 className="font-display font-black text-xl sm:text-2xl md:text-[24px] lg:text-[26px] xl:text-[28px] uppercase tracking-tight text-black leading-tight group-hover:text-neutral-900 transition-colors duration-300 mb-3 min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                 {phase.title}
               </h3>
 
-              {/* 4. Centered Narrative */}
-              <p className="font-sans text-sm sm:text-base text-neutral-500 group-hover:text-neutral-800 transition-colors duration-300 leading-relaxed font-normal max-w-xs sm:max-w-[320px] mx-auto">
+              {/* 3. Left-Aligned Narrative */}
+              <p className="font-sans text-xs sm:text-sm md:text-[14px] lg:text-[15px] text-neutral-500 group-hover:text-neutral-800 transition-colors duration-300 leading-relaxed font-normal max-w-sm">
                 {phase.description}
               </p>
             </div>

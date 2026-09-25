@@ -62,9 +62,18 @@ export default function ArchiveFolderCard({
   return (
     <div
       data-folder-card="true"
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${name} archive`}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
       }}
       className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation pointer-events-auto"
     >
@@ -141,7 +150,7 @@ export default function ArchiveFolderCard({
           <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/45 via-white/10 to-transparent pointer-events-none" />
 
           {/* Top-Left Metadata Text */}
-          <div className="relative z-10 text-left pointer-events-none max-w-[120px] space-y-0.5">
+          <div className="relative z-10 text-left pointer-events-none max-w-[145px] sm:max-w-[155px] space-y-0.5">
             <span className="font-mono text-[8px] uppercase tracking-wider text-black/55 font-bold block">
               *CREATIVESTYLE.
             </span>

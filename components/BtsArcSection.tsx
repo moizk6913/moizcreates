@@ -138,10 +138,44 @@ function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: Bento
     return FALLBACK_BENTO_ITEMS;
   }
 
-  // Flatten all photos along with campaign metadata
-  const flatPhotos: Array<{ photo: string; campaign: DynamicCanvasFile; index: number }> = [];
+  // Flatten all photos along with campaign metadata and aspect ratios
+  const flatPhotos: Array<{
+    photo: string;
+    campaign: DynamicCanvasFile;
+    index: number;
+    aspectClass?: string;
+    tag?: string;
+    mediaType?: 'image' | 'video';
+  }> = [];
+
   files.forEach((file) => {
-    if (file.photos && file.photos.length > 0) {
+    if (file.sections && file.sections.length > 0) {
+      file.sections.forEach((sec) => {
+        let defaultAspect = 'aspect-[16/9]';
+        const tag = sec.title.toUpperCase();
+        if (sec.type === 'banner') defaultAspect = 'aspect-[21/9]';
+        else if (sec.type === 'stories') defaultAspect = 'aspect-[9/16]';
+        else if (sec.type === 'lookbook') defaultAspect = 'aspect-[4/5]';
+        else if (sec.type === 'deck') defaultAspect = 'aspect-[16/9]';
+
+        sec.items.forEach((item, itIdx) => {
+          let itemAspect = defaultAspect;
+          if (item.aspectRatio === '9:16') itemAspect = 'aspect-[9/16]';
+          else if (item.aspectRatio === '4:5') itemAspect = 'aspect-[4/5]';
+          else if (item.aspectRatio === '1:1') itemAspect = 'aspect-square';
+          else if (item.aspectRatio === '21:9' || item.aspectRatio?.includes(':1')) itemAspect = 'aspect-[21/9]';
+
+          flatPhotos.push({
+            photo: item.url,
+            campaign: file,
+            index: itIdx,
+            aspectClass: itemAspect,
+            tag,
+            mediaType: item.type || (item.url.endsWith('.mp4') ? 'video' : 'image'),
+          });
+        });
+      });
+    } else if (file.photos && file.photos.length > 0) {
       file.photos.forEach((photo, pIdx) => {
         flatPhotos.push({ photo, campaign: file, index: pIdx });
       });
@@ -175,10 +209,10 @@ function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: Bento
       id: `user-bento-1-${i}`,
       projectId: itemData.campaign.id,
       brand: (itemData.campaign.name || 'CAMPAIGN').toUpperCase(),
-      tag: cfg.tag,
-      aspectClass: cfg.aspectClass,
+      tag: itemData.tag || cfg.tag,
+      aspectClass: itemData.aspectClass || cfg.aspectClass,
       bgAccent: cfg.bgAccent,
-      mediaType: 'image',
+      mediaType: itemData.mediaType || 'image',
       mediaUrl: itemData.photo,
       posterUrl: itemData.photo,
     });
@@ -191,10 +225,10 @@ function buildBentoItemsFromUploads(files: DynamicCanvasFile[]): { rowOne: Bento
       id: `user-bento-2-${j}`,
       projectId: itemData.campaign.id,
       brand: (itemData.campaign.name || 'CAMPAIGN').toUpperCase(),
-      tag: cfg.tag,
-      aspectClass: cfg.aspectClass,
+      tag: itemData.tag || cfg.tag,
+      aspectClass: itemData.aspectClass || cfg.aspectClass,
       bgAccent: cfg.bgAccent,
-      mediaType: 'image',
+      mediaType: itemData.mediaType || 'image',
       mediaUrl: itemData.photo,
       posterUrl: itemData.photo,
     });
@@ -360,6 +394,7 @@ export default function BtsArcSection({ onOpenCase, uploadedFiles }: BtsArcSecti
                 type="button"
                 onClick={(e) => toggleMute(item.id, e)}
                 title={unmutedId === item.id ? 'Mute' : 'Unmute'}
+                aria-label={unmutedId === item.id ? 'Mute video' : 'Unmute video'}
                 className="w-7 h-7 md:w-8 md:h-8 apple-circle rounded-full bg-black/60 hover:bg-white text-white hover:text-black backdrop-blur-md flex items-center justify-center transition-colors duration-200"
               >
                 {unmutedId === item.id ? (

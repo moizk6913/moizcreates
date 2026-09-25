@@ -37,7 +37,7 @@ import {
 } from '@/lib/contentStore';
 import { BlogPost } from '@/lib/blogData';
 
-type AdminView = 'all_work' | 'projects' | 'single_project' | 'playground' | 'collections' | 'journal' | 'settings';
+type AdminView = 'all_work' | 'projects' | 'single_project' | 'playground' | 'collections' | 'journal' | 'inquiries' | 'settings';
 
 // ==========================================
 // CLIENT-SIDE ASSET INSPECTOR (AUTO-DETECTS DIMENSIONS & RATIOS)
@@ -152,7 +152,13 @@ const inspectMediaFile = (file: File): Promise<InspectedAsset> => {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              const poster = canvas.toDataURL('image/jpeg', 0.85);
+              let poster = '';
+              try {
+                poster = canvas.toDataURL('image/webp', 0.85);
+                if (!poster.startsWith('data:image/webp')) poster = canvas.toDataURL('image/jpeg', 0.85);
+              } catch {
+                poster = canvas.toDataURL('image/jpeg', 0.85);
+              }
               finishVideo(w, h, dur, poster, objUrl);
               return;
             }
@@ -198,7 +204,12 @@ const inspectMediaFile = (file: File): Promise<InspectedAsset> => {
           const tCtx = thumbCanvas.getContext('2d');
           if (tCtx) {
             tCtx.drawImage(img, 0, 0, thumbW, thumbH);
-            thumbData = thumbCanvas.toDataURL('image/jpeg', 0.85);
+            try {
+              thumbData = thumbCanvas.toDataURL('image/webp', 0.85);
+              if (!thumbData.startsWith('data:image/webp')) thumbData = thumbCanvas.toDataURL('image/jpeg', 0.85);
+            } catch {
+              thumbData = thumbCanvas.toDataURL('image/jpeg', 0.85);
+            }
           }
 
           if (w > maxDim || h > maxDim) {
@@ -210,7 +221,12 @@ const inspectMediaFile = (file: File): Promise<InspectedAsset> => {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, targetW, targetH);
-              finalData = canvas.toDataURL('image/jpeg', 0.9);
+              try {
+                finalData = canvas.toDataURL('image/webp', 0.88);
+                if (!finalData.startsWith('data:image/webp')) finalData = canvas.toDataURL('image/jpeg', 0.88);
+              } catch {
+                finalData = canvas.toDataURL('image/jpeg', 0.88);
+              }
             }
           }
         } catch {}
@@ -320,6 +336,7 @@ export default function AdminPage() {
   // Settings & Credentials
   const [apiKey, setApiKey] = useState('');
   const [apiVerified, setApiVerified] = useState<boolean | null>(null);
+  const [apiErrorMsg, setApiErrorMsg] = useState<string | null>(null);
   const [seoConfig, setSeoConfig] = useState<SeoConfig>({});
   const [statusNotification, setStatusNotification] = useState<string | null>(null);
 
@@ -336,6 +353,9 @@ export default function AdminPage() {
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingFolder, setIsUploadingFolder] = useState(false);
+  const [folderUploadStatus, setFolderUploadStatus] = useState<string | null>(null);
 
   // Dedicated Playground Lab State & Uploader
   const [isPlaygroundUploadOpen, setIsPlaygroundUploadOpen] = useState(false);
@@ -350,10 +370,65 @@ export default function AdminPage() {
   const [pgFilterFormat, setPgFilterFormat] = useState<'all' | '9:16' | '16:9' | '4:5' | '1:1'>('all');
   const pgFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Authentication & Security State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Inquiries State
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [inquiryFilter, setInquiryFilter] = useState<'all' | 'new' | 'read' | 'replied' | 'archived'>('all');
+  const [isUpdatingInquiry, setIsUpdatingInquiry] = useState(false);
+
+  // Backups State
+  const [backupSnapshots, setBackupSnapshots] = useState<any[]>([]);
+
+  // Journal / Article Composer State
+  const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<any | null>(null);
+  const [articleTitle, setArticleTitle] = useState('');
+  const [articleSubtitle, setArticleSubtitle] = useState('');
+  const [articleCategory, setArticleCategory] = useState('TECHNIQUE & PHILOSOPHY');
+  const [articleCover, setArticleCover] = useState('');
+  const [articleContentRaw, setArticleContentRaw] = useState('');
+  const [articleCamera, setArticleCamera] = useState('');
+  const [articleLighting, setArticleLighting] = useState('');
+  const [articleAspect, setArticleAspect] = useState('2.39:1 Anamorphic & 9:16 Vertical');
+  const [articleDeliverables, setArticleDeliverables] = useState('Director\'s Cut 60s, Stills Suite');
+  const [articlePreviewMode, setArticlePreviewMode] = useState<'edit' | 'preview'>('edit');
+  const [isSavingArticle, setIsSavingArticle] = useState(false);
+  const articleCoverInputRef = useRef<HTMLInputElement>(null);
+
   const notifyUser = (msg: string) => {
     setStatusNotification(msg);
     setTimeout(() => setStatusNotification(null), 4000);
   };
+
+  const refreshInquiries = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/inquiries');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setInquiries(data.inquiries || []);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const refreshBackups = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/backup?action=list');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setBackupSnapshots(data.snapshots || []);
+        }
+      }
+    } catch {}
+  }, []);
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);
@@ -368,22 +443,274 @@ export default function AdminPage() {
       setProjects(p);
       setCollections(c);
       setSeriesList(s);
-      setPosts(getStoredBlogPosts());
+      
+      // Fetch articles from database API with fallback
+      try {
+        const bRes = await fetch('/api/admin/blog');
+        if (bRes.ok) {
+          const bData = await bRes.json();
+          if (bData.success && Array.isArray(bData.posts) && bData.posts.length > 0) {
+            setPosts(bData.posts);
+          } else {
+            setPosts(getStoredBlogPosts());
+          }
+        } else {
+          setPosts(getStoredBlogPosts());
+        }
+      } catch {
+        setPosts(getStoredBlogPosts());
+      }
+
       setApiKey(getStoredApiKey());
       setSeoConfig(getStoredSeoConfig());
+      await refreshInquiries();
+      await refreshBackups();
     } catch (err) {
       console.error('Failed to load archive data', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [refreshInquiries, refreshBackups]);
+
+  // Auth Verification on Mount
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.authenticated) {
+          setIsAuthenticated(true);
+          refreshData();
+        } else {
+          setIsAuthenticated(false);
+        }
+      })
+      .catch(() => setIsAuthenticated(false))
+      .finally(() => setIsCheckingAuth(false));
+  }, [refreshData]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError(null);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: loginPassword }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        setLoginPassword('');
+        refreshData();
+        notifyUser('Studio Desk unlocked. Welcome, Director.');
+      } else {
+        setLoginError(data.error || 'Authentication rejected.');
+      }
+    } catch {
+      setLoginError('Network failure connecting to Studio auth.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+    setIsAuthenticated(false);
+    notifyUser('Studio Desk locked.');
+  };
+
+  const handleInquiryStatus = async (id: string, status: string) => {
+    setIsUpdatingInquiry(true);
+    try {
+      const res = await fetch('/api/admin/inquiries', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      if (res.ok) {
+        await refreshInquiries();
+        notifyUser(`Inquiry status updated to ${status}.`);
+      }
+    } catch {
+      notifyUser('Failed to update inquiry status.');
+    } finally {
+      setIsUpdatingInquiry(false);
+    }
+  };
+
+  const handleInquiryDelete = async (id: string) => {
+    if (!confirm('Permanently delete this inquiry?')) return;
+    try {
+      const res = await fetch(`/api/admin/inquiries?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await refreshInquiries();
+        notifyUser('Inquiry deleted.');
+      }
+    } catch {
+      notifyUser('Failed to delete inquiry.');
+    }
+  };
+
+  const handleTriggerSnapshot = async () => {
+    try {
+      const res = await fetch('/api/admin/backup?action=create_snapshot');
+      if (res.ok) {
+        const data = await res.json();
+        await refreshBackups();
+        notifyUser(`Snapshot created: ${data.snapshot?.filename}`);
+      }
+    } catch {
+      notifyUser('Snapshot creation failed.');
+    }
+  };
+
+  const handleOpenNewArticleModal = () => {
+    setEditingArticle(null);
+    setArticleTitle('');
+    setArticleSubtitle('');
+    setArticleCategory('TECHNIQUE & PHILOSOPHY');
+    setArticleCover('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&auto=format&fit=crop&q=80');
+    setArticleContentRaw(
+      'The modern visual eye is bombarded by resolution without intentionality. True art direction begins when every millimeter of the frame has purpose.\n\n' +
+      '> "Lighting is not merely illumination; it is the philosophical architecture of shadow."\n\n' +
+      '## The Discipline of Single-Source Lighting\n\n' +
+      'By committing to a single dominant key light, the natural contrast ratio creates sculptural depth across both 35mm film stills and high-speed motion captures.'
+    );
+    setArticleCamera('ARRI Alexa Mini LF // Cooke Anamorphic /i Full Frame Plus');
+    setArticleLighting('Single Source Soft Tungsten Key + Astera Titan Tubes');
+    setArticleAspect('2.39:1 Anamorphic & 9:16 Vertical');
+    setArticleDeliverables('Director\'s Cut 60s, Stills Suite');
+    setArticlePreviewMode('edit');
+    setIsArticleModalOpen(true);
+  };
+
+  const handleOpenEditArticleModal = (post: any) => {
+    setEditingArticle(post);
+    setArticleTitle(post.title || '');
+    setArticleSubtitle(post.subtitle || '');
+    setArticleCategory(post.category || 'TECHNIQUE & PHILOSOPHY');
+    setArticleCover(post.coverImage || '');
+    setArticleContentRaw(Array.isArray(post.content) ? post.content.join('\n\n') : (post.content || ''));
+    setArticleCamera(post.specs?.camera || '');
+    setArticleLighting(post.specs?.lighting || '');
+    setArticleAspect(post.specs?.aspectRatio || '');
+    setArticleDeliverables(Array.isArray(post.specs?.deliverables) ? post.specs.deliverables.join(', ') : (post.specs?.deliverables || ''));
+    setArticlePreviewMode('edit');
+    setIsArticleModalOpen(true);
+  };
+
+  const handleArticleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files.length) return;
+    const file = e.target.files[0];
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        const asset = data.asset || (data.assets && data.assets[0]);
+        if (data.success && asset) {
+          setArticleCover(asset.url);
+          notifyUser('Cover converted to WebP.');
+        }
+      }
+    } catch {
+      notifyUser('Failed to upload cover image.');
+    }
+  };
+
+  const handleSaveArticle = async () => {
+    if (!articleTitle.trim()) {
+      alert('Article title is required.');
+      return;
+    }
+    setIsSavingArticle(true);
+    try {
+      const paragraphs = articleContentRaw
+        .split('\n\n')
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      const deliverables = articleDeliverables
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean);
+
+      const hasSpecs = articleCamera || articleLighting || articleAspect || deliverables.length > 0;
+      const specs = hasSpecs ? {
+        camera: articleCamera.trim() || undefined,
+        lighting: articleLighting.trim() || undefined,
+        aspectRatio: articleAspect.trim() || undefined,
+        deliverables: deliverables.length > 0 ? deliverables : undefined,
+      } : undefined;
+
+      const payload = {
+        title: articleTitle.trim(),
+        subtitle: articleSubtitle.trim(),
+        category: articleCategory.trim(),
+        coverImage: articleCover.trim() || 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&auto=format&fit=crop&q=80',
+        content: paragraphs,
+        specs,
+        status: 'published',
+      };
+
+      if (editingArticle?.id) {
+        const res = await fetch(`/api/admin/blog/${editingArticle.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          notifyUser(`Article "${articleTitle}" updated.`);
+        }
+      } else {
+        const res = await fetch('/api/admin/blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          notifyUser(`Article "${articleTitle}" published.`);
+        }
+      }
+
+      await refreshData();
+      setIsArticleModalOpen(false);
+    } catch (err) {
+      console.error('Failed to save article', err);
+      notifyUser('Error saving article.');
+    } finally {
+      setIsSavingArticle(false);
+    }
+  };
+
+  const handleDeleteArticle = async (post: any) => {
+    if (!confirm(`Permanently delete article "${post.title}"?`)) return;
+    try {
+      if (post.id) {
+        await fetch(`/api/admin/blog/${post.id}`, { method: 'DELETE' });
+      }
+      deleteBlogPost(post.slug);
+      await refreshData();
+      notifyUser('Article deleted.');
+    } catch {
+      notifyUser('Failed to delete article.');
+    }
+  };
 
   useEffect(() => {
-    refreshData();
-    const handleUpdate = () => refreshData();
-    window.addEventListener('antigravity_content_updated', handleUpdate);
-    return () => window.removeEventListener('antigravity_content_updated', handleUpdate);
-  }, [refreshData]);
+    if (isAuthenticated) {
+      refreshData();
+      const handleUpdate = () => refreshData();
+      window.addEventListener('antigravity_content_updated', handleUpdate);
+      return () => window.removeEventListener('antigravity_content_updated', handleUpdate);
+    }
+  }, [isAuthenticated, refreshData]);
 
   // Check initial API key verification status if key exists
   useEffect(() => {
@@ -402,6 +729,140 @@ export default function AdminPage() {
 
   const setIsKeyVerified = (verified: boolean) => {
     setApiVerified(verified);
+  };
+
+  // ==========================================
+  // INGESTION: RECURSIVE PROJECT FOLDER PIPELINE
+  // ==========================================
+
+  const scanEntry = async (entry: any, basePath = ''): Promise<Array<{ file: File; path: string }>> => {
+    if (!entry) return [];
+    if (entry.isFile) {
+      return new Promise((resolve) => {
+        entry.file(
+          (file: File) => {
+            resolve([{ file, path: basePath ? `${basePath}/${file.name}` : file.name }]);
+          },
+          () => resolve([])
+        );
+      });
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      const readAllEntries = async (): Promise<any[]> => {
+        const entries: any[] = [];
+        let batch: any[];
+        do {
+          batch = await new Promise((resolve) => dirReader.readEntries(resolve, () => resolve([])));
+          entries.push(...batch);
+        } while (batch.length > 0);
+        return entries;
+      };
+
+      const childEntries = await readAllEntries();
+      const currentPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      const nested = await Promise.all(childEntries.map((c) => scanEntry(c, currentPath)));
+      return nested.flat();
+    }
+    return [];
+  };
+
+  const handleFolderUpload = async (items: Array<{ file: File; path: string }>) => {
+    if (!items.length) return;
+
+    const validMedia = items.filter(({ file }) =>
+      file.type.startsWith('image/') ||
+      file.type.startsWith('video/') ||
+      /\.(jpg|jpeg|png|webp|avif|gif|mp4|mov|webm)$/i.test(file.name)
+    );
+
+    if (!validMedia.length) {
+      notifyUser('No supported image or video media found in this folder.');
+      return;
+    }
+
+    // Detect project name from first item's root folder
+    const firstParts = validMedia[0].path.split(/[/\\]/);
+    const projectName = firstParts.length > 1 ? firstParts[0] : 'Uploaded Project';
+
+    setIsUploadingFolder(true);
+    setFolderUploadStatus(`Ingesting "${projectName}": Converting media & building sections...`);
+    notifyUser(`Ingesting folder "${projectName}"...`);
+
+    try {
+      const formData = new FormData();
+      formData.append('title', projectName);
+
+      validMedia.forEach(({ file, path }) => {
+        formData.append('files', file);
+        formData.append('paths', path);
+      });
+
+      const res = await fetch('/api/admin/upload-folder', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        notifyUser(`Success: "${data.project.title}" ingested with ${data.sectionCount} sections!`);
+
+        // Sync to local Canvas / Store
+        try {
+          const p = data.project;
+          const canvasFile: any = {
+            id: p.slug || p.id,
+            code: p.slug?.slice(0, 4).toUpperCase() || 'PROJ',
+            name: p.title,
+            discipline: 'Art Direction',
+            client: p.client || p.title,
+            year: p.year || '2026',
+            role: p.role || 'Director of Visuals',
+            x: Math.random() * 800 - 400,
+            y: Math.random() * 600 - 300,
+            rot: (Math.random() - 0.5) * 6,
+            img: p.coverImage || (p.gallery?.[0]?.url || ''),
+            aspect: '16:9',
+            colorTag: '#111111',
+            assetType: 'folder',
+            photos: (p.gallery || []).map((g: any) => g.url || g),
+            desc: p.fullDescription || p.shortDescription,
+            deliverables: p.services || ['Creative Direction', 'Campaign Architecture'],
+            sections: (p.sections || []).map((s: any) => ({
+              id: s.id,
+              title: s.title,
+              type: s.type,
+              items: (s.items || []).map((it: any) => ({
+                url: it.url,
+                aspectRatio: it.dimensions?.aspectRatio,
+                title: it.altText || it.originalName,
+                type: it.type,
+              })),
+            })),
+          };
+          try {
+            const rawStored = localStorage.getItem('moiz_custom_canvas_files');
+            const files = rawStored ? JSON.parse(rawStored) : [];
+            const updated = [canvasFile, ...files.filter((f: any) => f.id !== canvasFile.id)];
+            localStorage.setItem('moiz_custom_canvas_files', JSON.stringify(updated));
+            window.dispatchEvent(new CustomEvent('moiz_canvas_updated'));
+          } catch {}
+        } catch (err) {
+          console.warn('Could not sync canvas file locally', err);
+        }
+
+        await refreshData();
+        setIsAddWorkOpen(false);
+        setSelectedProjectId(data.project.id);
+        setActiveView('projects');
+      } else {
+        notifyUser(data.error || 'Failed to ingest folder.');
+      }
+    } catch (err: any) {
+      notifyUser(`Folder ingestion error: ${err.message}`);
+    } finally {
+      setIsUploadingFolder(false);
+      setFolderUploadStatus(null);
+    }
   };
 
   // ==========================================
@@ -481,27 +942,70 @@ export default function AdminPage() {
     setIsPublishingBatch(true);
 
     try {
-      const newWorks: WorkItem[] = uploadQueue.map((item) => ({
-        id: `work-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title: item.title,
-        mediaUrl: item.dataUrl,
-        thumbnailUrl: item.thumbnailUrl,
-        mediaType: item.mediaType,
-        fileType: item.fileType,
-        fileName: item.fileName,
-        fileSize: item.fileSize,
-        dimensions: item.dimensions,
-        workType: item.workType,
-        disciplines: item.disciplines,
-        tags: item.tags,
-        projectId: item.projectId, // null = STANDALONE WORK! 100% VALID!
-        collectionIds: [],
-        seriesId: item.seriesId,
-        year: new Date().getFullYear().toString(),
-        status,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }));
+      const newWorks: WorkItem[] = [];
+
+      for (let i = 0; i < uploadQueue.length; i++) {
+        const item = uploadQueue[i];
+        let mediaUrl = item.dataUrl;
+        let thumbUrl = item.thumbnailUrl;
+
+        // Route through backend media pipeline if physical file object is available
+        if (item.file) {
+          try {
+            const formData = new FormData();
+            formData.append('file', item.file);
+            if (item.projectId) {
+              formData.append('projectId', item.projectId);
+            }
+            const uploadRes = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData,
+            });
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json();
+              const asset = uploadData.asset || (uploadData.assets && uploadData.assets[0]);
+              if (uploadData.success && asset) {
+                mediaUrl = asset.url;
+                thumbUrl = asset.thumbnailUrl || asset.url;
+                if (asset.dimensions) {
+                  item.dimensions = {
+                    ...item.dimensions,
+                    ...asset.dimensions,
+                  };
+                }
+              }
+            } else {
+              const errData = await uploadRes.json().catch(() => ({}));
+              throw new Error(errData.error || `Upload failed (${uploadRes.status})`);
+            }
+          } catch (uploadErr: any) {
+            console.error('Upload to /api/upload failed:', uploadErr);
+            throw new Error(`Upload error for "${item.fileName}": ${uploadErr.message || 'Server rejected file'}`);
+          }
+        }
+
+        newWorks.push({
+          id: `work-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          title: item.title,
+          mediaUrl,
+          thumbnailUrl: thumbUrl,
+          mediaType: item.mediaType,
+          fileType: item.fileType,
+          fileName: item.fileName,
+          fileSize: item.fileSize,
+          dimensions: item.dimensions,
+          workType: item.workType,
+          disciplines: item.disciplines,
+          tags: item.tags,
+          projectId: item.projectId, // null = STANDALONE WORK! 100% VALID!
+          collectionIds: [],
+          seriesId: item.seriesId,
+          year: new Date().getFullYear().toString(),
+          status,
+          createdAt: Date.now() + i,
+          updatedAt: Date.now() + i,
+        });
+      }
 
       // If series grouping was suggested, create series container
       if (batchSuggestion?.groupSuggestion?.shouldGroup) {
@@ -525,9 +1029,9 @@ export default function AdminPage() {
       setBatchSuggestion(null);
       setIsAddWorkOpen(false);
       notifyUser(`Successfully saved ${newWorks.length} work(s)!`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save batch', err);
-      notifyUser('Error saving works. Check storage quota.');
+      notifyUser(err.message || 'Error uploading works. Check server connection.');
     } finally {
       setIsPublishingBatch(false);
     }
@@ -630,11 +1134,35 @@ export default function AdminPage() {
       const customTags = pgTags.split(',').map((t) => t.trim()).filter(Boolean);
       const allTags = Array.from(new Set(['playground', 'lab', pgFormat, ...customTags]));
 
+      let mediaUrl = pgAsset.dataUrl;
+      let thumbUrl = pgAsset.thumbnailUrl || pgAsset.dataUrl;
+
+      if (pgAsset.file) {
+        try {
+          const formData = new FormData();
+          formData.append('file', pgAsset.file);
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            const asset = uploadData.asset || (uploadData.assets && uploadData.assets[0]);
+            if (uploadData.success && asset) {
+              mediaUrl = asset.url;
+              thumbUrl = asset.thumbnailUrl || asset.url;
+            }
+          }
+        } catch (uploadErr) {
+          console.warn('Physical playground upload fallback to local dataUrl', uploadErr);
+        }
+      }
+
       const newWork: WorkItem = {
         id: `pg-${now}-${Math.random().toString(36).slice(2, 6)}`,
         title: pgTitle.trim() || pgAsset.title || 'Untitled Experiment',
-        mediaUrl: pgAsset.dataUrl,
-        thumbnailUrl: pgAsset.thumbnailUrl || pgAsset.dataUrl,
+        mediaUrl,
+        thumbnailUrl: thumbUrl,
         mediaType: pgAsset.mediaType,
         fileType: pgAsset.fileType,
         fileName: pgAsset.fileName,
@@ -902,9 +1430,99 @@ export default function AdminPage() {
     return currentProjectWorks.filter((w) => w.workType.toLowerCase() === projectTypeFilter.toLowerCase());
   }, [currentProjectWorks, projectTypeFilter]);
 
+  const filteredInquiries = useMemo(() => {
+    if (inquiryFilter === 'all') return inquiries;
+    return inquiries.filter((iq) => iq.status === inquiryFilter);
+  }, [inquiries, inquiryFilter]);
+
+  if (isCheckingAuth) {
+    return (
+      <main className="min-h-screen bg-[#0d0d0e] text-white flex items-center justify-center font-mono">
+        <CustomCursor />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <span className="text-xs uppercase tracking-widest text-neutral-400">Verifying Studio Credentials...</span>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[#0d0d0e] text-white flex items-center justify-center p-6 font-sans relative overflow-hidden">
+        <CustomCursor />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.03),transparent_60%)] pointer-events-none" />
+        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#141416] border border-white/[0.08] shadow-2xl relative z-10 space-y-8">
+          <div className="space-y-2 text-center">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Moiz Studio • Restricted Access</span>
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">Studio Desk</h1>
+            <p className="font-mono text-xs text-neutral-400">Enter your administrative master password to manage archive projects, inquiries, and media.</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="font-mono text-[11px] text-neutral-400 uppercase tracking-wider block">Admin Password</label>
+              <input
+                type="password"
+                required
+                autoFocus
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/[0.1] text-white font-mono text-sm outline-none focus:border-white transition-colors"
+              />
+            </div>
+
+            {loginError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-mono text-xs">
+                {loginError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full py-3.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isLoggingIn ? 'Authenticating...' : 'Unlock Studio Desk →'}
+            </button>
+          </form>
+
+          <div className="pt-4 border-t border-white/[0.06] text-center">
+            <Link href="/" className="font-mono text-xs text-neutral-500 hover:text-white transition-colors">
+              ← Return to public website
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#0d0d0e] text-white selection:bg-white selection:text-black font-sans flex flex-col">
       <CustomCursor />
+      {/* Global Hidden Recursive Folder Ingestion Input */}
+      <input
+        ref={folderInputRef}
+        type="file"
+        {...({ webkitdirectory: '', directory: '' } as any)}
+        multiple
+        className="hidden"
+        onChange={async (e) => {
+          const files = e.target.files;
+          if (!files || files.length === 0) return;
+          const items: Array<{ file: File; path: string }> = [];
+          for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            items.push({
+              file: f,
+              path: (f as any).webkitRelativePath || f.name,
+            });
+          }
+          await handleFolderUpload(items);
+          if (folderInputRef.current) folderInputRef.current.value = '';
+        }}
+      />
 
       {/* TOP EDITORIAL STUDIO BAR */}
       <header className="sticky top-0 z-40 bg-[#121214]/90 backdrop-blur-md px-6 sm:px-10 py-4 flex items-center justify-between border-b border-white/[0.06]">
@@ -960,6 +1578,19 @@ export default function AdminPage() {
           </button>
           <button
             type="button"
+            onClick={() => { setActiveView('inquiries'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold flex items-center gap-1.5 ${
+              activeView === 'inquiries' ? 'bg-white text-black shadow-xs' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>Inquiries</span>
+            {inquiries.some((iq) => iq.status === 'new') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            )}
+            <span className="text-[10px] opacity-75">({inquiries.length})</span>
+          </button>
+          <button
+            type="button"
             onClick={() => { setActiveView('journal'); setSelectedProjectId(null); }}
             className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold ${
               activeView === 'journal' ? 'bg-white text-black shadow-xs' : 'text-neutral-400 hover:text-white'
@@ -978,8 +1609,19 @@ export default function AdminPage() {
           </button>
         </nav>
 
-        {/* + ADD WORK Primary Action */}
+        {/* Actions Bar */}
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              folderInputRef.current?.click();
+            }}
+            className="hidden sm:flex px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all items-center gap-1.5 cursor-pointer"
+            title="Upload Complete Project Folder (KALADHAR/, etc.)"
+          >
+            <span>📁</span>
+            <span>Upload Folder</span>
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -991,6 +1633,15 @@ export default function AdminPage() {
           >
             <span>+</span>
             <span>Add Work</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Lock Studio Desk"
+            className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border border-white/10 flex items-center gap-1.5"
+          >
+            <span>🔒</span>
+            <span>Lock</span>
           </button>
         </div>
       </header>
@@ -1504,7 +2155,7 @@ export default function AdminPage() {
                   Drop new media to add directly to {currentProject.title}
                 </p>
                 <p className="font-mono text-[11px] text-neutral-400">
-                  Reels (9:16), Horizontal Videos (16:9), Lookbook Photos, Social Media Designs — Code auto-tags dimensions instantly.
+                  Auto-converts photos to WebP &amp; videos to web-optimized MP4 with WebP poster. Ratios auto-detected.
                 </p>
               </div>
             </div>
@@ -1911,60 +2562,283 @@ export default function AdminPage() {
       {/* ============================================================ */}
       {activeView === 'journal' && (
         <section className="flex-1 max-w-[1400px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
                 Journal Articles ({posts.length})
               </h2>
               <p className="font-mono text-xs text-neutral-400 pt-1">
-                Editorial thoughts, on-set technical notes, and typography manifestos. Independent from creative works.
+                Editorial thoughts, on-set technical notes, and typography manifestos. Complete with highlight quote styling and technical camera specs.
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={handleOpenNewArticleModal}
+              className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-2 shadow-sm"
+            >
+              <span>+</span>
+              <span>Write Article</span>
+            </button>
           </div>
 
-          <div className="space-y-4">
-            {posts.map((post) => (
-              <div
-                key={post.slug}
-                className="p-6 rounded-2xl bg-[#141416] border border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+          {posts.length === 0 ? (
+            <div className="p-16 rounded-3xl bg-[#141416] border border-white/[0.06] text-center space-y-4">
+              <span className="text-3xl block">✍️</span>
+              <h3 className="font-display font-bold text-lg text-white">No Journal Articles Yet</h3>
+              <p className="font-mono text-xs text-neutral-400 max-w-sm mx-auto">
+                Write on-set technical breakdowns, typography manifestos, or creative philosophy with rich highlight blocks.
+              </p>
+              <button
+                type="button"
+                onClick={handleOpenNewArticleModal}
+                className="px-5 py-2 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 cursor-pointer"
               >
-                <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
-                    {post.category} • {post.date}
-                  </span>
-                  <h3 className="font-display font-bold text-lg text-white">
-                    {post.title}
-                  </h3>
-                  <p className="font-mono text-xs text-neutral-400 line-clamp-1 max-w-2xl">
-                    {post.excerpt}
-                  </p>
-                </div>
+                Write First Essay →
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <div
+                  key={post.slug || post.id}
+                  className="p-6 sm:p-7 rounded-2xl bg-[#141416] border border-white/[0.06] hover:border-white/20 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div className="space-y-1.5 flex-1 max-w-3xl">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
+                        {post.category} • {post.date || 'RECENT'}
+                      </span>
+                      {post.readTime && (
+                        <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-white/[0.05] text-neutral-400">
+                          {post.readTime}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-display font-bold text-lg text-white">
+                      {post.title}
+                    </h3>
+                    {post.subtitle && (
+                      <p className="font-sans text-xs text-neutral-400 line-clamp-1">
+                        {post.subtitle}
+                      </p>
+                    )}
+                    <p className="font-mono text-xs text-neutral-500 line-clamp-1">
+                      {post.excerpt || (Array.isArray(post.content) ? post.content[0] : post.content)}
+                    </p>
+                  </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    target="_blank"
-                    className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-white font-mono text-xs font-bold uppercase tracking-wider"
-                  >
-                    View Post ↗
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`Delete post "${post.title}"?`)) {
-                        deleteBlogPost(post.slug);
-                        setPosts(getStoredBlogPosts());
-                        notifyUser('Post deleted.');
-                      }
-                    }}
-                    className="p-2 rounded-full text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                  >
-                    🗑️
-                  </button>
+                  <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditArticleModal(post)}
+                      className="px-3.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white hover:text-black text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>✏️</span>
+                      <span>Edit</span>
+                    </button>
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      target="_blank"
+                      className="px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] text-neutral-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors"
+                    >
+                      View Post ↗
+                    </Link>
+                    <button
+                      type="button"
+                      title="Delete Article"
+                      onClick={() => handleDeleteArticle(post)}
+                      className="p-2 rounded-full text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* VIEW 4.5: INQUIRIES & CLIENT CORRESPONDENCE                 */}
+      {/* ============================================================ */}
+      {activeView === 'inquiries' && (
+        <section className="flex-1 max-w-[1400px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
+                  Inquiries ({inquiries.length})
+                </h2>
+                {inquiries.some((iq) => iq.status === 'new') && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold uppercase tracking-wider">
+                    {inquiries.filter((iq) => iq.status === 'new').length} New
+                  </span>
+                )}
               </div>
-            ))}
+              <p className="font-mono text-xs text-neutral-400 pt-1">
+                Direct client correspondence received from the website contact modal. Verified with server-side honeypot and rate limiting.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={refreshInquiries}
+              className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-2"
+            >
+              <span>↻</span>
+              <span>Refresh</span>
+            </button>
           </div>
+
+          {/* Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] pb-4">
+            {(['all', 'new', 'read', 'replied', 'archived'] as const).map((st) => {
+              const count = st === 'all' ? inquiries.length : inquiries.filter((iq) => iq.status === st).length;
+              const isActive = inquiryFilter === st;
+              return (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setInquiryFilter(st)}
+                  className={`px-3.5 py-1.5 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-white text-black shadow-sm'
+                      : 'bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08]'
+                  }`}
+                >
+                  {st} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Inquiries List */}
+          {filteredInquiries.length === 0 ? (
+            <div className="p-16 rounded-3xl bg-[#141416] border border-white/[0.06] text-center space-y-3">
+              <span className="text-3xl block">📬</span>
+              <h3 className="font-display font-bold text-lg text-white">No Inquiries Found</h3>
+              <p className="font-mono text-xs text-neutral-500 max-w-sm mx-auto">
+                No inquiries matching the current filter. Incoming proposals will appear here in real-time.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredInquiries.map((inquiry) => {
+                const dateStr = inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }) : 'Recently';
+
+                return (
+                  <div
+                    key={inquiry.id}
+                    className={`p-6 sm:p-7 rounded-3xl bg-[#141416] border transition-all ${
+                      inquiry.status === 'new'
+                        ? 'border-emerald-500/30 bg-emerald-950/[0.04] shadow-lg shadow-emerald-950/20'
+                        : 'border-white/[0.06]'
+                    } space-y-5`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-display font-black text-lg text-white">
+                            {inquiry.name}
+                          </h3>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase tracking-wider ${
+                              inquiry.status === 'new'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : inquiry.status === 'replied'
+                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                : inquiry.status === 'archived'
+                                ? 'bg-neutral-800 text-neutral-400'
+                                : 'bg-neutral-700/50 text-neutral-300'
+                            }`}
+                          >
+                            {inquiry.status}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-neutral-400">
+                          <a
+                            href={`mailto:${inquiry.email}`}
+                            className="text-white hover:underline underline-offset-4 flex items-center gap-1"
+                          >
+                            <span>✉</span>
+                            <span>{inquiry.email}</span>
+                          </a>
+                          <span>•</span>
+                          <span>{dateStr}</span>
+                          {inquiry.budget && (
+                            <>
+                              <span>•</span>
+                              <span className="text-neutral-300 font-bold">Budget: {inquiry.budget}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Status & Actions Controls */}
+                      <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                        <a
+                          href={`mailto:${inquiry.email}?subject=${encodeURIComponent(
+                            `Re: ${inquiry.subject || 'Design & Art Direction Inquiry'} — Moiz Studio`
+                          )}`}
+                          onClick={() => {
+                            if (inquiry.status === 'new' || inquiry.status === 'read') {
+                              handleInquiryStatus(inquiry.id, 'replied');
+                            }
+                          }}
+                          className="px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                        >
+                          <span>Reply</span>
+                          <span>↗</span>
+                        </a>
+
+                        <select
+                          value={inquiry.status}
+                          disabled={isUpdatingInquiry}
+                          onChange={(e) => handleInquiryStatus(inquiry.id, e.target.value)}
+                          className="px-3 py-1.5 rounded-full bg-black/60 border border-white/10 text-neutral-300 font-mono text-xs outline-none cursor-pointer focus:border-white/30"
+                        >
+                          <option value="new">Mark New</option>
+                          <option value="read">Mark Read</option>
+                          <option value="replied">Mark Replied</option>
+                          <option value="archived">Mark Archived</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          title="Delete Inquiry"
+                          onClick={() => handleInquiryDelete(inquiry.id)}
+                          className="p-2 rounded-full text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Inquiry Message */}
+                    <div className="p-4 sm:p-5 rounded-2xl bg-black/50 border border-white/[0.04]">
+                      {inquiry.subject && (
+                        <h4 className="font-mono text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
+                          Subject: {inquiry.subject}
+                        </h4>
+                      )}
+                      <p className="font-mono text-xs sm:text-sm text-neutral-300 whitespace-pre-wrap leading-relaxed">
+                        {inquiry.message}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
 
@@ -2000,8 +2874,9 @@ export default function AdminPage() {
                 onChange={(e) => {
                   setApiKey(e.target.value);
                   setApiVerified(null);
+                  setApiErrorMsg(null);
                 }}
-                placeholder="Enter Gemini API Key (e.g. AIzaSy...)"
+                placeholder="Enter Gemini API Key (e.g. AIzaSy... or AQ...)"
                 className="flex-1 px-4 py-3 rounded-xl bg-black/60 border border-white/[0.08] text-white font-mono text-xs outline-none focus:border-white/30"
               />
               <button
@@ -2009,6 +2884,7 @@ export default function AdminPage() {
                 onClick={async () => {
                   saveApiKey(apiKey);
                   notifyUser('Verifying API Key with Google...');
+                  setApiErrorMsg(null);
                   try {
                     const res = await fetch('/api/ai', {
                       method: 'POST',
@@ -2018,13 +2894,16 @@ export default function AdminPage() {
                     const data = await res.json();
                     if (data.verified) {
                       setApiVerified(true);
-                      notifyUser('API Key Verified Successfully!');
+                      setApiErrorMsg(null);
+                      notifyUser('API Key Verified & Saved to Server!');
                     } else {
                       setApiVerified(false);
+                      setApiErrorMsg(data.error || 'Google rejected this key.');
                       notifyUser('Google rejected this API Key.');
                     }
-                  } catch {
+                  } catch (err: any) {
                     setApiVerified(false);
+                    setApiErrorMsg(err?.message || 'Connection failed.');
                   }
                 }}
                 className="px-6 py-3 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer shrink-0"
@@ -2036,21 +2915,87 @@ export default function AdminPage() {
             {apiVerified === true && (
               <div className="font-mono text-xs text-emerald-400 font-bold flex items-center gap-2">
                 <span>✓</span>
-                <span>Active &amp; connected to Google Gemini 2.0 Flash.</span>
+                <span>Active &amp; connected to Google Gemini 3.6 Flash.</span>
               </div>
             )}
             {apiVerified === false && (
-              <div className="font-mono text-xs text-red-400 font-bold flex items-center gap-2">
-                <span>✕</span>
-                <span>Key invalid or refused by Google. Please check your credentials.</span>
+              <div className="p-4 rounded-2xl bg-red-950/20 border border-red-500/20 space-y-2">
+                <div className="font-mono text-xs text-red-400 font-bold flex items-start gap-2">
+                  <span className="shrink-0 mt-0.5">✕</span>
+                  <span>{apiErrorMsg || 'Key invalid or refused by Google.'}</span>
+                </div>
+                <div className="font-mono text-[11px] text-neutral-400 pl-4 space-y-1">
+                  <p className="text-white font-bold">How to resolve:</p>
+                  <ol className="list-decimal pl-4 space-y-1 text-neutral-300">
+                    <li>Open <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-emerald-400 underline hover:text-white">Google AI Studio (API Keys) ↗</a></li>
+                    <li>Click <strong className="text-white">Create API key</strong></li>
+                    <li>Select <strong className="text-white">Create API key in NEW project</strong> (do not reuse an old project)</li>
+                    <li>Copy your fresh key, paste it in the box above, and click <strong className="text-white">Save &amp; Verify</strong></li>
+                  </ol>
+                </div>
               </div>
+            )}
+          </div>
+
+          {/* Server Database Snapshots & Backups */}
+          <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.06] space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
+                  Server Database Backups (data/portfolio-db.json)
+                </h3>
+                <p className="font-mono text-xs text-neutral-400">
+                  Transactional file-based database backups. Snapshots are stored on server disk in data/backups/.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <a
+                  href="/api/admin/backup?action=download"
+                  download="portfolio-db.json"
+                  className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  Download DB File
+                </a>
+                <button
+                  type="button"
+                  onClick={handleTriggerSnapshot}
+                  className="px-5 py-2 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
+                >
+                  + Create Snapshot Now
+                </button>
+              </div>
+            </div>
+
+            {backupSnapshots.length > 0 ? (
+              <div className="space-y-2 pt-2">
+                <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wider font-bold block">
+                  Available Disk Snapshots ({backupSnapshots.length})
+                </span>
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                  {backupSnapshots.map((snap) => (
+                    <div
+                      key={snap.filename}
+                      className="px-4 py-2.5 rounded-xl bg-black/40 border border-white/[0.04] flex items-center justify-between font-mono text-xs text-neutral-300"
+                    >
+                      <span className="text-white truncate max-w-sm">{snap.filename}</span>
+                      <div className="flex items-center gap-4 text-neutral-400 shrink-0">
+                        <span>{(snap.size / 1024).toFixed(1)} KB</span>
+                        <span>{new Date(snap.modified).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="font-mono text-xs text-neutral-500 italic">No automated disk snapshots created yet.</p>
             )}
           </div>
 
           {/* Database Backup & Export */}
           <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.06] space-y-4">
             <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
-              Archive Backup &amp; Health
+              Client Archive JSON Export
             </h3>
             <p className="font-mono text-xs text-neutral-400">
               Total Works: <strong className="text-white">{works.length}</strong> • Total Projects: <strong className="text-white">{projects.length}</strong>
@@ -2201,16 +3146,46 @@ export default function AdminPage() {
 
             {/* Modal Scroll Body */}
             <div className="p-8 overflow-y-auto space-y-6 flex-1">
+              {/* Folder Upload Progress Banner */}
+              {isUploadingFolder && (
+                <div className="p-5 rounded-2xl bg-white/[0.08] border border-white/20 flex items-center gap-4 animate-pulse">
+                  <div className="w-8 h-8 rounded-full border-2 border-white border-t-transparent animate-spin shrink-0" />
+                  <div className="space-y-0.5">
+                    <h5 className="font-display font-bold text-xs uppercase tracking-wider text-white">
+                      Processing Project Folder &amp; Media Pipeline
+                    </h5>
+                    <p className="font-mono text-xs text-neutral-300">
+                      {folderUploadStatus || 'Transcoding media into multi-variant WebP & FastStart MP4...'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Dropzone */}
               <div
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
+                onDrop={async (e) => {
                   e.preventDefault();
+                  if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+                    const entries: any[] = [];
+                    for (let i = 0; i < e.dataTransfer.items.length; i++) {
+                      const item = e.dataTransfer.items[i];
+                      const entry = (item as any).webkitGetAsEntry ? (item as any).webkitGetAsEntry() : null;
+                      if (entry) entries.push(entry);
+                    }
+                    const hasDirectory = entries.some((entry) => entry && entry.isDirectory);
+                    if (hasDirectory) {
+                      notifyUser('Detected project folder drop. Scanning structure...');
+                      const scanned = (await Promise.all(entries.map((entry) => scanEntry(entry)))).flat();
+                      await handleFolderUpload(scanned);
+                      return;
+                    }
+                  }
                   if (e.dataTransfer.files) handleDropFiles(e.dataTransfer.files);
                 }}
-                onClick={() => fileInputRef.current?.click()}
-                className="p-10 rounded-3xl border-2 border-dashed border-white/15 hover:border-white hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-3 cursor-pointer transition-all duration-300 group"
+                className="p-10 rounded-3xl border-2 border-dashed border-white/15 hover:border-white hover:bg-white/[0.02] flex flex-col items-center justify-center text-center space-y-4 transition-all duration-300 group"
               >
+                {/* Hidden File Input */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -2221,15 +3196,58 @@ export default function AdminPage() {
                     if (e.target.files) handleDropFiles(e.target.files);
                   }}
                 />
+
                 <div className="w-14 h-14 rounded-2xl bg-white/[0.06] group-hover:bg-white group-hover:text-black text-white flex items-center justify-center text-2xl transition-all group-hover:scale-110">
                   📁
                 </div>
-                <h4 className="font-display font-black text-lg text-white uppercase tracking-tight">
-                  Drag &amp; Drop Creative Files Here
-                </h4>
-                <p className="font-mono text-xs text-neutral-400 max-w-sm">
-                  Upload 1, 5, 20, or 50+ files at once. The system extracts dimensions, aspect ratios, and orientations automatically.
-                </p>
+                <div className="space-y-1">
+                  <h4 className="font-display font-black text-lg text-white uppercase tracking-tight">
+                    Drag &amp; Drop Creative Files or Entire Project Folder Here
+                  </h4>
+                  <p className="font-mono text-xs text-neutral-400 max-w-md mx-auto">
+                    Drop a complete folder (e.g. <strong className="text-white">KALADHAR/</strong> with subfolders: catalog/, grid-1/, stories/, web-banners/, deck/). The system automatically extracts project title and builds responsive sections without cropping.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
+                  >
+                    Select Individual Files
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      folderInputRef.current?.click();
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-white/[0.1] hover:bg-white/[0.2] border border-white/20 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>📁</span>
+                    <span>Upload Full Project Folder</span>
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Auto WebP Converter Active
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    FastStart Video Transcoder Active
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    Folder Section Parser Active
+                  </span>
+                </div>
               </div>
 
               {/* AI Status Banner */}
@@ -2699,6 +3717,372 @@ export default function AdminPage() {
               >
                 Save Changes
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: WRITE / EDIT JOURNAL ARTICLE                         */}
+      {/* ============================================================ */}
+      {isArticleModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSavingArticle) setIsArticleModalOpen(false);
+          }}
+          className="fixed inset-0 z-[115] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-4xl max-h-[92vh] bg-[#121214] border border-white/[0.08] rounded-[32px] overflow-hidden flex flex-col shadow-[0_30px_90px_rgba(0,0,0,0.8)]"
+          >
+            {/* Header */}
+            <div className="px-8 py-5 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-[#121214]/90 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                  {editingArticle ? 'Edit Journal Article' : 'Write Journal Article'}
+                </h3>
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-white font-bold uppercase tracking-wider">
+                  EDITORIAL COMPOSER
+                </span>
+              </div>
+
+              {/* Edit vs Live Preview Toggle */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-black/60 p-1 rounded-full text-xs font-mono">
+                  <button
+                    type="button"
+                    onClick={() => setArticlePreviewMode('edit')}
+                    className={`px-3.5 py-1 rounded-full transition-all cursor-pointer font-bold ${
+                      articlePreviewMode === 'edit' ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    ✏️ Compose
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArticlePreviewMode('preview')}
+                    className={`px-3.5 py-1 rounded-full transition-all cursor-pointer font-bold ${
+                      articlePreviewMode === 'preview' ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    👁️ Reader Preview
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsArticleModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Scroll Body */}
+            <div className="p-8 overflow-y-auto space-y-6 flex-1">
+              {articlePreviewMode === 'edit' ? (
+                <div className="space-y-6 font-mono text-xs">
+                  {/* Title & Category Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2 space-y-1">
+                      <label className="text-neutral-400 block font-bold uppercase tracking-wider text-[11px]">
+                        Article Title *
+                      </label>
+                      <input
+                        type="text"
+                        value={articleTitle}
+                        onChange={(e) => setArticleTitle(e.target.value)}
+                        placeholder="e.g. THE ARCHITECTURE OF LIGHTING IN 35MM"
+                        className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white font-display font-black text-lg outline-none focus:border-white/30 tracking-tight"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-neutral-400 block font-bold uppercase tracking-wider text-[11px]">
+                        Category
+                      </label>
+                      <select
+                        value={articleCategory}
+                        onChange={(e) => setArticleCategory(e.target.value)}
+                        className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30"
+                      >
+                        <option value="TECHNIQUE & PHILOSOPHY">TECHNIQUE & PHILOSOPHY</option>
+                        <option value="ON-SET NOTES">ON-SET NOTES</option>
+                        <option value="DIRECTORIAL MANIFESTO">DIRECTORIAL MANIFESTO</option>
+                        <option value="CASE ANALYSIS">CASE ANALYSIS</option>
+                        <option value="EDITORIAL ESSAY">EDITORIAL ESSAY</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Subtitle */}
+                  <div className="space-y-1">
+                    <label className="text-neutral-400 block font-bold uppercase tracking-wider text-[11px]">
+                      Subtitle / Lead Treatment
+                    </label>
+                    <input
+                      type="text"
+                      value={articleSubtitle}
+                      onChange={(e) => setArticleSubtitle(e.target.value)}
+                      placeholder="e.g. A breakdown of intentional shadow structures across anamorphic film suites."
+                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 font-sans text-xs"
+                    />
+                  </div>
+
+                  {/* Cover Image */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-neutral-400 font-bold uppercase tracking-wider text-[11px]">
+                        Hero Cover Image URL
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => articleCoverInputRef.current?.click()}
+                        className="text-white hover:underline text-[10px] uppercase font-bold cursor-pointer"
+                      >
+                        ↑ Upload Image File
+                      </button>
+                      <input
+                        ref={articleCoverInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleArticleCoverUpload}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={articleCover}
+                      onChange={(e) => setArticleCover(e.target.value)}
+                      placeholder="https://... or /uploads/images/..."
+                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 text-xs"
+                    />
+                  </div>
+
+                  {/* Formatting Toolbar */}
+                  <div className="pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+                      <label className="text-neutral-400 font-bold uppercase tracking-wider text-[11px]">
+                        Article Body (Markdown &amp; Highlight Blocks)
+                      </label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setArticleContentRaw((prev) => prev + '\n\n> "Lighting is not merely illumination; it is the philosophical architecture of shadow."\n\n');
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white hover:text-black text-white text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                          title="Inserts an elevated luxury pullquote card"
+                        >
+                          + Highlight Quote
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setArticleContentRaw((prev) => prev + '\n\n## Section Sub-Heading\n\n');
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white hover:text-black text-white text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                        >
+                          + Heading
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setArticleContentRaw((prev) => prev + '\n\n---\n\n');
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white hover:text-black text-white text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                        >
+                          + Divider
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      value={articleContentRaw}
+                      onChange={(e) => setArticleContentRaw(e.target.value)}
+                      rows={12}
+                      placeholder="Write your article paragraphs here. Double enter = new paragraph. Lines starting with > become elevated luxury pullquotes."
+                      className="w-full p-4 rounded-2xl bg-black/60 border border-white/[0.08] text-white outline-none focus:border-white/30 font-sans text-xs leading-relaxed resize-y"
+                    />
+                    <span className="text-[10px] text-neutral-500 pt-1 block">
+                      Tip: Double enter = new paragraph. Lines starting with &gt; become luxury highlight pullquotes with black contrast cards.
+                    </span>
+                  </div>
+
+                  {/* Technical On-Set Specs (Optional) */}
+                  <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-4">
+                    <span className="font-bold text-white uppercase tracking-widest text-[11px] block">
+                      Technical On-Set Specs (Optional Callout Box)
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-neutral-400 block text-[10px] uppercase pb-1">Camera &amp; Optics</label>
+                        <input
+                          type="text"
+                          value={articleCamera}
+                          onChange={(e) => setArticleCamera(e.target.value)}
+                          placeholder="e.g. ARRI Alexa Mini LF // Cooke Anamorphic"
+                          className="w-full p-2.5 rounded-xl bg-black/40 border border-white/[0.06] text-white outline-none focus:border-white/20 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-neutral-400 block text-[10px] uppercase pb-1">Lighting Package</label>
+                        <input
+                          type="text"
+                          value={articleLighting}
+                          onChange={(e) => setArticleLighting(e.target.value)}
+                          placeholder="e.g. Single Source Soft Tungsten Key"
+                          className="w-full p-2.5 rounded-xl bg-black/40 border border-white/[0.06] text-white outline-none focus:border-white/20 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-neutral-400 block text-[10px] uppercase pb-1">Frame Cadence / Aspect</label>
+                        <input
+                          type="text"
+                          value={articleAspect}
+                          onChange={(e) => setArticleAspect(e.target.value)}
+                          placeholder="e.g. 2.39:1 Anamorphic & 9:16 Vertical"
+                          className="w-full p-2.5 rounded-xl bg-black/40 border border-white/[0.06] text-white outline-none focus:border-white/20 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-neutral-400 block text-[10px] uppercase pb-1">Deliverables</label>
+                        <input
+                          type="text"
+                          value={articleDeliverables}
+                          onChange={(e) => setArticleDeliverables(e.target.value)}
+                          placeholder="e.g. Director's Cut 60s, Stills Suite"
+                          className="w-full p-2.5 rounded-xl bg-black/40 border border-white/[0.06] text-white outline-none focus:border-white/20 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* LIVE READER PREVIEW */
+                <div className="p-8 sm:p-12 rounded-3xl bg-[#f7f6f3] text-black font-sans space-y-8 max-w-3xl mx-auto shadow-2xl">
+                  {/* Meta */}
+                  <div className="flex items-center gap-3 font-mono text-[10px] text-neutral-500 uppercase tracking-widest">
+                    <span className="px-2.5 py-0.5 rounded-full bg-black/10 text-black font-bold">
+                      {articleCategory}
+                    </span>
+                    <span>•</span>
+                    <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+
+                  {/* Title & Subtitle */}
+                  <div className="space-y-3 border-b border-black/10 pb-6">
+                    <h1 className="font-display font-black text-3xl sm:text-4xl text-black uppercase tracking-tight leading-[0.95]">
+                      {articleTitle || 'UNTITLED ESSAY'}
+                    </h1>
+                    {articleSubtitle && (
+                      <p className="text-base text-neutral-600 font-medium">
+                        {articleSubtitle}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Cover */}
+                  {articleCover && (
+                    <div className="aspect-[16/10] w-full rounded-2xl overflow-hidden bg-black/10">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={articleCover} alt={articleTitle} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  {/* Specs Box */}
+                  {(articleCamera || articleLighting || articleAspect || articleDeliverables) && (
+                    <div className="bg-white border-l-4 border-black p-6 rounded-r-2xl font-mono text-xs shadow-sm space-y-3">
+                      <span className="font-bold text-black uppercase tracking-widest block text-[10px]">
+                        TECHNICAL ON-SET SPECIFICATIONS
+                      </span>
+                      <div className="grid grid-cols-2 gap-3 text-[11px]">
+                        {articleCamera && (
+                          <div>
+                            <span className="text-neutral-400 block text-[9px] uppercase">Camera &amp; Optics</span>
+                            <span className="text-black font-bold">{articleCamera}</span>
+                          </div>
+                        )}
+                        {articleLighting && (
+                          <div>
+                            <span className="text-neutral-400 block text-[9px] uppercase">Lighting</span>
+                            <span className="text-black font-bold">{articleLighting}</span>
+                          </div>
+                        )}
+                        {articleAspect && (
+                          <div>
+                            <span className="text-neutral-400 block text-[9px] uppercase">Cadence</span>
+                            <span className="text-black font-bold">{articleAspect}</span>
+                          </div>
+                        )}
+                        {articleDeliverables && (
+                          <div>
+                            <span className="text-neutral-400 block text-[9px] uppercase">Deliverables</span>
+                            <span className="text-black font-bold">{articleDeliverables}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Content Flow */}
+                  <div className="space-y-6 text-sm sm:text-base leading-relaxed text-neutral-900">
+                    {articleContentRaw.split('\n\n').map((p, idx) => {
+                      const tr = p.trim();
+                      if (tr.startsWith('>') || tr.startsWith('“') || (tr.startsWith('"') && tr.endsWith('"'))) {
+                        const q = tr.replace(/^[>“"]+\s*/, '').replace(/["”]+$/, '');
+                        return (
+                          <blockquote
+                            key={idx}
+                            className="my-6 p-6 rounded-2xl bg-[#141416] text-white border-l-4 border-white shadow-xl relative"
+                          >
+                            <p className="font-display font-bold text-lg sm:text-xl tracking-tight leading-snug">
+                              "{q}"
+                            </p>
+                          </blockquote>
+                        );
+                      }
+                      if (tr.startsWith('## ') || tr.startsWith('# ')) {
+                        return (
+                          <h2 key={idx} className="font-display font-black text-xl text-black uppercase tracking-tight pt-4 border-t border-black/10">
+                            {tr.replace(/^#+\s*/, '')}
+                          </h2>
+                        );
+                      }
+                      if (tr === '---') return <hr key={idx} className="border-black/10 my-4" />;
+                      return (
+                        <p key={idx} className={idx === 0 ? 'first-letter:text-4xl first-letter:font-display first-letter:font-black first-letter:mr-2 first-letter:float-left first-letter:text-black leading-relaxed' : 'leading-relaxed'}>
+                          {p}
+                        </p>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-8 py-5 border-t border-white/[0.06] flex items-center justify-between shrink-0 bg-[#121214]/90 backdrop-blur-md">
+              <span className="font-mono text-xs text-neutral-500">
+                {articlePreviewMode === 'preview' ? 'Visualizing live reader view.' : 'Markdown highlights & specs enabled.'}
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsArticleModalOpen(false)}
+                  className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-white font-mono text-xs font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSavingArticle}
+                  onClick={handleSaveArticle}
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  {isSavingArticle ? 'Saving...' : editingArticle ? 'Save Changes' : 'Publish Article →'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

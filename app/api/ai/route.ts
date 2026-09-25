@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, reason: 'No API key provided or key was revoked.' });
       }
 
-      for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest']) {
+      for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.5-flash']) {
         try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -42,6 +44,21 @@ export async function POST(request: Request) {
             }),
           });
           if (res.ok) {
+            try {
+              const envPath = path.join(process.cwd(), '.env.local');
+              if (fs.existsSync(envPath)) {
+                let envContent = fs.readFileSync(envPath, 'utf8');
+                if (envContent.includes('GEMINI_API_KEY=')) {
+                  envContent = envContent.replace(/GEMINI_API_KEY=.*/, `GEMINI_API_KEY=${apiKey}`);
+                } else {
+                  envContent += `\nGEMINI_API_KEY=${apiKey}`;
+                }
+                fs.writeFileSync(envPath, envContent, 'utf8');
+                process.env.GEMINI_API_KEY = apiKey;
+              }
+            } catch (saveErr) {
+              console.error('Failed to persist GEMINI_API_KEY to .env.local', saveErr);
+            }
             return NextResponse.json({ success: true, verified: true, model: modelName });
           } else {
             const errData = await res.json().catch(() => ({}));
@@ -49,7 +66,11 @@ export async function POST(request: Request) {
               return NextResponse.json({ success: false, error: errData?.error?.message || 'Invalid API key' });
             }
             if (res.status === 401 || res.status === 403) {
-              return NextResponse.json({ success: false, error: errData?.error?.message || 'Google rejected key.' });
+              const msg = errData?.error?.message || 'Google rejected credentials.';
+              return NextResponse.json({ 
+                success: false, 
+                error: `Google rejected this key (${res.status} Unauthenticated): ${msg}. If you generated keys multiple times in AI Studio, this key was likely revoked or replaced. Please generate a fresh key in a NEW project at aistudio.google.com.` 
+              });
             }
             continue;
           }
@@ -296,7 +317,7 @@ Return ONLY valid JSON:
   "suggestedTag": "REFINED CATEGORY TAG"
 }`;
 
-          for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest']) {
+          for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.5-flash']) {
             try {
               const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
                 method: 'POST',
@@ -397,7 +418,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
             if (text) {
               const parsed = JSON.parse(text);
               if (preferredAspect) parsed.aspect = preferredAspect;
-              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-2.0-flash' });
+              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-3.6-flash' });
             }
           }
         } catch (apiErr) {

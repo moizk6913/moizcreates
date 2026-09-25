@@ -153,8 +153,10 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
     <section
       ref={containerRef}
       id="top"
-      className="relative w-full h-screen min-h-screen bg-canvas bg-[radial-gradient(#d5d3cc_1.1px,transparent_1.1px)] [background-size:28px_28px] overflow-hidden flex flex-col justify-between select-none"
+      className="relative w-full h-screen min-h-screen bg-canvas overflow-hidden flex flex-col justify-between select-none"
     >
+      {/* Seamless Dot-Grid Canvas with gentle bottom fade feather */}
+      <div className="absolute inset-0 bg-[radial-gradient(#d5d3cc_1.1px,transparent_1.1px)] [background-size:28px_28px] [mask-image:linear-gradient(to_bottom,black_75%,transparent_100%)] pointer-events-none z-0" />
       {/* Central Artist Identity (SACRED TYPOGRAPHIC CORE — Always Uncluttered & Clear) */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-40 select-none flex flex-col items-center justify-center gap-2 sm:gap-2.5 px-4 max-w-xl">
         <h1 className="font-display font-black text-5xl sm:text-7xl md:text-8xl tracking-tight text-primary uppercase leading-none drop-shadow-xs">

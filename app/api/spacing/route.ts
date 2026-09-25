@@ -19,8 +19,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(body, null, 2), 'utf-8');
-    return NextResponse.json({ success: true, config: body });
+    let current = {};
+    if (fs.existsSync(CONFIG_FILE)) {
+      try {
+        current = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+      } catch {}
+    }
+    const merged = { ...current, ...body };
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(merged, null, 2), 'utf-8');
+    return NextResponse.json({ success: true, config: merged });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
