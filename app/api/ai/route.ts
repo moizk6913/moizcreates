@@ -27,6 +27,10 @@ export async function POST(request: Request) {
 
     // Action 0: Real-time API Key Verifier & Ping
     if (action === 'verify_key') {
+      console.log('[API Key Verification Attempt]', {
+        keyPrefix: apiKey ? apiKey.slice(0, 12) + '...' : '(none)',
+        keyLength: apiKey.length,
+      });
       if (!apiKey) {
         return NextResponse.json({ success: false, reason: 'No API key provided or key was revoked.' });
       }
