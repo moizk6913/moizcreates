@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { execFile } from 'child_process';
 import util from 'util';
 import { MediaAsset, MediaDimensions } from './db/schema';
+import { uploadToSupabaseStorage } from './supabaseClient';
 
 const execFileAsync = util.promisify(execFile);
 
@@ -109,13 +110,8 @@ export async function processUploadedImage(
   let fileSize = buffer.length;
 
   try {
-    // 2. Save original securely on persistent disk
-    const originalPath = path.join(ORIGINALS_DIR, originalName);
-    fs.writeFileSync(originalPath, buffer);
-
-    // 3. Generate high-quality master WebP (max 2560px bound)
-    const optimizedPath = path.join(IMAGES_DIR, webpName);
-    await sharp(buffer)
+    // 2. Generate high-quality master WebP in memory (max 2560px bound)
+    const webpBuf = await sharp(buffer)
       .rotate()
       .resize({
         width: width > height ? Math.min(width, 2560) : undefined,
@@ -124,11 +120,10 @@ export async function processUploadedImage(
         fit: 'inside',
       })
       .webp({ quality: 84, effort: 4, smartSubsample: true })
-      .toFile(optimizedPath);
+      .toBuffer();
 
-    // 4. Generate responsive WebP thumbnail (max 480px bound)
-    const thumbPath = path.join(THUMBNAILS_DIR, thumbName);
-    await sharp(buffer)
+    // 3. Generate responsive WebP thumbnail in memory (max 480px bound)
+    const thumbBuf = await sharp(buffer)
       .rotate()
       .resize({
         width: width > height ? Math.min(width, 480) : undefined,
@@ -137,30 +132,53 @@ export async function processUploadedImage(
         fit: 'inside',
       })
       .webp({ quality: 80, effort: 3 })
-      .toFile(thumbPath);
+      .toBuffer();
 
-    const optimizedStats = fs.statSync(optimizedPath);
-    fileSize = optimizedStats.size;
-  } catch (fsErr) {
-    // Serverless read-only disk fallback (e.g. Vercel)
+    fileSize = webpBuf.length;
+
+    // 4. Upload directly to Supabase Storage CDN (Permanent Cloud Media)
     try {
-      const webpBuf = await sharp(buffer)
-        .rotate()
-        .resize({
-          width: width > height ? Math.min(width, 2560) : undefined,
-          height: height >= width ? Math.min(height, 2560) : undefined,
-          withoutEnlargement: true,
-          fit: 'inside',
-        })
-        .webp({ quality: 84 })
-        .toBuffer();
-      const dataUri = `data:image/webp;base64,${webpBuf.toString('base64')}`;
-      url = dataUri;
-      optimizedUrl = dataUri;
-      originalUrl = dataUri;
-      thumbnailUrl = dataUri;
-      fileSize = webpBuf.length;
-    } catch {}
+      const [uploadedMasterUrl, uploadedThumbUrl] = await Promise.all([
+        uploadToSupabaseStorage(`images/${webpName}`, webpBuf, 'image/webp'),
+        uploadToSupabaseStorage(`thumbnails/${thumbName}`, thumbBuf, 'image/webp'),
+      ]);
+
+      if (uploadedMasterUrl) {
+        url = uploadedMasterUrl;
+        optimizedUrl = uploadedMasterUrl;
+        originalUrl = uploadedMasterUrl;
+        thumbnailUrl = uploadedThumbUrl || uploadedMasterUrl;
+      }
+    } catch (supaErr) {
+      console.warn('[Media Pipeline] Supabase Storage upload skipped/failed:', supaErr);
+    }
+
+    // 5. Attempt local filesystem save (for local development or persistent storage)
+    try {
+      ensureUploadDirs();
+      const originalPath = path.join(ORIGINALS_DIR, originalName);
+      fs.writeFileSync(originalPath, buffer);
+      fs.writeFileSync(path.join(IMAGES_DIR, webpName), webpBuf);
+      fs.writeFileSync(path.join(THUMBNAILS_DIR, thumbName), thumbBuf);
+
+      if (!url.startsWith('http')) {
+        url = `/uploads/images/${webpName}`;
+        optimizedUrl = `/uploads/images/${webpName}`;
+        originalUrl = `/uploads/originals/${originalName}`;
+        thumbnailUrl = `/uploads/thumbnails/${thumbName}`;
+      }
+    } catch {
+      // 6. Serverless fallback: If neither Supabase nor local disk succeeded, encode as WebP data URI
+      if (!url.startsWith('http')) {
+        const dataUri = `data:image/webp;base64,${webpBuf.toString('base64')}`;
+        url = dataUri;
+        optimizedUrl = dataUri;
+        originalUrl = dataUri;
+        thumbnailUrl = dataUri;
+      }
+    }
+  } catch (procErr) {
+    console.error('[Media Pipeline] Error processing image buffer:', procErr);
   }
 
   return {

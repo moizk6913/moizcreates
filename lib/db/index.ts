@@ -256,6 +256,14 @@ function enqueueWrite(updater: (db: DatabaseSchema) => void | Promise<void>): Pr
     await updater(current);
     writeDatabaseSync(current);
 
+    // Sync state to Supabase Cloud if available
+    try {
+      const { syncDatabaseToSupabase } = await import('../supabaseClient');
+      await syncDatabaseToSupabase(current);
+    } catch (syncErr) {
+      console.warn('[Database] Supabase cloud sync skipped:', syncErr);
+    }
+
     // Auto-create snapshot periodically or on writes
     maybeCreateSnapshot(current);
 
@@ -267,6 +275,23 @@ function enqueueWrite(updater: (db: DatabaseSchema) => void | Promise<void>): Pr
   });
 
   return task;
+}
+
+let supabaseSyncDone = false;
+export async function ensureSupabaseSync(): Promise<void> {
+  if (supabaseSyncDone) return;
+  supabaseSyncDone = true;
+
+  try {
+    const { fetchDatabaseFromSupabase } = await import('../supabaseClient');
+    const cloudData = await fetchDatabaseFromSupabase();
+    if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
+      memoryCache = cloudData;
+      console.log('[Database] Loaded fresh state from Supabase Cloud (' + cloudData.projects.length + ' projects)');
+    }
+  } catch (err) {
+    console.warn('[Database] Supabase initial load skipped:', err);
+  }
 }
 
 // Auto-snapshotting engine
@@ -309,6 +334,7 @@ export const db = {
   // PROJECTS REPOSITORY
   projects: {
     getAll: async (filter?: { status?: ProjectStatus; categoryId?: string; featured?: boolean }) => {
+      await ensureSupabaseSync();
       const data = readDatabaseSync();
       let list = [...data.projects];
 
@@ -326,6 +352,7 @@ export const db = {
     },
 
     getPublished: async (categoryId?: string) => {
+      await ensureSupabaseSync();
       const data = readDatabaseSync();
       let list = data.projects.filter((p) => p.status === 'published');
       if (categoryId) {
@@ -335,12 +362,14 @@ export const db = {
     },
 
     getBySlug: async (slug: string) => {
+      await ensureSupabaseSync();
       const data = readDatabaseSync();
       const norm = slug.toLowerCase().trim();
       return data.projects.find((p) => p.slug.toLowerCase() === norm || p.id.toLowerCase() === norm) || null;
     },
 
     getById: async (id: string) => {
+      await ensureSupabaseSync();
       const data = readDatabaseSync();
       return data.projects.find((p) => p.id === id || p.slug === id) || null;
     },
