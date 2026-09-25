@@ -120,21 +120,33 @@ export function getClientIp(request: Request | NextRequest): string {
 }
 
 export function verifyAdminSession(request: Request | NextRequest): boolean {
-  // 1. Check Cookie
-  const cookieHeader = request.headers.get('cookie') || '';
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map((c) => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, decodeURIComponent(v.join('='))];
-    })
-  );
+  // 1. Check NextRequest cookies (Next.js official API)
+  try {
+    if ('cookies' in request && typeof (request as any).cookies?.get === 'function') {
+      const nextCookie = (request as any).cookies.get(AUTH_COOKIE_NAME);
+      if (nextCookie?.value && verifySessionToken(nextCookie.value)) return true;
+    }
+  } catch {}
 
-  const token = cookies[AUTH_COOKIE_NAME];
-  if (token && verifySessionToken(token)) return true;
+  // 2. Check standard Cookie header
+  const cookieHeader = request.headers.get('cookie') || request.headers.get('Cookie') || '';
+  if (cookieHeader) {
+    const pairs = cookieHeader.split(';');
+    for (const pair of pairs) {
+      const idx = pair.indexOf('=');
+      if (idx > -1) {
+        const key = pair.slice(0, idx).trim();
+        const val = pair.slice(idx + 1).trim();
+        if (key === AUTH_COOKIE_NAME && verifySessionToken(decodeURIComponent(val))) {
+          return true;
+        }
+      }
+    }
+  }
 
-  // 2. Fallback to Authorization Header (Bearer token)
-  const authHeader = request.headers.get('authorization') || '';
-  if (authHeader.startsWith('Bearer ')) {
+  // 3. Fallback to Authorization Header (Bearer token)
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization') || '';
+  if (authHeader.toLowerCase().startsWith('bearer ')) {
     const bearerToken = authHeader.slice(7).trim();
     if (verifySessionToken(bearerToken)) return true;
   }

@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Authentication successful. Studio Desk unlocked.',
       authenticated: true,
+      token,
     });
 
     setSessionCookie(response, token);

@@ -474,6 +474,13 @@ export async function deleteWorksBatchAsync(ids: string[]): Promise<void> {
   notifyCanvasUpdated();
 }
 
+// Helper for authenticating admin API requests from client
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('moiz_admin_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // ==========================================
 // PROJECT OPERATIONS
 // ==========================================
@@ -483,7 +490,9 @@ export async function getStoredProjectsAsync(): Promise<Project[]> {
 
   // 1. Try Live Server API First
   try {
-    const res = await fetch('/api/admin/projects');
+    const res = await fetch('/api/admin/projects', {
+      headers: { ...getAuthHeaders() },
+    });
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.projects) && data.projects.length > 0) {
@@ -564,14 +573,14 @@ export async function saveProjectAsync(project: Project): Promise<void> {
 
     const putRes = await fetch(`/api/admin/projects/${prepared.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(payload),
     });
 
     if (!putRes.ok && putRes.status === 404) {
       await fetch('/api/admin/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...payload,
           id: prepared.id,
@@ -603,7 +612,10 @@ export async function deleteProjectAsync(id: string, deleteContainedWorks: boole
   
   // 1. Delete on Server Database API
   try {
-    await fetch(`/api/admin/projects/${id}`, { method: 'DELETE' });
+    await fetch(`/api/admin/projects/${id}`, {
+      method: 'DELETE',
+      headers: { ...getAuthHeaders() },
+    });
   } catch (apiErr) {
     console.warn('Could not delete project on server API:', apiErr);
   }

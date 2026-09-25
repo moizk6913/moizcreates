@@ -406,9 +406,18 @@ export default function AdminPage() {
     setTimeout(() => setStatusNotification(null), 4000);
   };
 
+  const adminFetch = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('moiz_admin_token') : null;
+    const headers = new Headers(init?.headers);
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    return fetch(input, { ...init, headers });
+  }, []);
+
   const refreshInquiries = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/inquiries');
+      const res = await adminFetch('/api/admin/inquiries');
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
@@ -416,11 +425,11 @@ export default function AdminPage() {
         }
       }
     } catch {}
-  }, []);
+  }, [adminFetch]);
 
   const refreshBackups = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/backup?action=list');
+      const res = await adminFetch('/api/admin/backup?action=list');
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
@@ -428,7 +437,7 @@ export default function AdminPage() {
         }
       }
     } catch {}
-  }, []);
+  }, [adminFetch]);
 
   const refreshData = useCallback(async () => {
     setIsLoading(true);
@@ -446,7 +455,7 @@ export default function AdminPage() {
       
       // Fetch articles from database API with fallback
       try {
-        const bRes = await fetch('/api/admin/blog');
+        const bRes = await adminFetch('/api/admin/blog');
         if (bRes.ok) {
           const bData = await bRes.json();
           if (bData.success && Array.isArray(bData.posts) && bData.posts.length > 0) {
@@ -474,7 +483,13 @@ export default function AdminPage() {
 
   // Auth Verification on Mount
   useEffect(() => {
-    fetch('/api/auth/me')
+    const savedToken = typeof window !== 'undefined' ? localStorage.getItem('moiz_admin_token') : null;
+    const headers: Record<string, string> = {};
+    if (savedToken) {
+      headers['Authorization'] = `Bearer ${savedToken}`;
+    }
+
+    fetch('/api/auth/me', { headers })
       .then((r) => r.json())
       .then((d) => {
         if (d.authenticated) {
@@ -502,6 +517,9 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        if (data.token && typeof window !== 'undefined') {
+          localStorage.setItem('moiz_admin_token', data.token);
+        }
         setIsAuthenticated(true);
         setLoginPassword('');
         refreshData();
@@ -517,6 +535,9 @@ export default function AdminPage() {
   };
 
   const handleLogout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('moiz_admin_token');
+    }
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {}
@@ -527,7 +548,7 @@ export default function AdminPage() {
   const handleInquiryStatus = async (id: string, status: string) => {
     setIsUpdatingInquiry(true);
     try {
-      const res = await fetch('/api/admin/inquiries', {
+      const res = await adminFetch('/api/admin/inquiries', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status }),
@@ -546,7 +567,7 @@ export default function AdminPage() {
   const handleInquiryDelete = async (id: string) => {
     if (!confirm('Permanently delete this inquiry?')) return;
     try {
-      const res = await fetch(`/api/admin/inquiries?id=${id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/inquiries?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         await refreshInquiries();
         notifyUser('Inquiry deleted.');
@@ -558,7 +579,7 @@ export default function AdminPage() {
 
   const handleTriggerSnapshot = async () => {
     try {
-      const res = await fetch('/api/admin/backup?action=create_snapshot');
+      const res = await adminFetch('/api/admin/backup?action=create_snapshot');
       if (res.ok) {
         const data = await res.json();
         await refreshBackups();
@@ -610,7 +631,7 @@ export default function AdminPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await adminFetch('/api/upload', { method: 'POST', body: formData });
       if (res.ok) {
         const data = await res.json();
         const asset = data.asset || (data.assets && data.assets[0]);
@@ -660,7 +681,7 @@ export default function AdminPage() {
       };
 
       if (editingArticle?.id) {
-        const res = await fetch(`/api/admin/blog/${editingArticle.id}`, {
+        const res = await adminFetch(`/api/admin/blog/${editingArticle.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -669,7 +690,7 @@ export default function AdminPage() {
           notifyUser(`Article "${articleTitle}" updated.`);
         }
       } else {
-        const res = await fetch('/api/admin/blog', {
+        const res = await adminFetch('/api/admin/blog', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -693,7 +714,7 @@ export default function AdminPage() {
     if (!confirm(`Permanently delete article "${post.title}"?`)) return;
     try {
       if (post.id) {
-        await fetch(`/api/admin/blog/${post.id}`, { method: 'DELETE' });
+        await adminFetch(`/api/admin/blog/${post.id}`, { method: 'DELETE' });
       }
       deleteBlogPost(post.slug);
       await refreshData();
@@ -797,7 +818,7 @@ export default function AdminPage() {
         formData.append('paths', path);
       });
 
-      const res = await fetch('/api/admin/upload-folder', {
+      const res = await adminFetch('/api/admin/upload-folder', {
         method: 'POST',
         body: formData,
       });
@@ -957,7 +978,7 @@ export default function AdminPage() {
             if (item.projectId) {
               formData.append('projectId', item.projectId);
             }
-            const uploadRes = await fetch('/api/upload', {
+            const uploadRes = await adminFetch('/api/upload', {
               method: 'POST',
               body: formData,
             });
@@ -1141,7 +1162,7 @@ export default function AdminPage() {
         try {
           const formData = new FormData();
           formData.append('file', pgAsset.file);
-          const uploadRes = await fetch('/api/upload', {
+          const uploadRes = await adminFetch('/api/upload', {
             method: 'POST',
             body: formData,
           });
