@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { db } from '@/lib/db';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-const SUPPORTED_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+const SUPPORTED_MODELS = ['gemini-3.5-flash', 'gemini-3.8-flash'];
 
 function parseInlineImage(dataUriOrBase64: string): { mimeType: string; data: string } | null {
   if (!dataUriOrBase64) return null;
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // Action: Get Current Key Status
     if (action === 'get_status') {
       const activeKey = (apiKey || '').trim();
-      const isValid = Boolean(activeKey && activeKey.startsWith('AIzaSy'));
+      const isValid = Boolean(activeKey && (activeKey.startsWith('AIzaSy') || activeKey.startsWith('AQ.')));
       return NextResponse.json({
         success: true,
         hasKey: isValid,
@@ -52,10 +52,10 @@ export async function POST(request: Request) {
         });
       }
 
-      if (!candidateKey.startsWith('AIzaSy')) {
+      if (!candidateKey.startsWith('AIzaSy') && !candidateKey.startsWith('AQ.')) {
         return NextResponse.json({
           success: false,
-          error: `Invalid Google API Key format. Google AI Studio keys always start with "AIzaSy" (39 characters). The key provided starts with "${candidateKey.slice(0, 4)}...". Please generate a key at https://aistudio.google.com/app/apikey.`,
+          error: `Invalid Google API Key format. Google AI Studio keys start with "AIzaSy" or "AQ.". The key provided starts with "${candidateKey.slice(0, 4)}...". Please generate a key at https://aistudio.google.com/app/apikey.`,
         });
       }
 
