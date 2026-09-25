@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 import {
   DatabaseSchema,
   Project,
@@ -19,6 +20,7 @@ import curatedData from '../curated_photos.json';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const DB_FILE = path.join(DATA_DIR, 'portfolio-db.json');
+const TMP_DB_FILE = path.join(os.tmpdir(), 'portfolio-db.json');
 const SCHEMA_VERSION = 1;
 
 // ============================================================================
@@ -171,60 +173,79 @@ let lastMtime: number = 0;
 let writeQueue: Promise<any> = Promise.resolve();
 
 function ensureDirectories() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(BACKUP_DIR)) {
-    fs.mkdirSync(BACKUP_DIR, { recursive: true });
-  }
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {}
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) {
+      fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    }
+  } catch {}
 }
 
 function readDatabaseSync(): DatabaseSchema {
-  ensureDirectories();
+  if (memoryCache) {
+    return memoryCache;
+  }
 
-  if (fs.existsSync(DB_FILE)) {
-    try {
-      const stats = fs.statSync(DB_FILE);
-      if (memoryCache && stats.mtimeMs <= lastMtime) {
-        return memoryCache;
-      }
-
+  // 1. Try reading the bundled DB_FILE
+  try {
+    if (fs.existsSync(DB_FILE)) {
       const content = fs.readFileSync(DB_FILE, 'utf-8');
       const data = JSON.parse(content) as DatabaseSchema;
       memoryCache = data;
-      lastMtime = stats.mtimeMs;
       return data;
-    } catch (err) {
-      console.error('[Database] Failed to read existing database file, rebuilding from memory cache or seed:', err);
-      if (memoryCache) return memoryCache;
     }
+  } catch (err) {
+    console.error('[Database] Failed to read bundled DB_FILE:', err);
   }
 
-  // Initialize with seed
+  // 2. Try reading /tmp fallback DB file (for Vercel serverless writes)
+  try {
+    if (fs.existsSync(TMP_DB_FILE)) {
+      const content = fs.readFileSync(TMP_DB_FILE, 'utf-8');
+      const data = JSON.parse(content) as DatabaseSchema;
+      memoryCache = data;
+      return data;
+    }
+  } catch (err) {
+    console.error('[Database] Failed to read TMP_DB_FILE:', err);
+  }
+
+  // 3. Initialize with seed in-memory
   const initial = generateInitialSeed();
-  writeDatabaseSync(initial);
+  memoryCache = initial;
+  try {
+    writeDatabaseSync(initial);
+  } catch {}
   return initial;
 }
 
 function writeDatabaseSync(data: DatabaseSchema): void {
-  ensureDirectories();
   data.lastUpdated = new Date().toISOString();
   const serialized = JSON.stringify(data, null, 2);
+  memoryCache = data;
 
-  // Atomic write via temp file
-  const tmpFile = `${DB_FILE}.${crypto.randomBytes(4).toString('hex')}.tmp`;
+  // 1. Try writing to DATA_DIR first (local dev / persistent disk)
   try {
+    ensureDirectories();
+    const tmpFile = `${DB_FILE}.${crypto.randomBytes(4).toString('hex')}.tmp`;
     fs.writeFileSync(tmpFile, serialized, 'utf-8');
     fs.renameSync(tmpFile, DB_FILE);
-    memoryCache = data;
     lastMtime = fs.statSync(DB_FILE).mtimeMs;
+    return;
   } catch (err) {
-    if (fs.existsSync(tmpFile)) {
-      try {
-        fs.unlinkSync(tmpFile);
-      } catch {}
+    // 2. If read-only filesystem (e.g. Vercel Serverless), fallback to writing to os.tmpdir()
+    try {
+      const tmpFile = `${TMP_DB_FILE}.${crypto.randomBytes(4).toString('hex')}.tmp`;
+      fs.writeFileSync(tmpFile, serialized, 'utf-8');
+      fs.renameSync(tmpFile, TMP_DB_FILE);
+      lastMtime = fs.statSync(TMP_DB_FILE).mtimeMs;
+    } catch (tmpErr) {
+      console.warn('[Database] Could not persist to disk, held in memoryCache:', tmpErr);
     }
-    throw err;
   }
 }
 
@@ -257,6 +278,7 @@ function maybeCreateSnapshot(data: DatabaseSchema) {
 
   try {
     ensureDirectories();
+    if (!fs.existsSync(BACKUP_DIR)) return;
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const snapshotFile = path.join(BACKUP_DIR, `portfolio-backup-${timestamp}.json`);
     fs.writeFileSync(snapshotFile, JSON.stringify(data, null, 2), 'utf-8');
@@ -272,7 +294,7 @@ function maybeCreateSnapshot(data: DatabaseSchema) {
       });
     }
   } catch (err) {
-    console.warn('[Database] Snapshot creation warning:', err);
+    // Non-fatal if backup directory is read-only on serverless
   }
 }
 

@@ -16,9 +16,11 @@ const ORIGINALS_DIR = path.join(UPLOAD_ROOT, 'originals');
 
 function ensureUploadDirs() {
   [UPLOAD_ROOT, IMAGES_DIR, THUMBNAILS_DIR, VIDEOS_DIR, ORIGINALS_DIR].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    try {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    } catch {}
   });
 }
 
@@ -92,11 +94,7 @@ export async function processUploadedImage(
   const webpName = `${sanitizedBase}-${fileHash}.webp`;
   const thumbName = `${sanitizedBase}-${fileHash}-thumb.webp`;
 
-  // 1. Save original securely
-  const originalPath = path.join(ORIGINALS_DIR, originalName);
-  fs.writeFileSync(originalPath, buffer);
-
-  // 2. Read metadata via sharp with auto-rotation
+  // 1. Read metadata via sharp with auto-rotation
   const image = sharp(buffer).rotate();
   const metadata = await image.metadata();
 
@@ -104,44 +102,77 @@ export async function processUploadedImage(
   const height = metadata.height || 1080;
   const { aspectRatio, orientation } = calculateAspectRatio(width, height);
 
-  // 3. Generate high-quality master WebP (max 2560px bound)
-  const optimizedPath = path.join(IMAGES_DIR, webpName);
-  await sharp(buffer)
-    .rotate()
-    .resize({
-      width: width > height ? Math.min(width, 2560) : undefined,
-      height: height >= width ? Math.min(height, 2560) : undefined,
-      withoutEnlargement: true,
-      fit: 'inside',
-    })
-    .webp({ quality: 84, effort: 4, smartSubsample: true })
-    .toFile(optimizedPath);
+  let url = `/uploads/images/${webpName}`;
+  let originalUrl = `/uploads/originals/${originalName}`;
+  let optimizedUrl = `/uploads/images/${webpName}`;
+  let thumbnailUrl = `/uploads/thumbnails/${thumbName}`;
+  let fileSize = buffer.length;
 
-  // 4. Generate responsive WebP thumbnail (max 480px bound)
-  const thumbPath = path.join(THUMBNAILS_DIR, thumbName);
-  await sharp(buffer)
-    .rotate()
-    .resize({
-      width: width > height ? Math.min(width, 480) : undefined,
-      height: height >= width ? Math.min(height, 480) : undefined,
-      withoutEnlargement: true,
-      fit: 'inside',
-    })
-    .webp({ quality: 80, effort: 3 })
-    .toFile(thumbPath);
+  try {
+    // 2. Save original securely on persistent disk
+    const originalPath = path.join(ORIGINALS_DIR, originalName);
+    fs.writeFileSync(originalPath, buffer);
 
-  const optimizedStats = fs.statSync(optimizedPath);
+    // 3. Generate high-quality master WebP (max 2560px bound)
+    const optimizedPath = path.join(IMAGES_DIR, webpName);
+    await sharp(buffer)
+      .rotate()
+      .resize({
+        width: width > height ? Math.min(width, 2560) : undefined,
+        height: height >= width ? Math.min(height, 2560) : undefined,
+        withoutEnlargement: true,
+        fit: 'inside',
+      })
+      .webp({ quality: 84, effort: 4, smartSubsample: true })
+      .toFile(optimizedPath);
+
+    // 4. Generate responsive WebP thumbnail (max 480px bound)
+    const thumbPath = path.join(THUMBNAILS_DIR, thumbName);
+    await sharp(buffer)
+      .rotate()
+      .resize({
+        width: width > height ? Math.min(width, 480) : undefined,
+        height: height >= width ? Math.min(height, 480) : undefined,
+        withoutEnlargement: true,
+        fit: 'inside',
+      })
+      .webp({ quality: 80, effort: 3 })
+      .toFile(thumbPath);
+
+    const optimizedStats = fs.statSync(optimizedPath);
+    fileSize = optimizedStats.size;
+  } catch (fsErr) {
+    // Serverless read-only disk fallback (e.g. Vercel)
+    try {
+      const webpBuf = await sharp(buffer)
+        .rotate()
+        .resize({
+          width: width > height ? Math.min(width, 2560) : undefined,
+          height: height >= width ? Math.min(height, 2560) : undefined,
+          withoutEnlargement: true,
+          fit: 'inside',
+        })
+        .webp({ quality: 84 })
+        .toBuffer();
+      const dataUri = `data:image/webp;base64,${webpBuf.toString('base64')}`;
+      url = dataUri;
+      optimizedUrl = dataUri;
+      originalUrl = dataUri;
+      thumbnailUrl = dataUri;
+      fileSize = webpBuf.length;
+    } catch {}
+  }
 
   return {
     asset: {
       fileName: webpName,
       originalName: originalFilename,
       mimeType: 'image/webp',
-      fileSize: optimizedStats.size,
-      url: `/uploads/images/${webpName}`,
-      originalUrl: `/uploads/originals/${originalName}`,
-      optimizedUrl: `/uploads/images/${webpName}`,
-      thumbnailUrl: `/uploads/thumbnails/${thumbName}`,
+      fileSize,
+      url,
+      originalUrl,
+      optimizedUrl,
+      thumbnailUrl,
       dimensions: {
         width,
         height,
