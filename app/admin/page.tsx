@@ -470,7 +470,31 @@ export default function AdminPage() {
         setPosts(getStoredBlogPosts());
       }
 
-      setApiKey(getStoredApiKey());
+      // Check Gemini API Key status from server & Supabase
+      try {
+        const aiStatusRes = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_status' }),
+        });
+        if (aiStatusRes.ok) {
+          const aiData = await aiStatusRes.json();
+          if (aiData.hasKey) {
+            setApiVerified(true);
+            const localKey = getStoredApiKey();
+            if (localKey) {
+              setApiKey(localKey);
+            }
+          } else {
+            setApiKey(getStoredApiKey());
+          }
+        } else {
+          setApiKey(getStoredApiKey());
+        }
+      } catch {
+        setApiKey(getStoredApiKey());
+      }
+
       setSeoConfig(getStoredSeoConfig());
       await refreshInquiries();
       await refreshBackups();
@@ -2897,14 +2921,14 @@ export default function AdminPage() {
                   setApiVerified(null);
                   setApiErrorMsg(null);
                 }}
-                placeholder="Enter Gemini API Key (e.g. AIzaSy... or AQ...)"
+                placeholder="Enter Gemini API Key (starts with AIzaSy...)"
                 className="flex-1 px-4 py-3 rounded-xl bg-black/60 border border-white/[0.08] text-white font-mono text-xs outline-none focus:border-white/30"
               />
               <button
                 type="button"
                 onClick={async () => {
                   saveApiKey(apiKey);
-                  notifyUser('Verifying API Key with Google...');
+                  notifyUser('Verifying API Key with Google & syncing to Supabase...');
                   setApiErrorMsg(null);
                   try {
                     const res = await fetch('/api/ai', {
@@ -2916,7 +2940,7 @@ export default function AdminPage() {
                     if (data.verified) {
                       setApiVerified(true);
                       setApiErrorMsg(null);
-                      notifyUser('API Key Verified & Saved to Server!');
+                      notifyUser(data.message || 'API Key Verified & Saved to Supabase Cloud!');
                     } else {
                       setApiVerified(false);
                       setApiErrorMsg(data.error || 'Google rejected this key.');
@@ -2936,7 +2960,7 @@ export default function AdminPage() {
             {apiVerified === true && (
               <div className="font-mono text-xs text-emerald-400 font-bold flex items-center gap-2">
                 <span>✓</span>
-                <span>Active &amp; connected to Google Gemini 3.6 Flash.</span>
+                <span>Active &amp; connected to Google Gemini (Saved permanently in Supabase Cloud).</span>
               </div>
             )}
             {apiVerified === false && (

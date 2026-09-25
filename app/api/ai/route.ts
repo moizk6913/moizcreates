@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { db } from '@/lib/db';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const SUPPORTED_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 
 function parseInlineImage(dataUriOrBase64: string): { mimeType: string; data: string } | null {
   if (!dataUriOrBase64) return null;
@@ -21,68 +23,111 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey, imageData } = body;
 
-    const rawKey = geminiKey || process.env.GEMINI_API_KEY || '';
+    // Retrieve active key from request, environment variable, or Supabase database
+    const settings = await db.settings.get().catch(() => null);
+    const rawKey = geminiKey || process.env.GEMINI_API_KEY || settings?.geminiApiKey || '';
     const isRevokedKey = rawKey.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4');
     const apiKey = isRevokedKey ? (geminiKey && !geminiKey.includes('AIzaSyCic') ? geminiKey : '') : rawKey;
 
-    // Action 0: Real-time API Key Verifier & Ping
-    if (action === 'verify_key') {
-      console.log('[API Key Verification Attempt]', {
-        keyPrefix: apiKey ? apiKey.slice(0, 12) + '...' : '(none)',
-        keyLength: apiKey.length,
+    // Action: Get Current Key Status
+    if (action === 'get_status') {
+      const activeKey = (apiKey || '').trim();
+      const isValid = Boolean(activeKey && activeKey.startsWith('AIzaSy'));
+      return NextResponse.json({
+        success: true,
+        hasKey: isValid,
+        keyPrefix: isValid ? `${activeKey.slice(0, 8)}...${activeKey.slice(-4)}` : null,
+        persistedInCloud: Boolean(settings?.geminiApiKey),
       });
-      if (!apiKey) {
-        return NextResponse.json({ success: false, reason: 'No API key provided or key was revoked.' });
+    }
+
+    // Action 0: Real-time API Key Verifier & Cloud Persistence
+    if (action === 'verify_key') {
+      const candidateKey = (geminiKey || apiKey || '').trim();
+
+      if (!candidateKey) {
+        return NextResponse.json({
+          success: false,
+          error: 'Please enter a Gemini API Key to verify.',
+        });
       }
 
-      for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.5-flash']) {
+      if (!candidateKey.startsWith('AIzaSy')) {
+        return NextResponse.json({
+          success: false,
+          error: `Invalid Google API Key format. Google AI Studio keys always start with "AIzaSy" (39 characters). The key provided starts with "${candidateKey.slice(0, 4)}...". Please generate a key at https://aistudio.google.com/app/apikey.`,
+        });
+      }
+
+      let verifiedModel: string | null = null;
+      let lastGoogleError: string | null = null;
+
+      for (const modelName of SUPPORTED_MODELS) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${candidateKey}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-goog-api-key': apiKey,
+              'X-goog-api-key': candidateKey,
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: 'ping' }] }],
             }),
           });
+
           if (res.ok) {
-            try {
-              const envPath = path.join(process.cwd(), '.env.local');
-              if (fs.existsSync(envPath)) {
-                let envContent = fs.readFileSync(envPath, 'utf8');
-                if (envContent.includes('GEMINI_API_KEY=')) {
-                  envContent = envContent.replace(/GEMINI_API_KEY=.*/, `GEMINI_API_KEY=${apiKey}`);
-                } else {
-                  envContent += `\nGEMINI_API_KEY=${apiKey}`;
-                }
-                fs.writeFileSync(envPath, envContent, 'utf8');
-                process.env.GEMINI_API_KEY = apiKey;
-              }
-            } catch (saveErr) {
-              console.error('Failed to persist GEMINI_API_KEY to .env.local', saveErr);
-            }
-            return NextResponse.json({ success: true, verified: true, model: modelName });
+            verifiedModel = modelName;
+            break;
           } else {
             const errData = await res.json().catch(() => ({}));
-            if (res.status === 400 && errData?.error?.message?.toLowerCase().includes('api key')) {
-              return NextResponse.json({ success: false, error: errData?.error?.message || 'Invalid API key' });
+            lastGoogleError = errData?.error?.message || `Google returned status ${res.status}`;
+            if (res.status === 400 || res.status === 401 || res.status === 403) {
+              break;
             }
-            if (res.status === 401 || res.status === 403) {
-              const msg = errData?.error?.message || 'Google rejected credentials.';
-              return NextResponse.json({ 
-                success: false, 
-                error: `Google rejected this key (${res.status} Unauthenticated): ${msg}. If you generated keys multiple times in AI Studio, this key was likely revoked or replaced. Please generate a fresh key in a NEW project at aistudio.google.com.` 
-              });
-            }
-            continue;
           }
         } catch (fetchErr: any) {
-          return NextResponse.json({ success: false, error: fetchErr.message });
+          lastGoogleError = fetchErr.message;
         }
       }
-      return NextResponse.json({ success: false, reason: 'Models unavailable for this key.' });
+
+      if (verifiedModel) {
+        // 1. Permanently persist in Supabase Cloud
+        try {
+          await db.settings.update({ geminiApiKey: candidateKey });
+        } catch (dbErr) {
+          console.warn('[AI Route] Failed to persist key in Supabase:', dbErr);
+        }
+
+        // 2. Set runtime environment variable
+        process.env.GEMINI_API_KEY = candidateKey;
+
+        // 3. Save to local .env.local if writable
+        try {
+          const envPath = path.join(process.cwd(), '.env.local');
+          if (fs.existsSync(envPath)) {
+            let envContent = fs.readFileSync(envPath, 'utf8');
+            if (envContent.includes('GEMINI_API_KEY=')) {
+              envContent = envContent.replace(/GEMINI_API_KEY=.*/, `GEMINI_API_KEY=${candidateKey}`);
+            } else {
+              envContent += `\nGEMINI_API_KEY=${candidateKey}`;
+            }
+            fs.writeFileSync(envPath, envContent, 'utf8');
+          }
+        } catch {}
+
+        return NextResponse.json({
+          success: true,
+          verified: true,
+          model: verifiedModel,
+          keyPrefix: `${candidateKey.slice(0, 8)}...${candidateKey.slice(-4)}`,
+          message: `Key verified and saved permanently to Supabase Cloud! Powered by ${verifiedModel}.`,
+        });
+      } else {
+        return NextResponse.json({
+          success: false,
+          error: lastGoogleError || 'Google rejected credentials. Please create a fresh key in a NEW project at https://aistudio.google.com/app/apikey.',
+        });
+      }
     }
 
     // Action 0.5: Intelligent Upload-First Work Metadata & Relationship Suggester
@@ -321,7 +366,7 @@ Return ONLY valid JSON:
   "suggestedTag": "REFINED CATEGORY TAG"
 }`;
 
-          for (const modelName of ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.5-flash']) {
+          for (const modelName of SUPPORTED_MODELS) {
             try {
               const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
                 method: 'POST',
@@ -422,7 +467,7 @@ Output ONLY a raw valid JSON object (no markdown code fences, no extra text) wit
             if (text) {
               const parsed = JSON.parse(text);
               if (preferredAspect) parsed.aspect = preferredAspect;
-              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-3.6-flash' });
+              return NextResponse.json({ success: true, data: parsed, engine: 'gemini-2.5-flash' });
             }
           }
         } catch (apiErr) {
@@ -555,7 +600,7 @@ Return ONLY raw JSON with:
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
               const article = JSON.parse(text);
-              return NextResponse.json({ success: true, data: article, engine: 'gemini-3.6-flash' });
+              return NextResponse.json({ success: true, data: article, engine: 'gemini-2.5-flash' });
             }
           }
         } catch (apiErr) {
@@ -659,10 +704,7 @@ Tone & Style:
             contents.push({ role: 'user', parts });
           }
 
-          const candidateModels = [
-            'gemini-3.6-flash',
-            'gemini-flash-latest',
-          ];
+          const candidateModels = SUPPORTED_MODELS;
 
           for (const modelName of candidateModels) {
             try {

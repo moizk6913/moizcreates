@@ -740,4 +740,25 @@ export const db = {
         .sort((a, b) => new Date(b.mtime).getTime() - new Date(a.mtime).getTime());
     },
   },
+
+  // PORTFOLIO SETTINGS REPOSITORY
+  settings: {
+    get: async () => {
+      await ensureSupabaseSync();
+      const data = readDatabaseSync();
+      return data.settings;
+    },
+    update: async (updates: Partial<PortfolioSettings>) => {
+      let updated: PortfolioSettings | null = null;
+      await enqueueWrite((data) => {
+        data.settings = {
+          ...data.settings,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        };
+        updated = data.settings;
+      });
+      return updated!;
+    },
+  },
 };

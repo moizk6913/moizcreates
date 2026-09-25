@@ -147,6 +147,7 @@ export interface PortfolioSettings {
   linkedinUrl: string;
   city: string;
   timezone: string;
+  geminiApiKey?: string;
   updatedAt: string;
 }
 
