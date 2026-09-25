@@ -37,7 +37,7 @@ import {
 } from '@/lib/contentStore';
 import { BlogPost } from '@/lib/blogData';
 
-type AdminView = 'all_work' | 'projects' | 'single_project' | 'playground' | 'collections' | 'journal' | 'inquiries' | 'settings';
+type AdminView = 'all_work' | 'projects' | 'single_project' | 'playground' | 'collections' | 'journal' | 'inquiries' | 'ai_director' | 'settings';
 
 // ==========================================
 // CLIENT-SIDE ASSET INSPECTOR (AUTO-DETECTS DIMENSIONS & RATIOS)
@@ -400,6 +400,31 @@ export default function AdminPage() {
   const [articlePreviewMode, setArticlePreviewMode] = useState<'edit' | 'preview'>('edit');
   const [isSavingArticle, setIsSavingArticle] = useState(false);
   const articleCoverInputRef = useRef<HTMLInputElement>(null);
+
+  // AI Co-Director & Directorial Studio State
+  const [aiChatMessages, setAiChatMessages] = useState<Array<{ role: 'user' | 'model'; content: string; time: string }>>([
+    {
+      role: 'model',
+      content: "Hey Moiz! I'm active at your studio desk. I can write elevated editorial overviews for any campaign, structure uncropped Bento lookbook spreads, draft technical journal essays, or audit your creative tags. What would you like to direct?",
+      time: 'Now',
+    },
+  ]);
+  const [aiChatInput, setAiChatInput] = useState('');
+  const [isAiChatSending, setIsAiChatSending] = useState(false);
+
+  // 1-Click Project Synopsis Generator State
+  const [aiSelectedProjectId, setAiSelectedProjectId] = useState<string>('');
+  const [aiProjectCustomNotes, setAiProjectCustomNotes] = useState('');
+  const [aiGeneratedOverview, setAiGeneratedOverview] = useState<string | null>(null);
+  const [aiGeneratedTag, setAiGeneratedTag] = useState<string | null>(null);
+  const [isAiGeneratingProject, setIsAiGeneratingProject] = useState(false);
+
+  // 1-Click Journal Essay Generator State
+  const [aiEssayTopic, setAiEssayTopic] = useState('Tactile Lighting and Architectural Pacing in Haute Couture');
+  const [aiEssayCategory, setAiEssayCategory] = useState('LIGHTING & ON-SET');
+  const [aiGeneratedArticle, setAiGeneratedArticle] = useState<any | null>(null);
+  const [isAiGeneratingArticle, setIsAiGeneratingArticle] = useState(false);
+  const [isAiPublishingArticle, setIsAiPublishingArticle] = useState(false);
 
   const notifyUser = (msg: string) => {
     setStatusNotification(msg);
@@ -1374,6 +1399,199 @@ export default function AdminPage() {
     }
   };
 
+  const handleSendAiChat = async (overrideText?: string) => {
+    const textToSend = (overrideText || aiChatInput).trim();
+    if (!textToSend || isAiChatSending) return;
+
+    const userMsg = {
+      role: 'user' as const,
+      content: textToSend,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    const newHistory = [...aiChatMessages, userMsg];
+    setAiChatMessages(newHistory);
+    if (!overrideText) setAiChatInput('');
+    setIsAiChatSending(true);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          geminiKey: apiKey,
+          messages: newHistory.map((m) => ({ role: m.role, content: m.content })),
+          campaigns: projects.map((p) => ({
+            name: p.title,
+            discipline: p.tag || 'Commercial Campaign',
+            deliverables: works.filter((w) => w.projectId === p.id).length,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.reply) {
+        setAiChatMessages((prev) => [
+          ...prev,
+          {
+            role: 'model',
+            content: data.reply,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      } else {
+        setAiChatMessages((prev) => [
+          ...prev,
+          {
+            role: 'model',
+            content: `Could not reach Gemini: ${data.error || 'Server error'}. Please verify key in Settings.`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
+    } catch (err: any) {
+      setAiChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'model',
+          content: `Connection error: ${err.message}`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setIsAiChatSending(false);
+    }
+  };
+
+  const handleGenerateProjectSynopsis = async () => {
+    const targetProject = projects.find((p) => p.id === aiSelectedProjectId) || projects[0];
+    if (!targetProject) {
+      notifyUser('Please select a project first.');
+      return;
+    }
+
+    setIsAiGeneratingProject(true);
+    notifyUser(`Gemini 3.5 Flash is writing editorial synopsis for "${targetProject.title}"...`);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_editorial_overview',
+          geminiKey: apiKey,
+          projectTitle: targetProject.title,
+          clientName: targetProject.client || targetProject.title,
+          notes: aiProjectCustomNotes || targetProject.overview || '',
+          categoryTag: targetProject.tag || 'COMMERCIAL CAMPAIGN',
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.overview) {
+        setAiGeneratedOverview(data.overview);
+        setAiGeneratedTag(data.suggestedTag || targetProject.tag || 'COMMERCIAL CAMPAIGN');
+        notifyUser('Editorial synopsis generated successfully!');
+      } else {
+        notifyUser(data.error || 'Failed to generate synopsis.');
+      }
+    } catch (err: any) {
+      notifyUser(`AI Error: ${err.message}`);
+    } finally {
+      setIsAiGeneratingProject(false);
+    }
+  };
+
+  const handleApplyAiProjectSynopsis = async () => {
+    const targetProject = projects.find((p) => p.id === aiSelectedProjectId) || projects[0];
+    if (!targetProject || !aiGeneratedOverview) return;
+
+    try {
+      const updated: Project = {
+        ...targetProject,
+        overview: aiGeneratedOverview,
+        tag: aiGeneratedTag || targetProject.tag,
+        updatedAt: Date.now(),
+      };
+      await saveProjectAsync(updated);
+      await refreshData();
+      notifyUser(`✨ Applied synopsis to "${targetProject.title}" & saved to Supabase Cloud!`);
+    } catch (err: any) {
+      notifyUser(`Could not save project: ${err.message}`);
+    }
+  };
+
+  const handleGenerateAiJournalArticle = async () => {
+    if (!aiEssayTopic.trim()) {
+      notifyUser('Please provide an essay topic.');
+      return;
+    }
+
+    setIsAiGeneratingArticle(true);
+    notifyUser(`Gemini 3.5 Flash is drafting technical essay on "${aiEssayTopic}"...`);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'write_article',
+          geminiKey: apiKey,
+          topic: aiEssayTopic,
+          category: aiEssayCategory,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.data) {
+        setAiGeneratedArticle(data.data);
+        notifyUser('Directorial essay generated!');
+      } else {
+        notifyUser(data.error || 'Could not draft essay.');
+      }
+    } catch (err: any) {
+      notifyUser(`AI Error: ${err.message}`);
+    } finally {
+      setIsAiGeneratingArticle(false);
+    }
+  };
+
+  const handlePublishAiJournalArticle = async () => {
+    if (!aiGeneratedArticle) return;
+    setIsAiPublishingArticle(true);
+
+    try {
+      const payload = {
+        title: aiGeneratedArticle.title,
+        subtitle: aiGeneratedArticle.subtitle || 'Directorial observations on precision, set dynamics, and visual integrity.',
+        category: aiGeneratedArticle.category || aiEssayCategory,
+        coverImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1600&auto=format&fit=crop&q=80',
+        content: aiGeneratedArticle.content || [],
+        specs: aiGeneratedArticle.specs,
+        status: 'published',
+      };
+
+      const res = await adminFetch('/api/admin/blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        notifyUser(`✨ Published "${aiGeneratedArticle.title}" live to Journal & Supabase Cloud!`);
+        await refreshData();
+        setAiGeneratedArticle(null);
+      } else {
+        notifyUser('Failed to publish essay to Journal.');
+      }
+    } catch (err: any) {
+      notifyUser(`Publishing error: ${err.message}`);
+    } finally {
+      setIsAiPublishingArticle(false);
+    }
+  };
+
   const handleSaveEditedProject = async () => {
     if (!editingProject) return;
     try {
@@ -1664,6 +1882,18 @@ export default function AdminPage() {
           >
             <span>⚡</span>
             <span>Playground ({playgroundWorks.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveView('ai_director'); setSelectedProjectId(null); }}
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer font-bold flex items-center gap-1.5 ${
+              activeView === 'ai_director'
+                ? 'bg-white text-black shadow-xs'
+                : 'text-amber-300 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <span className="text-amber-400">✨</span>
+            <span>AI Co-Director</span>
           </button>
           <button
             type="button"
@@ -2185,6 +2415,34 @@ export default function AdminPage() {
               <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   type="button"
+                  onClick={() => {
+                    handleGenerateEditorialCopy(
+                      currentProject.title,
+                      currentProject.client || currentProject.title,
+                      currentProject.overview || '',
+                      currentProject.tag || 'COMMERCIAL CAMPAIGN',
+                      async (newOverview, newTag) => {
+                        const updated: Project = {
+                          ...currentProject,
+                          overview: newOverview,
+                          tag: newTag || currentProject.tag,
+                          updatedAt: Date.now(),
+                        };
+                        await saveProjectAsync(updated);
+                        await refreshData();
+                        notifyUser(`✨ AI Editorial Overview updated & saved for ${currentProject.title}!`);
+                      }
+                    );
+                  }}
+                  disabled={isGeneratingCopy}
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500 hover:to-orange-500 text-amber-300 hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border border-amber-500/30 disabled:opacity-50 shadow-xs"
+                >
+                  <span className="text-amber-400">✨</span>
+                  <span>{isGeneratingCopy ? 'AI Generating...' : 'AI Editorial Overview'}</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setEditingProject(currentProject)}
                   className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white hover:text-black text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 border border-white/10"
                 >
@@ -2661,14 +2919,27 @@ export default function AdminPage() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={handleOpenNewArticleModal}
-              className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-2 shadow-sm"
-            >
-              <span>+</span>
-              <span>Write Article</span>
-            </button>
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveView('ai_director');
+                }}
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500 hover:to-orange-500 text-amber-300 hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 border border-amber-500/30 shadow-xs"
+              >
+                <span className="text-amber-400">✨</span>
+                <span>AI Draft Essay</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenNewArticleModal}
+                className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+              >
+                <span>+</span>
+                <span>Write Article</span>
+              </button>
+            </div>
           </div>
 
           {posts.length === 0 ? (
@@ -2928,6 +3199,391 @@ export default function AdminPage() {
               })}
             </div>
           )}
+        </section>
+      )}
+
+      {/* ============================================================ */}
+      {/* VIEW: AI CO-DIRECTOR & CLOUD ARCHITECTURE                    */}
+      {/* ============================================================ */}
+      {activeView === 'ai_director' && (
+        <section className="flex-1 max-w-[1500px] w-full mx-auto px-6 sm:px-10 py-8 space-y-10 animate-fadeIn">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+            <div>
+              <div className="flex items-center gap-2 pb-1.5">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                  Google Gemini 3.5 Flash Active
+                </span>
+                <span className="font-mono text-[10px] text-neutral-500">•</span>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                  Supabase Cloud Synced
+                </span>
+              </div>
+              <h2 className="font-display font-black text-2xl sm:text-4xl text-white uppercase tracking-tight">
+                Studio Co-Director &amp; AI Engine
+              </h2>
+              <p className="font-mono text-xs text-neutral-400 pt-1 max-w-3xl">
+                Real-time art direction assistant. Generates museum-grade editorial copy, curates uncropped Bento spreads, drafts technical journal essays, and monitors your cloud media pipeline.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveView('projects')}
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white hover:text-black text-neutral-300 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border border-white/10"
+              >
+                View Projects ({projects.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAiChatMessages([
+                    {
+                      role: 'model',
+                      content: "Studio console cleared. Ready to direct your next campaign or draft copy. What are we shaping today, Moiz?",
+                      time: 'Now',
+                    },
+                  ]);
+                }}
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white hover:text-black text-neutral-300 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border border-white/10"
+              >
+                Clear Chat
+              </button>
+            </div>
+          </div>
+
+          {/* Cloud Infrastructure Status Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Cloud Storage CDN</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <p className="font-mono text-sm font-bold text-white">portfolio-media</p>
+              <p className="font-mono text-[11px] text-neutral-400">Public CDN • Auto WebP &amp; 480px thumbs</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Postgres State DB</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <p className="font-mono text-sm font-bold text-white">portfolio_state</p>
+              <p className="font-mono text-[11px] text-neutral-400">ACID serial queue • Auto-synced globally</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Directorial AI Model</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <p className="font-mono text-sm font-bold text-white">Gemini 3.5 Flash</p>
+              <p className="font-mono text-[11px] text-neutral-400">Server-authenticated via Supabase Cloud</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Upload Ingestion</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <p className="font-mono text-sm font-bold text-white">Anti-413 Safe Chunking</p>
+              <p className="font-mono text-[11px] text-neutral-400">&lt; 3.5MB batches • Full folder uploads</p>
+            </div>
+          </div>
+
+          {/* 2-Column Command Workspace */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Card 1: 1-Click Editorial Project Synopsis Generator */}
+            <div className="p-7 rounded-3xl bg-[#141416] border border-white/[0.08] space-y-6 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm">
+                      ✨
+                    </span>
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">
+                        1-Click Editorial Project Synopsis
+                      </h3>
+                      <p className="font-mono text-[11px] text-neutral-400">
+                        Elevated creative direction copy for luxury &amp; commercial campaigns.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] text-neutral-400 font-bold uppercase">
+                    Zero Buzzwords
+                  </span>
+                </div>
+
+                <div className="space-y-3 font-mono text-xs">
+                  <div>
+                    <label className="text-neutral-400 block pb-1 font-bold">Select Active Project</label>
+                    <select
+                      value={aiSelectedProjectId}
+                      onChange={(e) => {
+                        setAiSelectedProjectId(e.target.value);
+                        setAiGeneratedOverview(null);
+                        setAiGeneratedTag(null);
+                      }}
+                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.1] text-white outline-none focus:border-white/30 cursor-pointer"
+                    >
+                      <option value="">-- Choose a Campaign / Project ({projects.length} available) --</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title} ({p.tag || 'Project'}) • {p.year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 block pb-1 font-bold">Creative Notes or Mood (Optional)</label>
+                    <input
+                      type="text"
+                      value={aiProjectCustomNotes}
+                      onChange={(e) => setAiProjectCustomNotes(e.target.value)}
+                      placeholder="e.g. Royal zari textiles, dramatic chiaroscuro lighting, regal heritage"
+                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.1] text-white outline-none focus:border-white/30 placeholder:text-neutral-600"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateProjectSynopsis}
+                    disabled={isAiGeneratingProject || (!aiSelectedProjectId && projects.length === 0)}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500 hover:to-orange-500 text-amber-300 hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 border border-amber-500/30 disabled:opacity-50"
+                  >
+                    <span>✨</span>
+                    <span>{isAiGeneratingProject ? 'Gemini 3.5 Flash Writing...' : 'Generate Editorial Overview'}</span>
+                  </button>
+                </div>
+
+                {/* Generated Output Preview */}
+                {aiGeneratedOverview && (
+                  <div className="p-5 rounded-2xl bg-black/60 border border-amber-500/30 space-y-3.5 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                        Generated Synopsis Preview
+                      </span>
+                      {aiGeneratedTag && (
+                        <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white uppercase">
+                          Tag: {aiGeneratedTag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-sans text-sm text-neutral-200 leading-relaxed italic">
+                      &ldquo;{aiGeneratedOverview}&rdquo;
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleApplyAiProjectSynopsis}
+                      className="w-full py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>✓</span>
+                      <span>Apply &amp; Save Directly to Supabase Cloud</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Card 2: 1-Click Directorial Journal Essay Writer */}
+            <div className="p-7 rounded-3xl bg-[#141416] border border-white/[0.08] space-y-6 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">
+                      ✍️
+                    </span>
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">
+                        1-Click Directorial Essay Writer
+                      </h3>
+                      <p className="font-mono text-[11px] text-neutral-400">
+                        Draft 4-paragraph technical essays with on-set blueprints and camera specs.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] text-neutral-400 font-bold uppercase">
+                    Instant Publish
+                  </span>
+                </div>
+
+                <div className="space-y-3 font-mono text-xs">
+                  <div>
+                    <label className="text-neutral-400 block pb-1 font-bold">Essay Topic / Theme</label>
+                    <input
+                      type="text"
+                      value={aiEssayTopic}
+                      onChange={(e) => setAiEssayTopic(e.target.value)}
+                      placeholder="e.g. Tactile Lighting and Negative Space in Fashion Direction"
+                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.1] text-white outline-none focus:border-white/30"
+                    />
+                  </div>
+
+                  {/* Preset Quick Chips */}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {[
+                      'Tactile Lighting in Haute Couture',
+                      'The Architecture of Negative Space',
+                      'Cooke Anamorphic on Commercial Sets',
+                      'Swiss Typography in Digital Lookbooks',
+                    ].map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setAiEssayTopic(chip)}
+                        className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-[11px] text-neutral-300 font-mono transition-colors cursor-pointer border border-white/5"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateAiJournalArticle}
+                    disabled={isAiGeneratingArticle || !aiEssayTopic.trim()}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500 hover:to-teal-500 text-emerald-300 hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 border border-emerald-500/30 disabled:opacity-50"
+                  >
+                    <span>✍️</span>
+                    <span>{isAiGeneratingArticle ? 'Gemini Drafting Article...' : 'Draft Complete Journal Essay'}</span>
+                  </button>
+                </div>
+
+                {/* Generated Essay Preview */}
+                {aiGeneratedArticle && (
+                  <div className="p-5 rounded-2xl bg-black/60 border border-emerald-500/30 space-y-3.5 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                        Generated Publication Ready
+                      </span>
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white uppercase">
+                        {aiGeneratedArticle.category}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-display font-bold text-base text-white">{aiGeneratedArticle.title}</h4>
+                      <p className="font-mono text-[11px] text-neutral-400 pt-0.5">{aiGeneratedArticle.subtitle}</p>
+                    </div>
+                    <p className="font-sans text-xs text-neutral-300 leading-relaxed line-clamp-3">
+                      {aiGeneratedArticle.content?.[0]}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handlePublishAiJournalArticle}
+                      disabled={isAiPublishingArticle}
+                      className="w-full py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>✓</span>
+                      <span>{isAiPublishingArticle ? 'Publishing...' : 'Publish Live to /blog & Cloud'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Full-Width Interactive Studio Copilot Console */}
+          <div className="p-7 rounded-3xl bg-[#141416] border border-white/[0.08] space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-xl bg-white/[0.08] text-white flex items-center justify-center font-bold text-sm">
+                  💬
+                </span>
+                <div>
+                  <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">
+                    Live Directorial Copilot Chat
+                  </h3>
+                  <p className="font-mono text-[11px] text-neutral-400">
+                    Direct your brand visual strategies, Bento geometry, lighting treatments, and campaign framing.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-mono text-[11px] text-neutral-400">Engine: gemini-3.5-flash</span>
+              </div>
+            </div>
+
+            {/* Quick Action Prompt Chips */}
+            <div className="flex flex-wrap gap-2">
+              <span className="font-mono text-[11px] text-neutral-500 self-center pr-1 font-bold">Quick Direct:</span>
+              {[
+                'Draft editorial synopsis for KALADHAR',
+                'Suggest Bento layout for lookbook plates & widescreen banners',
+                'Audit my active campaigns and recommend missing deliverables',
+                'What on-set lighting scheme produces rich chiaroscuro falloff?',
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => handleSendAiChat(chip)}
+                  disabled={isAiChatSending}
+                  className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] text-neutral-300 font-mono text-[11px] transition-colors cursor-pointer border border-white/5 text-left disabled:opacity-50"
+                >
+                  ⚡ {chip}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Message Stream */}
+            <div className="space-y-4 max-h-[460px] overflow-y-auto p-4 rounded-2xl bg-black/40 border border-white/[0.06]">
+              {aiChatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] font-bold text-neutral-500 uppercase">
+                      {msg.role === 'user' ? 'Moiz Khan' : 'Gemini Studio Co-Director'}
+                    </span>
+                    <span className="font-mono text-[10px] text-neutral-600">{msg.time}</span>
+                  </div>
+                  <div
+                    className={`max-w-2xl p-4 rounded-2xl font-sans text-xs leading-relaxed whitespace-pre-wrap ${
+                      msg.role === 'user'
+                        ? 'bg-white text-black font-medium'
+                        : 'bg-[#1b1b1e] text-neutral-200 border border-white/[0.08]'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {isAiChatSending && (
+                <div className="flex items-center gap-2 font-mono text-xs text-amber-400 p-2">
+                  <span className="animate-spin">⏳</span>
+                  <span>Gemini 3.5 Flash directing in real time...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input Bar */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendAiChat();
+              }}
+              className="flex gap-3"
+            >
+              <input
+                type="text"
+                value={aiChatInput}
+                onChange={(e) => setAiChatInput(e.target.value)}
+                placeholder="Ask your studio director anything (e.g. 'How should we pace the 65/35 Bento for high-contrast fashion?')..."
+                className="flex-1 p-3.5 rounded-xl bg-black/60 border border-white/[0.1] text-white font-mono text-xs outline-none focus:border-white/30 placeholder:text-neutral-600"
+              />
+              <button
+                type="submit"
+                disabled={isAiChatSending || !aiChatInput.trim()}
+                className="px-6 py-3.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                Send
+              </button>
+            </form>
+          </div>
         </section>
       )}
 
