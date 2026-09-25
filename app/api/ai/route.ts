@@ -23,11 +23,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey, imageData } = body;
 
-    // Retrieve active key from request, environment variable, or Supabase database
+    // Retrieve active key from request, Supabase Cloud database, or environment variable
     const settings = await db.settings.get().catch(() => null);
-    const rawKey = geminiKey || process.env.GEMINI_API_KEY || settings?.geminiApiKey || '';
-    const isRevokedKey = rawKey.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4');
-    const apiKey = isRevokedKey ? (geminiKey && !geminiKey.includes('AIzaSyCic') ? geminiKey : '') : rawKey;
+    const rawKey = geminiKey || settings?.geminiApiKey || process.env.GEMINI_API_KEY || '';
+    const isRevokedKey = rawKey.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4') || rawKey.includes('AQ.Ab8RN6KDjoQD');
+    const apiKey = isRevokedKey ? (geminiKey || settings?.geminiApiKey || '') : rawKey;
 
     // Action: Get Current Key Status
     if (action === 'get_status') {
