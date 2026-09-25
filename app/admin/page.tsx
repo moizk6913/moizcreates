@@ -834,22 +834,66 @@ export default function AdminPage() {
     notifyUser(`Ingesting folder "${projectName}"...`);
 
     try {
-      const formData = new FormData();
-      formData.append('title', projectName);
+      // Chunk items into batches to strictly avoid Vercel 4.5MB request payload limit
+      const MAX_BATCH_BYTES = 3.5 * 1024 * 1024; // 3.5MB safe limit
+      const MAX_FILES_PER_BATCH = 3;
 
-      validMedia.forEach(({ file, path }) => {
-        formData.append('files', file);
-        formData.append('paths', path);
-      });
+      const batches: Array<Array<{ file: File; path: string }>> = [];
+      let currentBatch: Array<{ file: File; path: string }> = [];
+      let currentBatchBytes = 0;
 
-      const res = await adminFetch('/api/admin/upload-folder', {
-        method: 'POST',
-        body: formData,
-      });
+      for (const item of validMedia) {
+        const fileSize = item.file.size;
+        // If adding this file exceeds byte limit or max count, start new batch
+        if (currentBatch.length > 0 && (currentBatchBytes + fileSize > MAX_BATCH_BYTES || currentBatch.length >= MAX_FILES_PER_BATCH)) {
+          batches.push(currentBatch);
+          currentBatch = [item];
+          currentBatchBytes = fileSize;
+        } else {
+          currentBatch.push(item);
+          currentBatchBytes += fileSize;
+        }
+      }
+      if (currentBatch.length > 0) {
+        batches.push(currentBatch);
+      }
 
-      const data = await res.json();
-      if (res.ok && data.success) {
-        notifyUser(`Success: "${data.project.title}" ingested with ${data.sectionCount} sections!`);
+      let lastResult: any = null;
+      let processedFilesCount = 0;
+
+      for (let bIdx = 0; bIdx < batches.length; bIdx++) {
+        const batch = batches[bIdx];
+        const progressPercent = Math.round((processedFilesCount / validMedia.length) * 100);
+
+        setFolderUploadStatus(
+          `Ingesting "${projectName}" [Batch ${bIdx + 1}/${batches.length} • ${progressPercent}% complete]: Converting to WebP & syncing to Supabase CDN...`
+        );
+
+        const formData = new FormData();
+        formData.append('title', projectName);
+
+        batch.forEach(({ file, path }) => {
+          formData.append('files', file);
+          formData.append('paths', path);
+        });
+
+        const res = await adminFetch('/api/admin/upload-folder', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `Failed uploading batch ${bIdx + 1}`);
+        }
+
+        lastResult = data;
+        processedFilesCount += batch.length;
+      }
+
+      const data = lastResult;
+      if (data && data.success) {
+        notifyUser(`Success: "${data.project.title}" ingested with ${data.sectionCount} sections (${validMedia.length} assets synced)!`);
 
         // Sync to local Canvas / Store
         try {

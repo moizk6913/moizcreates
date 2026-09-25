@@ -23,11 +23,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, brief, fileName, folderName, detectedAspect, topic, notes, category, messages, geminiKey, imageData } = body;
 
-    // Retrieve active key from request, Supabase Cloud database, or environment variable
+    // Prioritize explicitly passed key, then Supabase Cloud key, then environment variable
     const settings = await db.settings.get().catch(() => null);
-    const rawKey = geminiKey || settings?.geminiApiKey || process.env.GEMINI_API_KEY || '';
-    const isRevokedKey = rawKey.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4') || rawKey.includes('AQ.Ab8RN6KDjoQD');
-    const apiKey = isRevokedKey ? (geminiKey || settings?.geminiApiKey || '') : rawKey;
+    const cloudKey = (settings?.geminiApiKey || '').trim();
+    const envKey = (process.env.GEMINI_API_KEY || '').trim();
+    const passedKey = (geminiKey || '').trim();
+
+    const isRevoked = (k: string) => !k || k.includes('AIzaSyCic-8hibtiEY2wbUMDj7YUwgDXw1yqXr4') || k.includes('AQ.Ab8RN6KDjoQD');
+
+    let apiKey = '';
+    if (passedKey && !isRevoked(passedKey)) {
+      apiKey = passedKey;
+    } else if (cloudKey && !isRevoked(cloudKey)) {
+      apiKey = cloudKey;
+    } else if (envKey && !isRevoked(envKey)) {
+      apiKey = envKey;
+    }
 
     // Action: Get Current Key Status
     if (action === 'get_status') {
@@ -37,7 +48,7 @@ export async function POST(request: Request) {
         success: true,
         hasKey: isValid,
         keyPrefix: isValid ? `${activeKey.slice(0, 8)}...${activeKey.slice(-4)}` : null,
-        persistedInCloud: Boolean(settings?.geminiApiKey),
+        persistedInCloud: Boolean(cloudKey && !isRevoked(cloudKey)),
       });
     }
 

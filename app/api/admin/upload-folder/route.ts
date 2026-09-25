@@ -212,16 +212,56 @@ export async function POST(request: NextRequest) {
     let finalProject;
 
     if (existing) {
-      // Append new sections and assets
-      const mergedSections = [...(existing.sections || []), ...projectSections];
-      const mergedGallery = [...(existing.gallery || []), ...allGalleryAssets];
-      const mergedVideos = [...(existing.videos || []), ...allVideoAssets];
+      // Intelligently merge sections rather than blindly appending
+      const mergedSections: ProjectSection[] = [...(existing.sections || [])];
+      for (const newSec of projectSections) {
+        const found = mergedSections.find(
+          (s) => s.id === newSec.id || s.title.toLowerCase() === newSec.title.toLowerCase()
+        );
+        if (found) {
+          const existingUrls = new Set(found.items.map((it: any) => it.url));
+          for (const it of newSec.items) {
+            if (!existingUrls.has(it.url)) {
+              found.items.push(it);
+              existingUrls.add(it.url);
+            }
+          }
+        } else {
+          mergedSections.push({
+            ...newSec,
+            displayOrder: mergedSections.length + 1,
+          });
+        }
+      }
+
+      // Merge gallery deduplicating by URL
+      const existingGalUrls = new Set((existing.gallery || []).map((g) => g.url));
+      const mergedGallery = [...(existing.gallery || [])];
+      for (const g of allGalleryAssets) {
+        if (!existingGalUrls.has(g.url)) {
+          mergedGallery.push(g);
+          existingGalUrls.add(g.url);
+        }
+      }
+
+      // Merge videos deduplicating by URL
+      const existingVidUrls = new Set((existing.videos || []).map((v) => v.url));
+      const mergedVideos = [...(existing.videos || [])];
+      for (const v of allVideoAssets) {
+        if (!existingVidUrls.has(v.url)) {
+          mergedVideos.push(v);
+          existingVidUrls.add(v.url);
+        }
+      }
+
+      const totalAssets = mergedGallery.length + mergedVideos.length;
 
       finalProject = await db.projects.update(existing.id, {
         sections: mergedSections,
         gallery: mergedGallery,
         videos: mergedVideos,
-        coverImage: existing.coverImage || coverImageUrl,
+        coverImage: (!existing.coverImage || existing.coverImage.includes('unsplash')) ? coverImageUrl : existing.coverImage,
+        shortDescription: `${existing.title} — Directorial campaign comprising ${mergedSections.length} sections and ${totalAssets} deliverable assets.`,
         updatedAt: new Date().toISOString(),
       });
     } else {

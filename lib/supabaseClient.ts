@@ -1,16 +1,17 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  'https://eztcznarhdmpfurrtbgx.supabase.co';
+const CURRENT_PROJECT_ID = 'eztcznarhdmpfurrtbgx';
+const CURRENT_PROJECT_URL = 'https://eztcznarhdmpfurrtbgx.supabase.co';
+const CURRENT_PUBLISHABLE_KEY = 'sb_publishable_D22slN-FI3-0hfJpXqnXgQ_v7jO83_D';
 
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  'sb_publishable_D22slN-FI3-0hfJpXqnXgQ_v7jO83_D';
+// Prioritize the user's active Supabase project (eztcznarhdmpfurrtbgx)
+// Ignore stale environment variables from deprecated Supabase projects (e.g. lodmwpfcqusimqqqivld)
+const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseUrl = (envUrl && envUrl.includes(CURRENT_PROJECT_ID)) ? envUrl : CURRENT_PROJECT_URL;
+
+const envKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const isStaleProject = envUrl && !envUrl.includes(CURRENT_PROJECT_ID);
+const supabaseKey = isStaleProject ? CURRENT_PUBLISHABLE_KEY : (envKey || CURRENT_PUBLISHABLE_KEY);
 
 let cachedClient: SupabaseClient | null = null;
 
@@ -134,9 +135,9 @@ export async function checkSupabaseHealth(): Promise<{
   let tableReady = false;
 
   try {
-    const { data: buckets } = await supabase.storage.listBuckets();
-    if (buckets && Array.isArray(buckets)) {
-      bucketReady = buckets.some((b) => b.name === 'portfolio-media');
+    const { error: storageError } = await supabase.storage.from('portfolio-media').list('', { limit: 1 });
+    if (!storageError) {
+      bucketReady = true;
     }
   } catch {}
 

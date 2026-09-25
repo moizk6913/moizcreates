@@ -280,14 +280,18 @@ function enqueueWrite(updater: (db: DatabaseSchema) => void | Promise<void>): Pr
 let supabaseSyncDone = false;
 export async function ensureSupabaseSync(): Promise<void> {
   if (supabaseSyncDone) return;
-  supabaseSyncDone = true;
 
   try {
     const { fetchDatabaseFromSupabase } = await import('../supabaseClient');
     const cloudData = await fetchDatabaseFromSupabase();
-    if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
-      memoryCache = cloudData;
-      console.log('[Database] Loaded fresh state from Supabase Cloud (' + cloudData.projects.length + ' projects)');
+    if (cloudData && typeof cloudData === 'object') {
+      if (Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
+        memoryCache = cloudData;
+      } else if (memoryCache && cloudData.settings) {
+        memoryCache.settings = { ...memoryCache.settings, ...cloudData.settings };
+      }
+      supabaseSyncDone = true;
+      console.log('[Database] Loaded fresh state from Supabase Cloud');
     }
   } catch (err) {
     console.warn('[Database] Supabase initial load skipped:', err);
