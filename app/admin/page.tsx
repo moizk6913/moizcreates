@@ -415,16 +415,26 @@ export default function AdminPage() {
   const [isSavingArticle, setIsSavingArticle] = useState(false);
   const articleCoverInputRef = useRef<HTMLInputElement>(null);
 
-  // AI Co-Director & Directorial Studio State
-  const [aiChatMessages, setAiChatMessages] = useState<Array<{ role: 'user' | 'model'; content: string; time: string }>>([
+  // AI Co-Director & Directorial Studio State (Conversational Ingestion)
+  const [aiChatMessages, setAiChatMessages] = useState<Array<{
+    role: 'user' | 'model';
+    content: string;
+    time: string;
+    actionType?: 'project_created' | 'synopsis_generated' | 'article_drafted';
+    actionData?: any;
+  }>>([
     {
       role: 'model',
-      content: "Hey Moiz! I'm active at your studio desk. I can write elevated editorial overviews for any campaign, structure uncropped Bento lookbook spreads, draft technical journal essays, or audit your creative tags. What would you like to direct?",
+      content: "Hey Moiz! Drop any photoshoot folders, lookbook plates, or video reels right here and tell me what you'd like to do (e.g. 'Create a project named KALADHAR with high-fashion copy', or 'Upload these as standalone reels'). You can also ask me to write editorial synopses, draft journal essays, or audit your portfolio.",
       time: 'Now',
     },
   ]);
   const [aiChatInput, setAiChatInput] = useState('');
   const [isAiChatSending, setIsAiChatSending] = useState(false);
+  const [aiAttachedFiles, setAiAttachedFiles] = useState<Array<{ file: File; path: string }>>([]);
+  const [isAiDragging, setIsAiDragging] = useState(false);
+  const aiFileInputRef = useRef<HTMLInputElement>(null);
+  const aiFolderInputRef = useRef<HTMLInputElement>(null);
 
   // 1-Click Project Synopsis Generator State
   const [aiSelectedProjectId, setAiSelectedProjectId] = useState<string>('');
@@ -981,7 +991,9 @@ export default function AdminPage() {
         await refreshData();
         setIsAddWorkOpen(false);
         setSelectedProjectId(data.project.id);
-        setActiveView('projects');
+        if (activeView !== 'ai_director') {
+          setActiveView('projects');
+        }
       } else {
         notifyUser(data.error || 'Failed to ingest folder.');
       }
@@ -1415,18 +1427,99 @@ export default function AdminPage() {
 
   const handleSendAiChat = async (overrideText?: string) => {
     const textToSend = (overrideText || aiChatInput).trim();
-    if (!textToSend || isAiChatSending) return;
+    if ((!textToSend && aiAttachedFiles.length === 0) || isAiChatSending) return;
 
+    const filesToUpload = [...aiAttachedFiles];
+    setAiAttachedFiles([]);
+    if (!overrideText) setAiChatInput('');
+    setIsAiChatSending(true);
+
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Scenario A: Files are attached with a prompt
+    if (filesToUpload.length > 0) {
+      const fileNames = filesToUpload.map((f) => f.path);
+      const userMessage = {
+        role: 'user' as const,
+        content: textToSend
+          ? `${textToSend}\n\n📎 [Attached ${filesToUpload.length} file(s): ${fileNames.slice(0, 5).join(', ')}${fileNames.length > 5 ? ` +${fileNames.length - 5} more` : ''}]`
+          : `📎 [Uploaded ${filesToUpload.length} file(s): ${fileNames.slice(0, 5).join(', ')}${fileNames.length > 5 ? ` +${fileNames.length - 5} more` : ''}]`,
+        time: nowTime,
+      };
+
+      setAiChatMessages((prev) => [
+        ...prev,
+        userMessage,
+        {
+          role: 'model' as const,
+          content: `⚡ Directing ${filesToUpload.length} file(s)... Transcoding into WebP CDN, analyzing image metadata, and shaping your campaign with Gemini 3.5 Flash...`,
+          time: 'Now',
+        },
+      ]);
+
+      try {
+        // Ingest files through chunked multi-variant WebP pipeline
+        await handleFolderUpload(filesToUpload);
+        await refreshData();
+
+        // Ask Gemini 3.5 Flash to respond with directorial insights
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'chat',
+            geminiKey: apiKey,
+            messages: [
+              ...aiChatMessages,
+              userMessage,
+            ].map((m) => ({ role: m.role, content: m.content })),
+            fileNames: fileNames,
+            campaigns: projects.map((p) => ({
+              name: p.title,
+              discipline: p.tag || 'Commercial Campaign',
+              deliverables: works.filter((w) => w.projectId === p.id).length,
+            })),
+          }),
+        });
+
+        const data = await res.json();
+        const replyText = data.reply || `✨ Successfully uploaded and organized your ${filesToUpload.length} file(s) into your portfolio! WebP CDN conversion complete.`;
+
+        setAiChatMessages((prev) => [
+          ...prev.slice(0, -1),
+          {
+            role: 'model' as const,
+            content: replyText,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            actionType: 'project_created',
+            actionData: { fileCount: filesToUpload.length },
+          },
+        ]);
+        notifyUser(`Uploaded ${filesToUpload.length} file(s) to cloud!`);
+      } catch (err: any) {
+        setAiChatMessages((prev) => [
+          ...prev.slice(0, -1),
+          {
+            role: 'model' as const,
+            content: `Failed during upload: ${err.message}. Your files are safe; please check connection and try again.`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      } finally {
+        setIsAiChatSending(false);
+      }
+      return;
+    }
+
+    // Scenario B: Conversational Chat
     const userMsg = {
       role: 'user' as const,
       content: textToSend,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: nowTime,
     };
 
     const newHistory = [...aiChatMessages, userMsg];
     setAiChatMessages(newHistory);
-    if (!overrideText) setAiChatInput('');
-    setIsAiChatSending(true);
 
     try {
       const res = await fetch('/api/ai', {
@@ -3529,386 +3622,302 @@ export default function AdminPage() {
       )}
 
       {/* ============================================================ */}
-      {/* VIEW: AI CO-DIRECTOR & CLOUD ARCHITECTURE                    */}
+      {/* VIEW: AI CO-DIRECTOR (CONVERSATIONAL STUDIO & DIRECT INGEST) */}
       {/* ============================================================ */}
       {activeView === 'ai_director' && (
-        <section className="flex-1 max-w-[1500px] w-full mx-auto px-6 sm:px-10 py-8 space-y-10 animate-fadeIn">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
-            <div>
-              <div className="flex items-center gap-2 pb-1.5">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                  Google Gemini 3.5 Flash Active
-                </span>
-                <span className="font-mono text-[10px] text-neutral-500">•</span>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                  Supabase Cloud Synced
-                </span>
-              </div>
-              <h2 className="font-display font-black text-2xl sm:text-4xl text-white uppercase tracking-tight">
-                Studio Co-Director &amp; AI Engine
-              </h2>
-              <p className="font-mono text-xs text-neutral-400 pt-1 max-w-3xl">
-                Real-time art direction assistant. Generates museum-grade editorial copy, curates uncropped Bento spreads, drafts technical journal essays, and monitors your cloud media pipeline.
+        <section
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsAiDragging(true);
+          }}
+          onDragLeave={() => setIsAiDragging(false)}
+          onDrop={async (e) => {
+            e.preventDefault();
+            setIsAiDragging(false);
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              const files = e.dataTransfer.files;
+              const items: Array<{ file: File; path: string }> = [];
+              for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+                items.push({
+                  file: f,
+                  path: (f as any).webkitRelativePath || f.name,
+                });
+              }
+              setAiAttachedFiles((prev) => [...prev, ...items]);
+              notifyUser(`Attached ${items.length} file(s). Now tell AI what to do!`);
+            }
+          }}
+          className="flex-1 flex flex-col h-full max-w-[1400px] w-full mx-auto p-4 sm:p-8 relative select-none animate-fadeIn"
+        >
+          {/* Hidden File & Folder Inputs for AI Directing */}
+          <input
+            ref={aiFileInputRef}
+            type="file"
+            multiple
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files) {
+                const files = e.target.files;
+                const items: Array<{ file: File; path: string }> = [];
+                for (let i = 0; i < files.length; i++) {
+                  const f = files[i];
+                  items.push({ file: f, path: f.name });
+                }
+                setAiAttachedFiles((prev) => [...prev, ...items]);
+                notifyUser(`Attached ${items.length} file(s).`);
+              }
+              if (aiFileInputRef.current) aiFileInputRef.current.value = '';
+            }}
+          />
+          <input
+            ref={aiFolderInputRef}
+            type="file"
+            {...({ webkitdirectory: '', directory: '' } as any)}
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files) {
+                const files = e.target.files;
+                const items: Array<{ file: File; path: string }> = [];
+                for (let i = 0; i < files.length; i++) {
+                  const f = files[i];
+                  items.push({
+                    file: f,
+                    path: (f as any).webkitRelativePath || f.name,
+                  });
+                }
+                setAiAttachedFiles((prev) => [...prev, ...items]);
+                notifyUser(`Attached folder with ${items.length} file(s).`);
+              }
+              if (aiFolderInputRef.current) aiFolderInputRef.current.value = '';
+            }}
+          />
+
+          {/* Full Drag & Drop Overlay */}
+          {isAiDragging && (
+            <div className="absolute inset-4 z-50 rounded-3xl bg-black/90 backdrop-blur-md border-2 border-dashed border-amber-400 flex flex-col items-center justify-center p-8 text-center animate-fadeIn pointer-events-none">
+              <span className="text-4xl mb-3">📥</span>
+              <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                Drop Media or Project Folder Here
+              </h3>
+              <p className="font-mono text-xs text-amber-300 pt-1">
+                AI will inspect your images, auto-convert to WebP CDN, and organize your campaign.
               </p>
             </div>
+          )}
 
+          {/* Clean Studio Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveView('projects')}
-                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white hover:text-black text-neutral-300 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border border-white/10"
-              >
-                View Projects ({projects.length})
-              </button>
+              <div className="w-9 h-9 rounded-xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-sm">
+                ✨
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display font-black text-lg sm:text-xl text-white uppercase tracking-tight">
+                    AI Studio Copilot
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono text-[9px] font-bold uppercase">
+                    Gemini 3.5 Flash
+                  </span>
+                </div>
+                <p className="font-mono text-xs text-neutral-400">
+                  Upload photos, attach shoot folders, and direct your portfolio in plain English.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setAiChatMessages([
                     {
                       role: 'model',
-                      content: "Studio console cleared. Ready to direct your next campaign or draft copy. What are we shaping today, Moiz?",
+                      content: "Studio chat refreshed. Drop any photoshoot folders or photos here, or ask me to write copy, draft essays, or curate your layout. What are we creating, Moiz?",
                       time: 'Now',
                     },
                   ]);
                 }}
-                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white hover:text-black text-neutral-300 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border border-white/10"
+                className="px-3.5 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] text-neutral-400 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer border border-white/[0.06]"
               >
-                Clear Chat
+                Clear
               </button>
             </div>
           </div>
 
-          {/* Cloud Infrastructure Status Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Cloud Storage CDN</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-              <p className="font-mono text-sm font-bold text-white">portfolio-media</p>
-              <p className="font-mono text-[11px] text-neutral-400">Public CDN • Auto WebP &amp; 480px thumbs</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Postgres State DB</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-              <p className="font-mono text-sm font-bold text-white">portfolio_state</p>
-              <p className="font-mono text-[11px] text-neutral-400">ACID serial queue • Auto-synced globally</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Directorial AI Model</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-              <p className="font-mono text-sm font-bold text-white">Gemini 3.5 Flash</p>
-              <p className="font-mono text-[11px] text-neutral-400">Server-authenticated via Supabase Cloud</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.08] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase text-neutral-400 tracking-wider">Upload Ingestion</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-              <p className="font-mono text-sm font-bold text-white">Anti-413 Safe Chunking</p>
-              <p className="font-mono text-[11px] text-neutral-400">&lt; 3.5MB batches • Full folder uploads</p>
-            </div>
-          </div>
-
-          {/* 2-Column Command Workspace */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Card 1: 1-Click Editorial Project Synopsis Generator */}
-            <div className="p-7 rounded-3xl bg-[#141416] border border-white/[0.08] space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm">
-                      ✨
-                    </span>
-                    <div>
-                      <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">
-                        1-Click Editorial Project Synopsis
-                      </h3>
-                      <p className="font-mono text-[11px] text-neutral-400">
-                        Elevated creative direction copy for luxury &amp; commercial campaigns.
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] text-neutral-400 font-bold uppercase">
-                    Zero Buzzwords
+          {/* Chat Messages Stream (Takes Full Middle Space) */}
+          <div className="flex-1 overflow-y-auto py-6 space-y-5 pr-2">
+            {aiChatMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1.5`}
+              >
+                <div className="flex items-center gap-2 px-1">
+                  <span className="font-mono text-[10px] font-bold text-neutral-500 uppercase">
+                    {msg.role === 'user' ? 'Moiz Khan' : '✨ Gemini Co-Director'}
                   </span>
+                  <span className="font-mono text-[10px] text-neutral-600">{msg.time}</span>
                 </div>
 
-                <div className="space-y-3 font-mono text-xs">
-                  <div>
-                    <label className="text-neutral-400 block pb-1 font-bold">Select Active Project</label>
-                    <select
-                      value={aiSelectedProjectId}
-                      onChange={(e) => {
-                        setAiSelectedProjectId(e.target.value);
-                        setAiGeneratedOverview(null);
-                        setAiGeneratedTag(null);
-                      }}
-                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.1] text-white outline-none focus:border-white/30 cursor-pointer"
-                    >
-                      <option value="">-- Choose a Campaign / Project ({projects.length} available) --</option>
-                      {projects.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title} ({p.tag || 'Project'}) • {p.year}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-neutral-400 block pb-1 font-bold">Creative Notes or Mood (Optional)</label>
-                    <input
-                      type="text"
-                      value={aiProjectCustomNotes}
-                      onChange={(e) => setAiProjectCustomNotes(e.target.value)}
-                      placeholder="e.g. Royal zari textiles, dramatic chiaroscuro lighting, regal heritage"
-                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.1] text-white outline-none focus:border-white/30 placeholder:text-neutral-600"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGenerateProjectSynopsis}
-                    disabled={isAiGeneratingProject || (!aiSelectedProjectId && projects.length === 0)}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500 hover:to-orange-500 text-amber-300 hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 border border-amber-500/30 disabled:opacity-50"
-                  >
-                    <span>✨</span>
-                    <span>{isAiGeneratingProject ? 'Gemini 3.5 Flash Writing...' : 'Generate Editorial Overview'}</span>
-                  </button>
-                </div>
-
-                {/* Generated Output Preview */}
-                {aiGeneratedOverview && (
-                  <div className="p-5 rounded-2xl bg-black/60 border border-amber-500/30 space-y-3.5 animate-fadeIn">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-bold text-amber-400 uppercase tracking-wider">
-                        Generated Synopsis Preview
-                      </span>
-                      {aiGeneratedTag && (
-                        <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white uppercase">
-                          Tag: {aiGeneratedTag}
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-sans text-sm text-neutral-200 leading-relaxed italic">
-                      &ldquo;{aiGeneratedOverview}&rdquo;
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleApplyAiProjectSynopsis}
-                      className="w-full py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      <span>✓</span>
-                      <span>Apply &amp; Save Directly to Supabase Cloud</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Card 2: 1-Click Directorial Journal Essay Writer */}
-            <div className="p-7 rounded-3xl bg-[#141416] border border-white/[0.08] space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">
-                      ✍️
-                    </span>
-                    <div>
-                      <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">
-                        1-Click Directorial Essay Writer
-                      </h3>
-                      <p className="font-mono text-[11px] text-neutral-400">
-                        Draft 4-paragraph technical essays with on-set blueprints and camera specs.
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] text-neutral-400 font-bold uppercase">
-                    Instant Publish
-                  </span>
-                </div>
-
-                <div className="space-y-3 font-mono text-xs">
-                  <div>
-                    <label className="text-neutral-400 block pb-1 font-bold">Essay Topic / Theme</label>
-                    <input
-                      type="text"
-                      value={aiEssayTopic}
-                      onChange={(e) => setAiEssayTopic(e.target.value)}
-                      placeholder="e.g. Tactile Lighting and Negative Space in Fashion Direction"
-                      className="w-full p-3 rounded-xl bg-black/60 border border-white/[0.1] text-white outline-none focus:border-white/30"
-                    />
-                  </div>
-
-                  {/* Preset Quick Chips */}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {[
-                      'Tactile Lighting in Haute Couture',
-                      'The Architecture of Negative Space',
-                      'Cooke Anamorphic on Commercial Sets',
-                      'Swiss Typography in Digital Lookbooks',
-                    ].map((chip) => (
-                      <button
-                        key={chip}
-                        type="button"
-                        onClick={() => setAiEssayTopic(chip)}
-                        className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-[11px] text-neutral-300 font-mono transition-colors cursor-pointer border border-white/5"
-                      >
-                        {chip}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGenerateAiJournalArticle}
-                    disabled={isAiGeneratingArticle || !aiEssayTopic.trim()}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500 hover:to-teal-500 text-emerald-300 hover:text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 border border-emerald-500/30 disabled:opacity-50"
-                  >
-                    <span>✍️</span>
-                    <span>{isAiGeneratingArticle ? 'Gemini Drafting Article...' : 'Draft Complete Journal Essay'}</span>
-                  </button>
-                </div>
-
-                {/* Generated Essay Preview */}
-                {aiGeneratedArticle && (
-                  <div className="p-5 rounded-2xl bg-black/60 border border-emerald-500/30 space-y-3.5 animate-fadeIn">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                        Generated Publication Ready
-                      </span>
-                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white uppercase">
-                        {aiGeneratedArticle.category}
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="font-display font-bold text-base text-white">{aiGeneratedArticle.title}</h4>
-                      <p className="font-mono text-[11px] text-neutral-400 pt-0.5">{aiGeneratedArticle.subtitle}</p>
-                    </div>
-                    <p className="font-sans text-xs text-neutral-300 leading-relaxed line-clamp-3">
-                      {aiGeneratedArticle.content?.[0]}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handlePublishAiJournalArticle}
-                      disabled={isAiPublishingArticle}
-                      className="w-full py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      <span>✓</span>
-                      <span>{isAiPublishingArticle ? 'Publishing...' : 'Publish Live to /blog & Cloud'}</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Full-Width Interactive Studio Copilot Console */}
-          <div className="p-7 rounded-3xl bg-[#141416] border border-white/[0.08] space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-xl bg-white/[0.08] text-white flex items-center justify-center font-bold text-sm">
-                  💬
-                </span>
-                <div>
-                  <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">
-                    Live Directorial Copilot Chat
-                  </h3>
-                  <p className="font-mono text-[11px] text-neutral-400">
-                    Direct your brand visual strategies, Bento geometry, lighting treatments, and campaign framing.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono text-[11px] text-neutral-400">Engine: gemini-3.5-flash</span>
-              </div>
-            </div>
-
-            {/* Quick Action Prompt Chips */}
-            <div className="flex flex-wrap gap-2">
-              <span className="font-mono text-[11px] text-neutral-500 self-center pr-1 font-bold">Quick Direct:</span>
-              {[
-                'Draft editorial synopsis for KALADHAR',
-                'Suggest Bento layout for lookbook plates & widescreen banners',
-                'Audit my active campaigns and recommend missing deliverables',
-                'What on-set lighting scheme produces rich chiaroscuro falloff?',
-              ].map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => handleSendAiChat(chip)}
-                  disabled={isAiChatSending}
-                  className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] text-neutral-300 font-mono text-[11px] transition-colors cursor-pointer border border-white/5 text-left disabled:opacity-50"
-                >
-                  ⚡ {chip}
-                </button>
-              ))}
-            </div>
-
-            {/* Chat Message Stream */}
-            <div className="space-y-4 max-h-[460px] overflow-y-auto p-4 rounded-2xl bg-black/40 border border-white/[0.06]">
-              {aiChatMessages.map((msg, idx) => (
                 <div
-                  key={idx}
-                  className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}
+                  className={`max-w-3xl p-5 rounded-2xl font-sans text-xs leading-relaxed whitespace-pre-wrap ${
+                    msg.role === 'user'
+                      ? 'bg-white text-black font-medium shadow-md'
+                      : 'bg-[#141417] text-neutral-200 border border-white/[0.08] shadow-sm'
+                  }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] font-bold text-neutral-500 uppercase">
-                      {msg.role === 'user' ? 'Moiz Khan' : 'Gemini Studio Co-Director'}
-                    </span>
-                    <span className="font-mono text-[10px] text-neutral-600">{msg.time}</span>
-                  </div>
-                  <div
-                    className={`max-w-2xl p-4 rounded-2xl font-sans text-xs leading-relaxed whitespace-pre-wrap ${
-                      msg.role === 'user'
-                        ? 'bg-white text-black font-medium'
-                        : 'bg-[#1b1b1e] text-neutral-200 border border-white/[0.08]'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-              {isAiChatSending && (
-                <div className="flex items-center gap-2 font-mono text-xs text-amber-400 p-2">
-                  <span className="animate-spin">⏳</span>
-                  <span>Gemini 3.5 Flash directing in real time...</span>
-                </div>
-              )}
-            </div>
+                  {msg.content}
 
-            {/* Chat Input Bar */}
+                  {/* Quick Action Buttons for Model Responses */}
+                  {msg.role === 'model' && msg.actionType === 'project_created' && (
+                    <div className="mt-4 pt-3 border-t border-white/[0.08] flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setActiveView('projects')}
+                        className="px-4 py-2 rounded-xl bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <span>👁️</span>
+                        <span>View in Projects ({projects.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsRightSidebarOpen(true)}
+                        className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/20 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <span>⚙️</span>
+                        <span>Open Inspector</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {isAiChatSending && (
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-400/[0.06] border border-amber-400/20 text-amber-300 font-mono text-xs animate-pulse">
+                <div className="w-4 h-4 rounded-full border-2 border-amber-300 border-t-transparent animate-spin" />
+                <span>Gemini 3.5 Flash is directing &amp; syncing media...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Dock: Attached Files Preview + Attachment Triggers + Input */}
+          <div className="shrink-0 pt-3 border-t border-white/[0.06] space-y-3">
+            {/* Attached Files Bar (Visible when files are attached) */}
+            {aiAttachedFiles.length > 0 && (
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 animate-fadeIn">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <span className="text-base">📎</span>
+                  <div className="truncate font-mono text-xs text-white">
+                    <strong className="text-amber-300 font-bold">{aiAttachedFiles.length} file(s) attached:</strong>{' '}
+                    <span className="text-neutral-300">
+                      {aiAttachedFiles.slice(0, 4).map((f) => f.path.split(/[/\\]/).pop()).join(', ')}
+                      {aiAttachedFiles.length > 4 ? ` +${aiAttachedFiles.length - 4} more` : ''}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAiAttachedFiles([])}
+                  className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-mono text-xs font-bold transition-colors cursor-pointer shrink-0"
+                >
+                  ✕ Clear
+                </button>
+              </div>
+            )}
+
+            {/* Main Interactive Command Dock */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendAiChat();
               }}
-              className="flex gap-3"
+              className="flex items-center gap-2 bg-[#141417] p-2 rounded-2xl border border-white/[0.1] focus-within:border-white/30 transition-all shadow-xl"
             >
+              {/* Attach Media Button */}
+              <button
+                type="button"
+                onClick={() => aiFileInputRef.current?.click()}
+                className="p-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
+                title="Attach Media Photos/Videos"
+              >
+                <span className="text-sm">📎</span>
+                <span className="hidden sm:inline font-mono text-xs font-bold">Attach Files</span>
+              </button>
+
+              {/* Attach Folder Button */}
+              <button
+                type="button"
+                onClick={() => aiFolderInputRef.current?.click()}
+                className="hidden md:flex p-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white transition-colors cursor-pointer items-center gap-1.5 shrink-0"
+                title="Attach an entire shoot or project folder"
+              >
+                <span className="text-sm">📁</span>
+                <span className="font-mono text-xs font-bold">Attach Folder</span>
+              </button>
+
+              {/* Text Input */}
               <input
                 type="text"
                 value={aiChatInput}
                 onChange={(e) => setAiChatInput(e.target.value)}
-                placeholder="Ask your studio director anything (e.g. 'How should we pace the 65/35 Bento for high-contrast fashion?')..."
-                className="flex-1 p-3.5 rounded-xl bg-black/60 border border-white/[0.1] text-white font-mono text-xs outline-none focus:border-white/30 placeholder:text-neutral-600"
+                placeholder={
+                  aiAttachedFiles.length > 0
+                    ? `Tell AI what to do with these ${aiAttachedFiles.length} files (e.g. "Create a project named KALADHAR with a luxury synopsis")...`
+                    : "Talk with AI or drop photos/folders here (e.g. 'Write an editorial overview for KALADHAR')..."
+                }
+                className="flex-1 bg-transparent px-3 py-2 text-white font-mono text-xs outline-none placeholder:text-neutral-500"
               />
+
+              {/* Send Button */}
               <button
                 type="submit"
-                disabled={isAiChatSending || !aiChatInput.trim()}
-                className="px-6 py-3.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                disabled={isAiChatSending || (!aiChatInput.trim() && aiAttachedFiles.length === 0)}
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-40 disabled:hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 shadow-md flex items-center gap-1.5"
               >
-                Send
+                <span>↵</span>
+                <span className="hidden sm:inline">Send &amp; Direct</span>
               </button>
             </form>
+
+            {/* Quick Action Suggestion Chips (Minimal & Clean) */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[11px]">
+              <span className="text-neutral-500 font-bold">Suggestions:</span>
+              <button
+                type="button"
+                onClick={() => aiFileInputRef.current?.click()}
+                className="px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 transition-colors cursor-pointer border border-white/[0.06]"
+              >
+                📎 Upload &amp; Create Project
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendAiChat('Draft an elevated editorial synopsis for KALADHAR with lighting and textile notes.')}
+                disabled={isAiChatSending}
+                className="px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 transition-colors cursor-pointer border border-white/[0.06]"
+              >
+                ✨ Write Synopsis for KALADHAR
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendAiChat('Draft a technical 4-paragraph journal essay on Tactile Lighting in Haute Couture for my /blog.')}
+                disabled={isAiChatSending}
+                className="px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 transition-colors cursor-pointer border border-white/[0.06]"
+              >
+                ✍️ Draft Journal Essay
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendAiChat('Audit my existing campaigns and advise which deliverables to showcase first.')}
+                disabled={isAiChatSending}
+                className="px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 transition-colors cursor-pointer border border-white/[0.06]"
+              >
+                🔍 Audit Portfolio
+              </button>
+            </div>
           </div>
         </section>
       )}
