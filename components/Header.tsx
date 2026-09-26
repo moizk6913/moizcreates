@@ -121,8 +121,8 @@ export default function Header({ visible = true }: HeaderProps) {
           visible && !scrolledDown ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
         }`}
       >
-        {/* LEFT NAV LINKS (Desktop: WORK, PLAYGROUND) */}
-        <div className="hidden md:flex items-center gap-8 lg:gap-12 pointer-events-auto flex-1 justify-start">
+        {/* LEFT NAV LINKS (Desktop: WORK, PLAYGROUND, ARCHIVE) */}
+        <div className="hidden md:flex items-center gap-7 lg:gap-10 pointer-events-auto flex-1 justify-start">
           <Link
             href="/#work"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
@@ -134,6 +134,12 @@ export default function Header({ visible = true }: HeaderProps) {
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
             PLAYGROUND
+          </Link>
+          <Link
+            href="/canvas?view=archive"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
+          >
+            ARCHIVE
           </Link>
         </div>
 
@@ -157,13 +163,19 @@ export default function Header({ visible = true }: HeaderProps) {
           </Link>
         </div>
 
-        {/* RIGHT NAV LINKS (Desktop: ARCHIVE, CONTACT, 5-Dot Activity Indicator, Live Worldwide Clock) */}
+        {/* RIGHT NAV LINKS (Desktop: ABOUT, JOURNAL, CONTACT, 5-Dot Activity Indicator, Live Worldwide Clock) */}
         <div className="hidden md:flex items-center gap-6 lg:gap-8 pointer-events-auto flex-1 justify-end">
           <Link
-            href="/canvas?view=archive"
+            href="/about"
             className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
           >
-            ARCHIVE
+            ABOUT
+          </Link>
+          <Link
+            href="/blog"
+            className="font-display font-black text-sm uppercase tracking-widest text-black hover:text-neutral-500 transition-colors"
+          >
+            JOURNAL
           </Link>
           <Link
             href="/#contact"
@@ -230,6 +242,8 @@ export default function Header({ visible = true }: HeaderProps) {
               { label: 'WORK', href: '/#work' },
               { label: 'PLAYGROUND', href: '/canvas?view=playground' },
               { label: 'ARCHIVE', href: '/canvas?view=archive' },
+              { label: 'ABOUT', href: '/about' },
+              { label: 'JOURNAL', href: '/blog' },
               { label: 'CONTACT', href: '/#contact' },
             ].map((link) => (
               <Link

@@ -168,6 +168,12 @@ export default function Contact() {
                   <Link href="/canvas?view=archive" className="hover:text-neutral-500 transition-colors">
                     ARCHIVE
                   </Link>
+                  <Link href="/about" className="hover:text-neutral-500 transition-colors">
+                    ABOUT
+                  </Link>
+                  <Link href="/blog" className="hover:text-neutral-500 transition-colors">
+                    JOURNAL
+                  </Link>
                 </nav>
                 <p className="font-britti font-normal text-[11px] sm:text-xs text-neutral-500 uppercase tracking-wide">
                   NAVIGATE PORTFOLIO

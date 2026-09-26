@@ -22,7 +22,9 @@ export default function AboutPage() {
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault();
-    navigator.clipboard.writeText('hiremoiz.work@gmail.com');
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText('hiremoiz.work@gmail.com');
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2200);
   };

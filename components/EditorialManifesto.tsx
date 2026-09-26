@@ -47,6 +47,7 @@ export default function EditorialManifesto({ userPhotos }: EditorialManifestoPro
 
   // Pill live shutter asset cycling using direct DOM updates (zero React re-renders = silky 60/120fps scroll)
   useEffect(() => {
+    if (!pool1.length || !pool2.length) return;
     let idx1 = 0;
     let idx2 = Math.min(2, pool2.length - 1);
 

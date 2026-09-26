@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import CustomCursor from '@/components/CustomCursor';
-import { BlogPost } from '@/lib/blogData';
+import { BlogPost, INITIAL_BLOG_POSTS } from '@/lib/blogData';
 import { getStoredBlogPosts } from '@/lib/contentStore';
 
 const CATEGORIES = ['ALL', 'LIGHTING & ON-SET', 'TYPOGRAPHY', 'MOTION & EDITORIAL', 'CASE STUDY'] as const;
 
 export default function BlogIndexPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>(INITIAL_BLOG_POSTS);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
 
   useEffect(() => {

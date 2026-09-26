@@ -210,7 +210,8 @@ export default function HeroScatter({ onOpenCase }: HeroScatterProps) {
                 src={item.img}
                 alt="Director Still"
                 className="w-full h-full object-cover block border-0 outline-none select-none"
-                loading="lazy"
+                loading={idx < 4 ? 'eager' : 'lazy'}
+                fetchPriority={idx === 0 ? 'high' : undefined}
                 onError={(e) => {
                   e.currentTarget.src = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600&auto=format&fit=crop';
                 }}

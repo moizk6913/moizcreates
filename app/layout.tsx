@@ -53,7 +53,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://moizkhan.com'),
+  metadataBase: new URL('https://moizcreates.com'),
   title: {
     default: 'Moiz Khan — Brand Visual Designer & Art Director',
     template: '%s | Moiz Khan Studio',
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     title: 'Moiz Khan — Brand Visual Designer & Art Director',
     description:
       'Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production. Hyderabad / Worldwide.',
-    url: 'https://moizkhan.com',
+    url: 'https://moizcreates.com',
     siteName: 'Moiz Khan Studio',
     locale: 'en_US',
     type: 'website',
@@ -102,25 +102,25 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Person',
-      '@id': 'https://moizkhan.com/#person',
+      '@id': 'https://moizcreates.com/#person',
       name: 'Moiz Khan',
       jobTitle: 'Brand Visual Designer & Art Director',
-      url: 'https://moizkhan.com',
+      url: 'https://moizcreates.com',
       sameAs: [
-        'https://www.linkedin.com/in/moiz-khan',
-        'https://instagram.com/moizkhan',
+        'https://www.linkedin.com/in/moizcreates/',
+        'https://instagram.com/moizcreates_/',
       ],
       description:
         'Brand Visual Designer and Art Director specializing in branding, campaigns, and visual production.',
     },
     {
       '@type': 'WebSite',
-      '@id': 'https://moizkhan.com/#website',
-      url: 'https://moizkhan.com',
+      '@id': 'https://moizcreates.com/#website',
+      url: 'https://moizcreates.com',
       name: 'Moiz Khan Studio',
       description: 'Creative Archive of Moiz Khan — Brand Visual Designer & Art Director.',
       publisher: {
-        '@id': 'https://moizkhan.com/#person',
+        '@id': 'https://moizcreates.com/#person',
       },
     },
   ],
