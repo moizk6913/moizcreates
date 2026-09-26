@@ -4,7 +4,8 @@ import { db } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://moizcreates.com';
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const baseUrl = (envUrl && !envUrl.includes('moizkhan')) ? envUrl : 'https://moizcreates.com';
 
   // Static routes
   const routes: MetadataRoute.Sitemap = [
