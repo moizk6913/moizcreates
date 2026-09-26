@@ -340,9 +340,6 @@ export default function AdminPage() {
   const [seoConfig, setSeoConfig] = useState<SeoConfig>({});
   const [statusNotification, setStatusNotification] = useState<string | null>(null);
 
-  // Google AI Studio Dual-Sidebar Pro Studio Architecture State
-  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [inspectorProjectId, setInspectorProjectId] = useState<string>('');
   const [inspectorTitle, setInspectorTitle] = useState('');
   const [inspectorClient, setInspectorClient] = useState('');
@@ -2043,59 +2040,94 @@ export default function AdminPage() {
       />
 
       {/* ============================================================ */}
-      {/* TOP GOOGLE AI STUDIO BAR (h-14 / 56px)                       */}
+      {/* TOP STUDIO DESK HEADER (h-14 / 56px) - ULTRA MINIMALIST     */}
       {/* ============================================================ */}
       <header className="h-14 shrink-0 bg-[#121214] border-b border-white/[0.08] px-4 sm:px-6 flex items-center justify-between z-40">
+        {/* Brand / Return to Site */}
         <div className="flex items-center gap-3">
-          {/* Toggle Left Sidebar */}
-          <button
-            type="button"
-            onClick={() => setIsLeftSidebarOpen((prev) => !prev)}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer border ${
-              isLeftSidebarOpen
-                ? 'bg-white/10 text-white border-white/20'
-                : 'text-neutral-400 hover:text-white hover:bg-white/[0.06] border-transparent'
-            }`}
-            title="Toggle Left Navigation Sidebar"
-          >
-            <span className="text-sm">◨</span>
-            <span className="hidden sm:inline text-[11px] font-bold">Nav</span>
-          </button>
-
-          <div className="h-4 w-px bg-white/10" />
-
           <Link
             href="/"
-            className="font-mono text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5 font-bold"
+            className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
+            title="Return to Live Website"
           >
-            <span>←</span>
-            <span className="hidden md:inline">Return to Portfolio</span>
+            <span className="font-display font-black text-sm tracking-wider uppercase">moizcreates</span>
+            <span className="text-[11px] font-mono text-neutral-400">/ studio</span>
           </Link>
-
-          <div className="h-4 w-px bg-white/10 hidden sm:block" />
-
-          <div className="flex items-center gap-2">
-            <span className="font-display font-black text-xs uppercase tracking-wider text-white">
-              Studio Console
-            </span>
-            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-white/10 text-white font-mono text-[9px] font-bold uppercase">
-              Pro Studio
-            </span>
-          </div>
         </div>
 
-        {/* Center Live Engine Status */}
-        <div className="hidden lg:flex items-center gap-3 px-3 py-1 rounded-full bg-black/50 border border-white/[0.08] text-[11px] font-mono">
-          <span className="flex items-center gap-1.5 text-amber-300 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            Gemini 3.5 Flash
-          </span>
-          <span className="text-neutral-600">•</span>
-          <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Supabase CDN
-          </span>
-        </div>
+        {/* Center Primary Tab Switcher */}
+        <nav className="flex items-center gap-1 p-1 bg-black/60 rounded-full border border-white/[0.08] text-xs font-mono">
+          <button
+            type="button"
+            onClick={() => { setActiveView('projects'); setSelectedProjectId(null); }}
+            className={`px-3.5 py-1.5 rounded-full font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeView === 'projects' || activeView === 'single_project' || activeView === 'all_work' || activeView === 'playground'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>🖼️</span>
+            <span>Gallery</span>
+            <span className="text-[10px] opacity-75">({projects.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setActiveView('ai_director'); setSelectedProjectId(null); }}
+            className={`px-3.5 py-1.5 rounded-full font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeView === 'ai_director'
+                ? 'bg-amber-400 text-black shadow-sm font-bold'
+                : 'text-amber-300 hover:text-white hover:bg-amber-400/10'
+            }`}
+          >
+            <span>✨</span>
+            <span>AI Studio</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setActiveView('journal'); setSelectedProjectId(null); }}
+            className={`hidden md:flex px-3.5 py-1.5 rounded-full font-bold transition-all cursor-pointer items-center gap-1.5 ${
+              activeView === 'journal'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>✍️</span>
+            <span>Journal</span>
+            <span className="text-[10px] opacity-75">({posts.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setActiveView('inquiries'); setSelectedProjectId(null); }}
+            className={`px-3.5 py-1.5 rounded-full font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeView === 'inquiries'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>📬</span>
+            <span className="hidden sm:inline">Inquiries</span>
+            {inquiries.some((iq) => iq.status === 'new') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            )}
+            <span className="text-[10px] opacity-75">({inquiries.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setActiveView('settings'); setSelectedProjectId(null); }}
+            className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeView === 'settings'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <span>⚙️</span>
+            <span className="hidden sm:inline">Settings</span>
+          </button>
+        </nav>
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -2103,10 +2135,10 @@ export default function AdminPage() {
             type="button"
             onClick={() => folderInputRef.current?.click()}
             className="hidden sm:flex px-3.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all items-center gap-1.5 cursor-pointer"
-            title="Upload Complete Project Folder (KALADHAR/, etc.)"
+            title="Upload Complete Project Folder"
           >
             <span>📁</span>
-            <span>Ingest Folder</span>
+            <span>Upload Folder</span>
           </button>
 
           <button
@@ -2122,21 +2154,6 @@ export default function AdminPage() {
             <span>Add Work</span>
           </button>
 
-          {/* Toggle Right Inspector */}
-          <button
-            type="button"
-            onClick={() => setIsRightSidebarOpen((prev) => !prev)}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer border ${
-              isRightSidebarOpen
-                ? 'bg-white/10 text-white border-white/20'
-                : 'text-neutral-400 hover:text-white hover:bg-white/[0.06] border-transparent'
-            }`}
-            title="Toggle Directorial Inspector"
-          >
-            <span className="text-sm">◧</span>
-            <span className="hidden sm:inline text-[11px] font-bold">Inspector</span>
-          </button>
-
           <button
             type="button"
             onClick={handleLogout}
@@ -2150,222 +2167,11 @@ export default function AdminPage() {
       </header>
 
       {/* ============================================================ */}
-      {/* 3-COLUMN WORKSPACE: LEFT NAV + CENTER CANVAS + RIGHT INSPECTOR */}
+      {/* FULL-WIDTH CREATIVE WORKSPACE                                */}
       {/* ============================================================ */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* LEFT STUDIO NAVIGATION SIDEBAR */}
-        {isLeftSidebarOpen && (
-          <aside className="fixed lg:relative inset-y-0 left-0 z-30 lg:z-20 w-72 lg:w-64 shrink-0 bg-[#101013] border-r border-white/[0.08] flex flex-col justify-between overflow-y-auto select-none shadow-2xl lg:shadow-none">
-            <div className="p-4 space-y-6">
-              {/* Studio Desk Label */}
-              <div className="px-2 pt-1 flex items-center justify-between">
-                <div>
-                  <h2 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                    Studio Desk
-                  </h2>
-                  <p className="font-mono text-[10px] text-neutral-400">
-                    Moiz Khan Visual Direction
-                  </p>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20" title="Connected to Supabase Cloud" />
-              </div>
-
-              {/* Group 1: ARCHIVE */}
-              <div className="space-y-1">
-                <div className="px-2 text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                  Archive Library
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('all_work'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'all_work'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">📁</span>
-                    <span>All Deliverables</span>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                    activeView === 'all_work' ? 'bg-black/10 text-black' : 'bg-white/[0.08] text-neutral-400'
-                  }`}>
-                    {works.length}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('projects'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'projects' || activeView === 'single_project'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">🗂️</span>
-                    <span>Projects</span>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                    activeView === 'projects' || activeView === 'single_project'
-                      ? 'bg-black/10 text-black'
-                      : 'bg-white/[0.08] text-neutral-400'
-                  }`}>
-                    {projects.length}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('playground'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'playground'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">⚡</span>
-                    <span>Playground Lab</span>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                    activeView === 'playground' ? 'bg-black/10 text-black' : 'bg-white/[0.08] text-neutral-400'
-                  }`}>
-                    {playgroundWorks.length}
-                  </span>
-                </button>
-              </div>
-
-              {/* Group 2: AI CO-DIRECTOR */}
-              <div className="space-y-1">
-                <div className="px-2 text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                  AI Directing
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('ai_director'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'ai_director'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-amber-300 hover:text-white hover:bg-amber-400/10'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-amber-400 text-sm">✨</span>
-                    <span>AI Co-Director</span>
-                  </div>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 font-bold tracking-wide">
-                    3.5 FLASH
-                  </span>
-                </button>
-              </div>
-
-              {/* Group 3: EDITORIAL & CLIENTS */}
-              <div className="space-y-1">
-                <div className="px-2 text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                  Editorial &amp; Client
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('journal'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'journal'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">✍️</span>
-                    <span>Journal Essays</span>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                    activeView === 'journal' ? 'bg-black/10 text-black' : 'bg-white/[0.08] text-neutral-400'
-                  }`}>
-                    {posts.length}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('inquiries'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'inquiries'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">📬</span>
-                    <span>Client Inquiries</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {inquiries.some((iq) => iq.status === 'new') && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    )}
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                      activeView === 'inquiries' ? 'bg-black/10 text-black' : 'bg-white/[0.08] text-neutral-400'
-                    }`}>
-                      {inquiries.length}
-                    </span>
-                  </div>
-                </button>
-              </div>
-
-              {/* Group 4: SYSTEM & SETTINGS */}
-              <div className="space-y-1">
-                <div className="px-2 text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                  System
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setActiveView('settings'); setSelectedProjectId(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
-                    activeView === 'settings'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">⚙️</span>
-                    <span>System &amp; Cloud</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Actions of Left Sidebar */}
-            <div className="p-4 border-t border-white/[0.06] space-y-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setNewProjectTitle('');
-                  setNewProjectClient('');
-                  setNewProjectOverview('');
-                  setIsNewProjectModalOpen(true);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <span>+</span>
-                <span>New Project</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => folderInputRef.current?.click()}
-                className="w-full py-2.5 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-neutral-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
-                title="Recursively ingest an entire project folder"
-              >
-                <span>📁</span>
-                <span>Ingest Folder</span>
-              </button>
-            </div>
-          </aside>
-        )}
-
-        {/* SPACIOUS CENTER STAGE */}
-        <main className="flex-1 bg-[#09090b] overflow-y-auto flex flex-col relative focus:outline-none min-w-0">
+        {/* SPACIOUS FULL-WIDTH CENTER STAGE */}
+        <main className="flex-1 bg-[#09090b] overflow-y-auto flex flex-col relative focus:outline-none min-w-0 w-full">
           {/* TOAST NOTIFICATION BANNER */}
           {statusNotification && (
             <div className="fixed top-18 right-6 z-50 px-5 py-3 rounded-2xl bg-black/90 backdrop-blur-md border border-white/20 text-white font-mono text-xs font-bold shadow-2xl animate-fadeIn">
@@ -2408,6 +2214,54 @@ export default function AdminPage() {
       {/* ============================================================ */}
       {activeView === 'all_work' && (
         <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-6">
+          {/* Gallery Sub-Navigation Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveView('projects')}
+                className="px-4 py-2 rounded-full bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              >
+                🗂️ Projects ({projects.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('all_work')}
+                className="px-4 py-2 rounded-full bg-white text-black shadow-sm transition-all cursor-pointer"
+              >
+                📸 All Media ({works.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('playground')}
+                className="px-4 py-2 rounded-full bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              >
+                ⚡ Playground ({playgroundWorks.length})
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => folderInputRef.current?.click()}
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>📁</span>
+                <span>Upload Shoot Folder</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsNewProjectModalOpen(true)}
+                className="px-4 py-2 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <span>+</span>
+                <span>New Project</span>
+              </button>
+            </div>
+          </div>
+
           {/* Controls Bar: Search & Filter Chips */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-[#141416] p-4 sm:p-5 rounded-3xl border border-white/[0.06]">
             {/* Natural Language & Keyword Search */}
@@ -2630,23 +2484,63 @@ export default function AdminPage() {
       {/* ============================================================ */}
       {activeView === 'projects' && (
         <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          {/* Gallery Sub-Navigation Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveView('projects')}
+                className="px-4 py-2 rounded-full bg-white text-black shadow-sm transition-all cursor-pointer"
+              >
+                🗂️ Projects ({projects.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('all_work')}
+                className="px-4 py-2 rounded-full bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              >
+                📸 All Media ({works.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('playground')}
+                className="px-4 py-2 rounded-full bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              >
+                ⚡ Playground ({playgroundWorks.length})
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => folderInputRef.current?.click()}
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>📁</span>
+                <span>Upload Shoot Folder</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsNewProjectModalOpen(true)}
+                className="px-4 py-2 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <span>+</span>
+                <span>New Project</span>
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-display font-black text-2xl sm:text-3xl text-white uppercase tracking-tight">
-                Project Containers ({projects.length})
+                Visual Campaigns &amp; Projects ({projects.length})
               </h2>
               <p className="font-mono text-xs text-neutral-400 pt-1">
-                Optional containers representing larger campaigns or brand identities. Works exist independently.
+                Curated bodies of work, commercial photoshoots, and brand campaigns. Click any project to open its canvas.
               </p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setIsNewProjectModalOpen(true)}
-              className="px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer"
-            >
-              + New Project Container
-            </button>
           </div>
 
           {projects.length === 0 ? (
@@ -2725,21 +2619,6 @@ export default function AdminPage() {
                           </div>
 
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              title="Inspect & Edit in Right Sidebar"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setInspectorProjectId(project.id);
-                                setIsRightSidebarOpen(true);
-                                notifyUser(`Inspecting "${project.title}" in sidebar.`);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-white/[0.08] hover:bg-white/20 text-neutral-300 hover:text-white font-mono text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 border border-white/10"
-                            >
-                              <span>⚙️</span>
-                              <span>Inspect</span>
-                            </button>
-
                             <button
                               type="button"
                               title="Delete Project"
@@ -3088,6 +2967,54 @@ export default function AdminPage() {
       {/* ============================================================ */}
       {activeView === 'playground' && (
         <section className="flex-1 max-w-[1700px] w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+          {/* Gallery Sub-Navigation Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveView('projects')}
+                className="px-4 py-2 rounded-full bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              >
+                🗂️ Projects ({projects.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('all_work')}
+                className="px-4 py-2 rounded-full bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              >
+                📸 All Media ({works.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('playground')}
+                className="px-4 py-2 rounded-full bg-white text-black shadow-sm transition-all cursor-pointer"
+              >
+                ⚡ Playground ({playgroundWorks.length})
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => folderInputRef.current?.click()}
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>📁</span>
+                <span>Upload Shoot Folder</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsNewProjectModalOpen(true)}
+                className="px-4 py-2 rounded-full bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <span>+</span>
+                <span>New Project</span>
+              </button>
+            </div>
+          </div>
+
           {/* Header Bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
             <div>
@@ -3784,11 +3711,17 @@ export default function AdminPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setIsRightSidebarOpen(true)}
+                        onClick={() => {
+                          if (selectedProjectId) {
+                            setActiveView('single_project');
+                          } else {
+                            setActiveView('projects');
+                          }
+                        }}
                         className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/20 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
                       >
-                        <span>⚙️</span>
-                        <span>Open Inspector</span>
+                        <span>📁</span>
+                        <span>Open Project Canvas</span>
                       </button>
                     </div>
                   )}
@@ -4190,262 +4123,6 @@ export default function AdminPage() {
         </div>
       )}
         </main>
-
-        {/* RIGHT DIRECTORIAL INSPECTOR SIDEBAR */}
-        {isRightSidebarOpen && (
-          <aside className="fixed lg:relative inset-y-0 right-0 z-30 lg:z-20 w-80 shrink-0 bg-[#101013] border-l border-white/[0.08] flex flex-col justify-between overflow-y-auto select-none shadow-2xl lg:shadow-none">
-            <div className="p-5 space-y-6">
-              {/* Inspector Header */}
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">⚙️</span>
-                  <span className="font-display font-black text-xs uppercase tracking-wider text-white">
-                    Directorial Inspector
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold uppercase">
-                  Live Sync
-                </span>
-              </div>
-
-              {/* Active Target Project Selector */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold flex items-center justify-between">
-                  <span>Target Campaign</span>
-                  <span className="text-neutral-500 lowercase font-normal">{projects.length} available</span>
-                </label>
-                <select
-                  value={activeInspectorProject?.id || ''}
-                  onChange={(e) => {
-                    const nextId = e.target.value;
-                    setInspectorProjectId(nextId);
-                    if (activeView === 'single_project') {
-                      setSelectedProjectId(nextId);
-                    }
-                  }}
-                  className="w-full bg-black/60 border border-white/[0.12] rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-white/30 cursor-pointer"
-                >
-                  {projects.map((p) => {
-                    const count = works.filter((w) => w.projectId === p.id).length;
-                    return (
-                      <option key={p.id} value={p.id} className="bg-neutral-900 text-white">
-                        {p.title} ({count} works)
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              {/* In-Inspector Metadata Form (No Modals!) */}
-              {activeInspectorProject ? (
-                <div className="space-y-4">
-                  {/* Title & Deliverables Count */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                        Project Title
-                      </label>
-                      <span className="text-[10px] font-mono text-neutral-500">
-                        {inspectorProjectWorks.length} Assets
-                      </span>
-                    </div>
-                    <input
-                      type="text"
-                      value={inspectorTitle}
-                      onChange={(e) => setInspectorTitle(e.target.value)}
-                      placeholder="Project title..."
-                      className="w-full bg-black/60 border border-white/[0.1] rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-white/30"
-                    />
-                  </div>
-
-                  {/* Client & Year */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                        Client
-                      </label>
-                      <input
-                        type="text"
-                        value={inspectorClient}
-                        onChange={(e) => setInspectorClient(e.target.value)}
-                        placeholder="Client name"
-                        className="w-full bg-black/60 border border-white/[0.1] rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-white/30"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                        Year
-                      </label>
-                      <input
-                        type="text"
-                        value={inspectorYear}
-                        onChange={(e) => setInspectorYear(e.target.value)}
-                        placeholder="2026"
-                        className="w-full bg-black/60 border border-white/[0.1] rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-white/30"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Editorial Category Tag */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                      Category Tag
-                    </label>
-                    <input
-                      type="text"
-                      value={inspectorTag}
-                      onChange={(e) => setInspectorTag(e.target.value)}
-                      placeholder="e.g. HAUTE COUTURE / CAMPAIGN"
-                      className="w-full bg-black/60 border border-white/[0.1] rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-white/30"
-                    />
-                  </div>
-
-                  {/* Directorial Overview & AI Generation */}
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                        Narrative Synopsis
-                      </label>
-                      <span className="text-[9px] font-mono text-amber-300 font-bold">Gemini 3.5</span>
-                    </div>
-                    <textarea
-                      value={inspectorOverview}
-                      onChange={(e) => setInspectorOverview(e.target.value)}
-                      rows={5}
-                      placeholder="Directorial overview, lighting notes, or campaign intent..."
-                      className="w-full bg-black/60 border border-white/[0.1] rounded-xl p-3 text-xs font-mono text-neutral-200 outline-none focus:border-white/30 resize-none leading-relaxed"
-                    />
-                    
-                    {/* 1-Click AI Generate Button */}
-                    <button
-                      type="button"
-                      onClick={handleInspectorAiGenerate}
-                      disabled={isInspectorAiGenerating}
-                      className="w-full py-2 px-3 rounded-xl bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/30 text-amber-300 font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {isInspectorAiGenerating ? (
-                        <>
-                          <div className="w-3.5 h-3.5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
-                          <span>Gemini Drafting Synopsis...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>✨</span>
-                          <span>AI Write Editorial Synopsis</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Save Project Metadata Button */}
-                  <button
-                    type="button"
-                    onClick={handleSaveInspectorProject}
-                    disabled={isInspectorSaving}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-md"
-                  >
-                    {isInspectorSaving ? (
-                      <>
-                        <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                        <span>Syncing to Supabase...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>💾</span>
-                        <span>Save Changes to Cloud</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Layout Presets */}
-                  <div className="pt-3 border-t border-white/[0.06] space-y-2">
-                    <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold block">
-                      Public Campaign Layout
-                    </label>
-                    <div className="grid grid-cols-3 gap-1.5 text-[11px] font-mono">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setInspectorLayoutPreset('bento');
-                          notifyUser('Set Bento (65/35) geometry for ' + (inspectorTitle || activeInspectorProject.title));
-                        }}
-                        className={`py-2 px-1 rounded-lg text-center transition-all cursor-pointer ${
-                          inspectorLayoutPreset === 'bento'
-                            ? 'bg-white text-black font-bold'
-                            : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400'
-                        }`}
-                      >
-                        Bento
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setInspectorLayoutPreset('lookbook');
-                          notifyUser('Set A4 Lookbook geometry for ' + (inspectorTitle || activeInspectorProject.title));
-                        }}
-                        className={`py-2 px-1 rounded-lg text-center transition-all cursor-pointer ${
-                          inspectorLayoutPreset === 'lookbook'
-                            ? 'bg-white text-black font-bold'
-                            : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400'
-                        }`}
-                      >
-                        Lookbook
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setInspectorLayoutPreset('stories');
-                          notifyUser('Set 9:16 Stories geometry for ' + (inspectorTitle || activeInspectorProject.title));
-                        }}
-                        className={`py-2 px-1 rounded-lg text-center transition-all cursor-pointer ${
-                          inspectorLayoutPreset === 'stories'
-                            ? 'bg-white text-black font-bold'
-                            : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400'
-                        }`}
-                      >
-                        Stories
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center font-mono text-xs text-neutral-500">
-                  No project created yet. Click "+ New Project" in the left navigation to begin.
-                </div>
-              )}
-            </div>
-
-            {/* Cloud Engine Status Box in Inspector Bottom */}
-            <div className="p-4 border-t border-white/[0.06] space-y-2 bg-[#0c0c0e]">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                Cloud Architecture
-              </div>
-              <div className="space-y-1.5 text-[11px] font-mono">
-                <div className="flex items-center justify-between text-neutral-400">
-                  <span>Supabase Storage</span>
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    25GB Ready
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-neutral-400">
-                  <span>Postgres State</span>
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    ACID Synced
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-neutral-400">
-                  <span>Gemini Model</span>
-                  <span className="text-amber-300 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    3.5-flash
-                  </span>
-                </div>
-              </div>
-            </div>
-          </aside>
-        )}
       </div>
 
       {/* ============================================================ */}
