@@ -93,14 +93,14 @@ export default function ArchiveFolderCard({
       {/* FOLDER STAGE: 220px Wide x 185px Tall */}
       <div className="relative w-[220px] h-[185px] flex items-end justify-center">
 
-        {/* LAYER 1: BACK FOLDER PLATE (Warm grey cardstock / aluminum squircle, 220px x 150px) */}
-        <div className="absolute bottom-0 w-[220px] h-[150px] rounded-[26px] bg-gradient-to-b from-[#e1ded8] via-[#d5d2ca] to-[#c7c4bb] shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.06]" />
+        {/* LAYER 1: BACK FOLDER PLATE (Luminous Apple warm grey squircle, 220px x 150px) */}
+        <div className="absolute bottom-0 w-[220px] h-[150px] rounded-[26px] bg-gradient-to-b from-[#eeebe6] to-[#e4e2dc] shadow-[0_14px_32px_-6px_rgba(0,0,0,0.06),0_4px_12px_-2px_rgba(0,0,0,0.02)] border border-white/70" />
 
         {/* LAYER 2: 3 FANNED-OUT PHOTO PRINTS */}
         {/* Strictly clipped at bottom with rounded-b-[26px] so no photo can EVER poke out from the bottom! */}
         <div className="absolute bottom-0 w-[220px] h-[180px] flex items-end justify-center pointer-events-none z-10 overflow-hidden rounded-b-[26px]">
           {/* Left Photo (Tilted -14deg) */}
-          <div className="absolute bottom-[24px] w-[90px] h-[116px] p-1 bg-white rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.16)] transform -rotate-12 -translate-x-8 group-hover:-rotate-[16deg] group-hover:-translate-x-10 transition-transform duration-400 ease-out overflow-hidden">
+          <div className="absolute bottom-[24px] w-[90px] h-[116px] p-1 bg-white rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.12)] transform -rotate-12 -translate-x-8 group-hover:-rotate-[16deg] group-hover:-translate-x-10 transition-transform duration-400 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img1}
@@ -110,7 +110,7 @@ export default function ArchiveFolderCard({
           </div>
 
           {/* Center Photo (Standing Highest, Upright) */}
-          <div className="absolute bottom-[36px] w-[96px] h-[124px] p-1 bg-white rounded-[12px] shadow-[0_10px_24px_rgba(0,0,0,0.20)] z-10 transform group-hover:-translate-y-2 transition-transform duration-400 ease-out overflow-hidden">
+          <div className="absolute bottom-[36px] w-[96px] h-[124px] p-1 bg-white rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] z-10 transform group-hover:-translate-y-2 transition-transform duration-400 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img2}
@@ -120,7 +120,7 @@ export default function ArchiveFolderCard({
           </div>
 
           {/* Right Photo (Tilted +14deg) */}
-          <div className="absolute bottom-[24px] w-[90px] h-[116px] p-1 bg-white rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.16)] transform rotate-12 translate-x-8 group-hover:rotate-[16deg] group-hover:translate-x-10 transition-transform duration-400 ease-out overflow-hidden">
+          <div className="absolute bottom-[24px] w-[90px] h-[116px] p-1 bg-white rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.12)] transform rotate-12 translate-x-8 group-hover:rotate-[16deg] group-hover:translate-x-10 transition-transform duration-400 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img3}
@@ -139,28 +139,28 @@ export default function ArchiveFolderCard({
                 <path d={flapPath} />
               </clipPath>
               <linearGradient id={gradId} x1="0" y1="0" x2="0.3" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
-                <stop offset="45%" stopColor="#f3f4f6" stopOpacity="0.50" />
-                <stop offset="100%" stopColor="#e5e7eb" stopOpacity="0.35" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
+                <stop offset="50%" stopColor="#f8f9fa" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#f1f3f5" stopOpacity="0.15" />
               </linearGradient>
               <linearGradient id={strokeId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.40" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.70" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.90" />
+                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.45" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.65" />
               </linearGradient>
             </defs>
           </svg>
 
-          {/* Frosted Glass Background with Backdrop Blur */}
+          {/* Frosted Glass Background with Backdrop Blur (Zero harsh drop shadow!) */}
           <div
             style={{ clipPath: `url(#${clipId})`, WebkitClipPath: `url(#${clipId})` }}
-            className="absolute inset-0 backdrop-blur-xl bg-gradient-to-br from-white/70 via-white/50 to-white/35 shadow-[0_12px_28px_rgba(0,0,0,0.10)]"
+            className="absolute inset-0 backdrop-blur-xl bg-white/35"
           />
 
           {/* SVG Vector Outline Border & Specular Shine */}
           <svg
             viewBox="0 0 220 115"
-            className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.06)]"
+            className="absolute inset-0 w-full h-full pointer-events-none"
             fill="none"
           >
             <path
