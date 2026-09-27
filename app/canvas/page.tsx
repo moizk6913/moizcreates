@@ -530,6 +530,8 @@ function InfiniteCanvasContent() {
         const effectiveTab = hasSections
           ? (activeTab === 'all' || !sectionGroups.some((g) => g.id === activeTab) ? defaultTab : activeTab)
           : activeTab;
+        const firstTabId = defaultTab;
+        const isFirstTab = effectiveTab === firstTabId;
 
         // Flatten all items across all groups for global lightbox indexing
         const flatSectionDeliverables = hasSections
@@ -721,10 +723,10 @@ function InfiniteCanvasContent() {
               >
 
               {/* ======================================================= */}
-              {/* 1. DEDICATED PROJECT STATEMENT & OVERVIEW (Deliverables tab only) */}
+              {/* 1. DEDICATED PROJECT STATEMENT & OVERVIEW (First tab always displays narrative) */}
               {/* Brand Name & Paragraph ONLY on clean canvas */}
               {/* ======================================================= */}
-              {activeTab === 'all' && (
+              {isFirstTab && (
                 <section
                   style={{
                     marginBottom: 'var(--modal-overview-gap, 34px)',
