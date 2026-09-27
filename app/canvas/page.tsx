@@ -16,7 +16,6 @@ import ArchiveDirectorDesk from '@/components/ArchiveDirectorDesk';
 import { get35CuratedDeliverables, DeliverableAsset } from '@/lib/archiveDeliverables';
 
 import { DEFAULT_DISCIPLINE_FOLDERS, ArchiveFile } from '@/lib/defaultDisciplines';
-export type { ArchiveFile };
 
 function mergeDisciplinesWithUploads(uploadedFiles: any[]): ArchiveFile[] {
   if (!uploadedFiles || uploadedFiles.length === 0) {
@@ -100,6 +99,76 @@ function mergeDisciplinesWithUploads(uploadedFiles: any[]): ArchiveFile[] {
   });
 
   return merged;
+}
+
+interface SectionGroup {
+  id: string;
+  label: string;
+  count: number;
+  sections: any[];
+}
+
+function getProjectSectionGroups(projectSections: any[] = []): SectionGroup[] {
+  const sectionGroups: SectionGroup[] = [];
+  const assignedIds = new Set<string>();
+
+  const addGroup = (id: string, label: string, matcher: (s: any) => boolean) => {
+    const matches = projectSections.filter((s) => !assignedIds.has(s.id) && matcher(s));
+    if (matches.length > 0) {
+      matches.forEach((s) => assignedIds.add(s.id));
+      const totalCount = matches.reduce((sum, s) => sum + (s.items?.length || 0), 0);
+      sectionGroups.push({
+        id,
+        label,
+        count: totalCount,
+        sections: matches,
+      });
+    }
+  };
+
+  // 1. Catalogue / Lookbook Spreads
+  addGroup('catalogue', 'Catalogue', (s) => {
+    const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+    return norm.includes('catalogue') || norm.includes('catalog') || norm.includes('lookbook');
+  });
+
+  // 2. Web Banners
+  addGroup('banners', 'Web Banners', (s) => {
+    const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+    return norm.includes('banner') && !norm.includes('standee');
+  });
+
+  // 3. Standees
+  addGroup('standees', 'Standees', (s) => {
+    const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+    return norm.includes('standee');
+  });
+
+  // 4. Stories / Reels (Story 1, Story 2, Story 3 all together in 1 group)
+  addGroup('stories', 'Stories', (s) => {
+    const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+    return norm.includes('story') || norm.includes('stories') || norm.includes('sotry') || norm.includes('reel') || s.type === 'stories';
+  });
+
+  // 5. Grids / Feeds (Grid 1 to Grid 6 all together in 1 group)
+  addGroup('grids', 'Grids', (s) => {
+    const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+    return norm.includes('grid') || norm.includes('feed') || s.type === 'grid';
+  });
+
+  // 6. Any other remaining custom sections
+  projectSections.forEach((s) => {
+    if (!assignedIds.has(s.id)) {
+      sectionGroups.push({
+        id: s.id || s.title.toLowerCase().replace(/\s+/g, '-'),
+        label: s.title,
+        count: s.items?.length || 0,
+        sections: [s],
+      });
+    }
+  });
+
+  return sectionGroups;
 }
 
 const DISCIPLINE_FILE_MAP: Record<string, string> = {
@@ -208,7 +277,8 @@ function InfiniteCanvasContent() {
     if (match) {
       hasAutoNavigatedRef.current = targetKey;
       setSelectedFile(match);
-      setActiveTab('all');
+      const groups = match.sections && match.sections.length > 0 ? getProjectSectionGroups(match.sections) : [];
+      setActiveTab(groups.length > 0 ? groups[0].id : 'all');
       setEnlargedIndex(null);
     }
   }, [disciplineParam, folderParam, allFiles]);
@@ -440,7 +510,8 @@ function InfiniteCanvasContent() {
           files={allFiles}
           onSelectFile={(file) => {
             setSelectedFile(file);
-            setActiveTab('all');
+            const groups = file.sections && file.sections.length > 0 ? getProjectSectionGroups(file.sections) : [];
+            setActiveTab(groups.length > 0 ? groups[0].id : 'all');
             setEnlargedIndex(null);
           }}
         />
@@ -454,75 +525,11 @@ function InfiniteCanvasContent() {
       {/* Project Detail Lightbox Modal (High-Fashion Directorial Monograph & Archival Dossier) */}
       {selectedFile && (() => {
         const hasSections = Boolean(selectedFile.sections && selectedFile.sections.length > 0);
-        const projectSections = (selectedFile.sections || []) as any[];
-
-        // Group related subfolders into unified chapters (e.g. all Stories in 1 tab, all Grids in 1 tab)
-        const sectionGroups: Array<{
-          id: string;
-          label: string;
-          count: number;
-          sections: any[];
-        }> = [];
-
-        if (hasSections) {
-          const assignedIds = new Set<string>();
-
-          const addGroup = (id: string, label: string, matcher: (s: any) => boolean) => {
-            const matches = projectSections.filter((s) => !assignedIds.has(s.id) && matcher(s));
-            if (matches.length > 0) {
-              matches.forEach((s) => assignedIds.add(s.id));
-              const totalCount = matches.reduce((sum, s) => sum + (s.items?.length || 0), 0);
-              sectionGroups.push({
-                id,
-                label,
-                count: totalCount,
-                sections: matches,
-              });
-            }
-          };
-
-          // 1. Catalogue / Lookbook Spreads
-          addGroup('catalogue', 'Catalogue', (s) => {
-            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
-            return norm.includes('catalogue') || norm.includes('catalog') || norm.includes('lookbook');
-          });
-
-          // 2. Web Banners
-          addGroup('banners', 'Web Banners', (s) => {
-            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
-            return norm.includes('banner') && !norm.includes('standee');
-          });
-
-          // 3. Standees
-          addGroup('standees', 'Standees', (s) => {
-            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
-            return norm.includes('standee');
-          });
-
-          // 4. Stories / Reels (Story 1, Story 2, Story 3 all together in 1 group!)
-          addGroup('stories', 'Stories', (s) => {
-            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
-            return norm.includes('story') || norm.includes('stories') || norm.includes('sotry') || norm.includes('reel') || s.type === 'stories';
-          });
-
-          // 5. Grids / Feeds (Grid 1 to Grid 6 all together in 1 group!)
-          addGroup('grids', 'Grids', (s) => {
-            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
-            return norm.includes('grid') || norm.includes('feed') || s.type === 'grid';
-          });
-
-          // 6. Any other remaining custom sections
-          projectSections.forEach((s) => {
-            if (!assignedIds.has(s.id)) {
-              sectionGroups.push({
-                id: s.id || s.title.toLowerCase().replace(/\s+/g, '-'),
-                label: s.title,
-                count: s.items?.length || 0,
-                sections: [s],
-              });
-            }
-          });
-        }
+        const sectionGroups = hasSections ? getProjectSectionGroups(selectedFile.sections) : [];
+        const defaultTab = hasSections ? (sectionGroups[0]?.id || 'catalogue') : 'all';
+        const effectiveTab = hasSections
+          ? (activeTab === 'all' || !sectionGroups.some((g) => g.id === activeTab) ? defaultTab : activeTab)
+          : activeTab;
 
         // Flatten all items across all groups for global lightbox indexing
         const flatSectionDeliverables = hasSections
@@ -548,8 +555,8 @@ function InfiniteCanvasContent() {
         const displayedDeliverables = hasSections
           ? []
           : curatedDeliverables.filter((asset) => {
-              if (activeTab === 'all') return true;
-              return asset.type === activeTab;
+              if (effectiveTab === 'all') return true;
+              return asset.type === effectiveTab;
             });
 
         return (
@@ -605,36 +612,21 @@ function InfiniteCanvasContent() {
 
                   {/* Internal Detail View Navigation: Deliverables / Custom Subfolders */}
                   <nav className="flex items-center overflow-x-auto no-scrollbar gap-1 sm:gap-2 text-xs sm:text-sm font-semibold py-0.5 ml-1 sm:ml-4">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('all')}
-                      className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                        activeTab === 'all'
-                          ? 'bg-black text-white font-bold shadow-xs'
-                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
-                      }`}
-                    >
-                      {hasSections ? `All (${flatSectionDeliverables.length})` : 'Deliverables'}
-                    </button>
-
                     {hasSections ? (
                       sectionGroups.map((group) => {
-                        const isSelected = activeTab === group.id;
+                        const isSelected = effectiveTab === group.id;
                         return (
                           <button
                             key={group.id}
                             type="button"
                             onClick={() => setActiveTab(group.id)}
-                            className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                            className={`px-3.5 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap text-xs sm:text-sm ${
                               isSelected
                                 ? 'bg-black text-white font-bold shadow-xs'
                                 : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                             }`}
                           >
-                            <span>{group.label}</span>
-                            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-neutral-200/60 text-neutral-500'}`}>
-                              {group.count}
-                            </span>
+                            {group.label}
                           </button>
                         );
                       })
@@ -642,9 +634,20 @@ function InfiniteCanvasContent() {
                       <>
                         <button
                           type="button"
+                          onClick={() => setActiveTab('all')}
+                          className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                            effectiveTab === 'all'
+                              ? 'bg-black text-white font-bold shadow-xs'
+                              : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                          }`}
+                        >
+                          Deliverables
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setActiveTab('stills')}
                           className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                            activeTab === 'stills'
+                            effectiveTab === 'stills'
                               ? 'bg-black text-white font-bold shadow-xs'
                               : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                           }`}
@@ -655,7 +658,7 @@ function InfiniteCanvasContent() {
                           type="button"
                           onClick={() => setActiveTab('banners')}
                           className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                            activeTab === 'banners'
+                            effectiveTab === 'banners'
                               ? 'bg-black text-white font-bold shadow-xs'
                               : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                           }`}
@@ -666,7 +669,7 @@ function InfiniteCanvasContent() {
                           type="button"
                           onClick={() => setActiveTab('social')}
                           className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                            activeTab === 'social'
+                            effectiveTab === 'social'
                               ? 'bg-black text-white font-bold shadow-xs'
                               : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                           }`}
@@ -795,43 +798,22 @@ function InfiniteCanvasContent() {
 
                 {hasSections ? (
                   /* CUSTOM PROJECT SUBFOLDER RENDERER (Grouped: Catalogue, Banners, Standees, Stories, Grids) */
-                  <div style={{ gap: 'var(--modal-row-gap, 40px)' }} className="flex flex-col">
+                  <div style={{ gap: 'var(--modal-row-gap, 32px)' }} className="flex flex-col">
                     {sectionGroups
-                      .filter((group) => activeTab === 'all' || activeTab === group.id)
+                      .filter((group) => effectiveTab === group.id)
                       .map((group) => (
                         <div key={group.id} className="flex flex-col space-y-6 pt-1">
-                          {/* Group Chapter Header (Shown in 'all' view to separate main chapters) */}
-                          {activeTab === 'all' && (
-                            <div className="flex items-center justify-between border-b-2 border-black/[0.08] pb-3 pt-4">
-                              <div className="flex items-center gap-3">
-                                <span className="w-2.5 h-2.5 rounded-full bg-black" />
-                                <h3 className="font-mono text-xs sm:text-sm font-black uppercase tracking-widest text-neutral-900">
-                                  {group.label} Collection
-                                </h3>
-                              </div>
-                              <span className="font-mono text-[11px] text-neutral-400 font-semibold uppercase tracking-wider">
-                                {group.count} {group.count === 1 ? 'Deliverable' : 'Deliverables'}
-                              </span>
-                            </div>
-                          )}
-
                           {/* Subfolder Sections within this Group */}
                           {group.sections.map((sec: any, secIdx: number) => (
                             <div key={sec.id || sec.title} className="flex flex-col space-y-4">
-                              {/* Subfolder Header (e.g. "Catalogue // 11 items", "Story 1 // 6 items", "Story 2 // 9 items") */}
-                              <div className="flex items-center justify-between border-b border-black/[0.06] pb-2.5">
-                                <div className="flex items-center gap-2.5">
-                                  <span className="font-mono text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-black/[0.05] text-neutral-600">
-                                    {group.label.toUpperCase()} // {sec.title.toUpperCase()}
-                                  </span>
-                                  <h4 className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-900">
+                              {/* Subfolder Header: Only show clean title if there are multiple subfolders (e.g. Story 1, Story 2) */}
+                              {group.sections.length > 1 && (
+                                <div className="flex items-center justify-between border-b border-black/[0.06] pb-2 pt-1">
+                                  <h4 className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-800">
                                     {sec.title}
                                   </h4>
                                 </div>
-                                <span className="font-mono text-[10px] text-neutral-400 font-medium">
-                                  {sec.items?.length || 0} {sec.items?.length === 1 ? 'item' : 'items'}
-                                </span>
-                              </div>
+                              )}
 
                               {/* Section Media Grid by Type */}
                               {group.id === 'catalogue' ? (
@@ -1355,7 +1337,15 @@ function InfiniteCanvasContent() {
         let currentTitle = selectedFile.name;
 
         if (selectedFile.sections && selectedFile.sections.length > 0) {
-          const flatItems = selectedFile.sections.flatMap((s: any) => s.items || []);
+          const groups = getProjectSectionGroups(selectedFile.sections);
+          const flatItems = groups.flatMap((g) =>
+            g.sections.flatMap((sec: any) =>
+              (sec.items || []).map((it: any) => ({
+                url: it.url,
+                title: it.title || sec.title,
+              }))
+            )
+          );
           photosList = flatItems.map((item: any) => item.url);
           currentTitle = flatItems[enlargedIndex]?.title || selectedFile.name;
         } else {

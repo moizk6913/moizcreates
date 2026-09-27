@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArchiveFile } from '@/app/canvas/page';
+import { ArchiveFile } from '@/lib/defaultDisciplines';
 import ArchiveFolderCard from './ArchiveFolderCard';
 
 interface ArchiveDirectorDeskProps {
