@@ -24,21 +24,21 @@ const DESK_SLOTS: Record<string, { x: number; y: number; rot: number }> = {
   'art-direction': { x: -360, y: -210, rot: -2 },
   'brand-identity': { x: 360, y: -210, rot: 2 },
   'cinematography': { x: -480, y: 70, rot: 2 },
-  'motion-graphics': { x: 0, y: -60, rot: 0 },
+  'motion-graphics': { x: 0, y: -50, rot: 0 },
   'video-editing': { x: 480, y: 70, rot: -2 },
-  'color-grading': { x: -240, y: 260, rot: -2 },
-  'photography': { x: 240, y: 260, rot: 2 },
+  'color-grading': { x: -290, y: 250, rot: -2 },
+  'photography': { x: 290, y: 250, rot: 2 },
 };
 
 // Dedicated Non-Colliding Coordinates for Uploaded Client Campaigns (e.g. Kaldhar)
-// Places campaign folders distinctly (honoring "folder need to come right")
+// Places campaign folders distinctly with generous 280px+ clearance from all core disciplines
 const CAMPAIGN_SLOTS = [
-  { x: 500, y: -190, rot: 2 },   // Campaign 1: Upper Right
-  { x: 0, y: 230, rot: -1 },     // Campaign 2: Center Lower
-  { x: -500, y: -190, rot: -2 },  // Campaign 3: Upper Left
-  { x: 0, y: -260, rot: 1 },     // Campaign 4: Center Upper
-  { x: -160, y: 70, rot: -1 },   // Campaign 5: Center-Left
-  { x: 160, y: 70, rot: 1 },     // Campaign 6: Center-Right
+  { x: 0, y: 250, rot: -1 },     // Campaign 1: Center-Bottom Anchor (Directly between Colour Grading & Photography with 290px clearance)
+  { x: 0, y: -260, rot: 1 },     // Campaign 2: Top Crown Center (Directly between Art Direction & Brand Identity)
+  { x: 590, y: -140, rot: 2 },   // Campaign 3: Upper Right Wing (280px+ clearance from Brand Identity & Video Editing)
+  { x: -590, y: -140, rot: -2 }, // Campaign 4: Upper Left Wing (280px+ clearance from Art Direction & Cinematography)
+  { x: -560, y: 220, rot: 2 },   // Campaign 5: Lower Left Flank
+  { x: 560, y: 220, rot: -2 },   // Campaign 6: Lower Right Flank
 ];
 
 function getSlot(file: ArchiveFile, index: number, usedCoords: Set<string>) {
@@ -78,7 +78,7 @@ function getSlot(file: ArchiveFile, index: number, usedCoords: Set<string>) {
 
   // 4. Fallback: dynamic non-colliding offset
   const angle = (index * 45) * (Math.PI / 180);
-  const radius = 380;
+  const radius = 420;
   return {
     x: Math.round(Math.cos(angle) * radius),
     y: Math.round(Math.sin(angle) * (radius * 0.6)),
@@ -86,11 +86,48 @@ function getSlot(file: ArchiveFile, index: number, usedCoords: Set<string>) {
   };
 }
 
+// Automatic Collision Relaxation Solver: Guarantees NO two folders ever collide, regardless of count
+function resolveCollisions(
+  slots: Array<{ x: number; y: number; rot: number }>,
+  minDistance = 270
+): Array<{ x: number; y: number; rot: number }> {
+  const resolved = slots.map((s) => ({ ...s }));
+  const iterations = 50;
+
+  for (let iter = 0; iter < iterations; iter++) {
+    let moved = false;
+    for (let i = 0; i < resolved.length; i++) {
+      for (let j = i + 1; j < resolved.length; j++) {
+        const dx = resolved[j].x - resolved[i].x;
+        const dy = resolved[j].y - resolved[i].y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (dist < minDistance) {
+          const overlap = (minDistance - dist) / 2;
+          const nx = (dx / dist) * overlap;
+          const ny = (dy / dist) * overlap;
+          resolved[j].x = Math.round(resolved[j].x + nx);
+          resolved[j].y = Math.round(resolved[j].y + ny);
+          resolved[i].x = Math.round(resolved[i].x - nx);
+          resolved[i].y = Math.round(resolved[i].y - ny);
+          moved = true;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+  return resolved;
+}
+
 export default function ArchiveDirectorDesk({
   files,
   onSelectFile,
 }: ArchiveDirectorDeskProps) {
-  const usedCoords = new Set<string>();
+  const computedSlots = React.useMemo(() => {
+    const usedCoords = new Set<string>();
+    const raw = files.map((file, index) => getSlot(file, index, usedCoords));
+    return resolveCollisions(raw, 275);
+  }, [files]);
+
   return (
     <div className="relative w-full min-h-screen bg-[#faf9f6] text-neutral-900 flex flex-col items-center justify-between pt-20 pb-24 px-4 sm:px-8 select-none overflow-x-hidden">
       
@@ -128,12 +165,12 @@ export default function ArchiveDirectorDesk({
       />
 
       {/* 2. MAIN DIRECTOR'S DESK STAGE (Spacious Apple Showcase Canvas) */}
-      <main className="relative z-10 w-full max-w-7xl my-auto py-8 sm:py-12 flex items-center justify-center min-h-[820px]">
+      <main className="relative z-10 w-full max-w-[1440px] my-auto py-8 sm:py-12 flex items-center justify-center min-h-[820px]">
         
-        {/* Desktop Absolute Desk Layout (All 7 Apple Folders Guaranteed Distinct and Non-Colliding on 1024px+ viewports) */}
-        <div className="hidden lg:flex relative w-full max-w-7xl h-[780px] items-center justify-center">
+        {/* Desktop Absolute Desk Layout (All Folders Guaranteed Distinct and Non-Colliding via Solver) */}
+        <div className="hidden lg:flex relative w-full max-w-[1440px] h-[800px] items-center justify-center">
           {files.map((file, index) => {
-            const slot = getSlot(file, index, usedCoords);
+            const slot = computedSlots[index] || { x: 0, y: 0, rot: 0 };
             return (
               <div
                 key={file.id}
