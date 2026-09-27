@@ -171,10 +171,16 @@ export default function ArchiveFolderCard({
             />
           </svg>
 
-          {/* Top-Left Subtle Identifier Label inside Tab Area */}
-          <div className="absolute top-2.5 left-4 z-30 pointer-events-none">
-            <span className="font-mono text-[8px] font-bold uppercase tracking-widest text-black/60 select-none block">
+          {/* Top-Left Project Identifier & Title inside Tab Area */}
+          <div className="absolute top-2.5 left-4 z-30 pointer-events-none max-w-[145px]">
+            <span className="font-mono text-[7.5px] font-bold uppercase tracking-widest text-black/50 select-none block">
               *CREATIVESTYLE.
+            </span>
+            <h4 className="font-sans font-black text-[12px] uppercase tracking-tight text-neutral-950 block truncate leading-tight mt-0.5 drop-shadow-2xs">
+              {name}
+            </h4>
+            <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-500 block truncate">
+              {discipline || role || 'DIRECTOR CUT'}
             </span>
           </div>
 
