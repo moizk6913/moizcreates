@@ -66,9 +66,11 @@ export default function ArchiveFolderCard({
     (discipline || name || '').toLowerCase().includes('music') ||
     (discipline || name || '').toLowerCase().includes('audio');
 
-  // Exact Apple tab shape path (200px x 110px) with smooth organic S-curve shoulder and rounded corners
+  // Exact Apple tab shape (220px x 115px) matching reference:
+  // Elevated tab on left (width 96px, height 115px), smooth organic S-curve down to shoulder (height 93px),
+  // with bottom corners rounded at 26px to match the back plate.
   const flapPath =
-    'M 0,18 A 18,18 0 0,1 18,0 L 88,0 C 95,0 100,6 104,13 C 107,18 111,20 116,20 L 182,20 A 18,18 0 0,1 200,38 L 200,92 A 18,18 0 0,1 182,110 L 18,110 A 18,18 0 0,1 0,92 Z';
+    'M 0,20 A 20,20 0 0,1 20,0 L 96,0 C 104,0 110,6 114,14 C 118,20 123,22 130,22 L 202,22 A 18,18 0 0,1 220,40 L 220,89 A 26,26 0 0,1 194,115 L 26,115 A 26,26 0 0,1 0,89 Z';
 
   return (
     <div
@@ -88,47 +90,48 @@ export default function ArchiveFolderCard({
       }}
       className="group relative flex flex-col items-center cursor-pointer select-none touch-manipulation pointer-events-auto"
     >
-      {/* FOLDER COMPOSITE STAGE (Width: 200px, Height: 175px) */}
-      <div className="relative w-[200px] h-[175px] flex items-end justify-center">
+      {/* FOLDER STAGE: 220px Wide x 185px Tall */}
+      <div className="relative w-[220px] h-[185px] flex items-end justify-center">
 
-        {/* LAYER 1: BACK PLATE (Silver-Grey Apple Rounded Squircle, 200px x 135px) */}
-        <div className="absolute bottom-0 w-[200px] h-[135px] rounded-[22px] overflow-hidden bg-gradient-to-b from-[#e2e0dc] via-[#d6d4ce] to-[#c8c6be] shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-black/[0.06]" />
+        {/* LAYER 1: BACK FOLDER PLATE (Warm grey cardstock / aluminum squircle, 220px x 150px) */}
+        <div className="absolute bottom-0 w-[220px] h-[150px] rounded-[26px] bg-gradient-to-b from-[#e1ded8] via-[#d5d2ca] to-[#c7c4bb] shadow-[0_6px_20px_rgba(0,0,0,0.06)] border border-black/[0.06]" />
 
-        {/* LAYER 2: 3 FANNED-OUT PHOTO PRINTS (White-framed polaroids) */}
-        <div className="absolute bottom-6 w-full flex items-center justify-center pointer-events-none z-10">
+        {/* LAYER 2: 3 FANNED-OUT PHOTO PRINTS */}
+        {/* Strictly clipped at bottom with rounded-b-[26px] so no photo can EVER poke out from the bottom! */}
+        <div className="absolute bottom-0 w-[220px] h-[180px] flex items-end justify-center pointer-events-none z-10 overflow-hidden rounded-b-[26px]">
           {/* Left Photo (Tilted -14deg) */}
-          <div className="absolute w-[82px] h-[108px] p-1 bg-white rounded-[14px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform -rotate-12 -translate-x-7 -translate-y-5 group-hover:-rotate-[16deg] group-hover:-translate-x-9 group-hover:-translate-y-7 transition-transform duration-400 ease-out overflow-hidden">
+          <div className="absolute bottom-[24px] w-[90px] h-[116px] p-1 bg-white rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.16)] transform -rotate-12 -translate-x-8 group-hover:-rotate-[16deg] group-hover:-translate-x-10 transition-transform duration-400 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img1}
               alt="Campaign Still 1"
-              className="w-full h-full object-cover rounded-[10px]"
+              className="w-full h-full object-cover rounded-[9px]"
             />
           </div>
 
           {/* Center Photo (Standing Highest, Upright) */}
-          <div className="absolute w-[88px] h-[116px] p-1 bg-white rounded-[14px] shadow-[0_10px_24px_rgba(0,0,0,0.18)] z-10 transform -translate-y-8 group-hover:-translate-y-10 transition-transform duration-400 ease-out overflow-hidden">
+          <div className="absolute bottom-[36px] w-[96px] h-[124px] p-1 bg-white rounded-[12px] shadow-[0_10px_24px_rgba(0,0,0,0.20)] z-10 transform group-hover:-translate-y-2 transition-transform duration-400 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img2}
               alt="Campaign Still 2"
-              className="w-full h-full object-cover rounded-[10px]"
+              className="w-full h-full object-cover rounded-[9px]"
             />
           </div>
 
           {/* Right Photo (Tilted +14deg) */}
-          <div className="absolute w-[82px] h-[108px] p-1 bg-white rounded-[14px] shadow-[0_6px_16px_rgba(0,0,0,0.14)] transform rotate-12 translate-x-7 -translate-y-4 group-hover:rotate-[16deg] group-hover:translate-x-9 group-hover:-translate-y-6 transition-transform duration-400 ease-out overflow-hidden">
+          <div className="absolute bottom-[24px] w-[90px] h-[116px] p-1 bg-white rounded-[12px] shadow-[0_6px_16px_rgba(0,0,0,0.16)] transform rotate-12 translate-x-8 group-hover:rotate-[16deg] group-hover:translate-x-10 transition-transform duration-400 ease-out overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={img3}
               alt="Campaign Still 3"
-              className="w-full h-full object-cover rounded-[10px]"
+              className="w-full h-full object-cover rounded-[9px]"
             />
           </div>
         </div>
 
-        {/* LAYER 3: FROSTED GLASS FRONT FLAP (200px x 110px, Aligned to Bottom) */}
-        <div className="absolute bottom-0 w-[200px] h-[110px] z-20 transition-transform duration-400 group-hover:-translate-y-1">
+        {/* LAYER 3: FRONT FROSTED GLASS FLAP (220px x 115px, Anchored at Bottom-0) */}
+        <div className="absolute bottom-0 w-[220px] h-[115px] z-20 transition-transform duration-400 group-hover:-translate-y-1">
           {/* SVG Definitions for this Folder Card */}
           <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
             <defs>
@@ -136,9 +139,9 @@ export default function ArchiveFolderCard({
                 <path d={flapPath} />
               </clipPath>
               <linearGradient id={gradId} x1="0" y1="0" x2="0.3" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.80" />
-                <stop offset="45%" stopColor="#f3f4f6" stopOpacity="0.55" />
-                <stop offset="100%" stopColor="#e5e7eb" stopOpacity="0.45" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
+                <stop offset="45%" stopColor="#f3f4f6" stopOpacity="0.50" />
+                <stop offset="100%" stopColor="#e5e7eb" stopOpacity="0.35" />
               </linearGradient>
               <linearGradient id={strokeId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
@@ -156,7 +159,7 @@ export default function ArchiveFolderCard({
 
           {/* SVG Vector Outline Border & Specular Shine */}
           <svg
-            viewBox="0 0 200 110"
+            viewBox="0 0 220 115"
             className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.06)]"
             fill="none"
           >
@@ -169,14 +172,14 @@ export default function ArchiveFolderCard({
           </svg>
 
           {/* Top-Left Subtle Identifier Label inside Tab Area */}
-          <div className="absolute top-2.5 left-3.5 z-30 pointer-events-none">
+          <div className="absolute top-2.5 left-4 z-30 pointer-events-none">
             <span className="font-mono text-[8px] font-bold uppercase tracking-widest text-black/60 select-none block">
               *CREATIVESTYLE.
             </span>
           </div>
 
           {/* Bottom-Right Circular Action Button (Matching Reference) */}
-          <div className="absolute bottom-3 right-3 z-30 pointer-events-none">
+          <div className="absolute bottom-3 right-3.5 z-30 pointer-events-none">
             <div className="w-8 h-8 rounded-full bg-[#18181b] text-white flex items-center justify-center shadow-md group-hover:scale-110 group-hover:bg-black transition-all duration-300">
               {isMusicOrReel ? (
                 <span className="text-xs font-bold leading-none">♫</span>
