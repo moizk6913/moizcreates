@@ -42,7 +42,8 @@ export default function CustomCursor() {
         ringPos.current = { x: e.clientX, y: e.clientY };
       }
       mousePos.current = { x: e.clientX, y: e.clientY };
-      setIsVisible(true);
+      const isOverModal = Boolean(e.target && (e.target as HTMLElement).closest && (e.target as HTMLElement).closest('[role="dialog"], .admin-root'));
+      setIsVisible(!isOverModal);
       wakeCursor();
     };
 
@@ -64,6 +65,10 @@ export default function CustomCursor() {
 
     const checkHoverTarget = (target: HTMLElement | null) => {
       if (!target) return;
+      if (target.closest('[role="dialog"], .admin-root')) {
+        setIsVisible(false);
+        return;
+      }
 
       const cursorTarget = target.closest('[data-cursor]') as HTMLElement | null;
       if (cursorTarget) {

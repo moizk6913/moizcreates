@@ -362,11 +362,13 @@ body {
     cursor: text !important;
   }
 
-  /* Admin Studio Workspace Exemption: Always preserve full native visible OS cursor */
+  /* Admin Studio & Modal Dialog Exemption: Always preserve full native visible OS cursor */
   html.has-custom-cursor body.admin-desk,
   html.has-custom-cursor body.admin-desk *,
   html.has-custom-cursor .admin-root,
-  html.has-custom-cursor .admin-root * {
+  html.has-custom-cursor .admin-root *,
+  html.has-custom-cursor [role="dialog"],
+  html.has-custom-cursor [role="dialog"] * {
     cursor: auto !important;
   }
   html.has-custom-cursor .admin-root button,
@@ -378,12 +380,18 @@ body {
   html.has-custom-cursor .admin-root input[type="submit"],
   html.has-custom-cursor .admin-root input[type="checkbox"],
   html.has-custom-cursor .admin-root input[type="radio"],
-  html.has-custom-cursor .admin-root .cursor-pointer {
+  html.has-custom-cursor .admin-root .cursor-pointer,
+  html.has-custom-cursor [role="dialog"] button,
+  html.has-custom-cursor [role="dialog"] a,
+  html.has-custom-cursor [role="dialog"] [role="button"],
+  html.has-custom-cursor [role="dialog"] .cursor-pointer {
     cursor: pointer !important;
   }
   html.has-custom-cursor .admin-root input[type="text"],
   html.has-custom-cursor .admin-root input[type="password"],
-  html.has-custom-cursor .admin-root textarea {
+  html.has-custom-cursor .admin-root textarea,
+  html.has-custom-cursor [role="dialog"] input,
+  html.has-custom-cursor [role="dialog"] textarea {
     cursor: text !important;
   }
 }

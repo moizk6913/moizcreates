@@ -808,14 +808,25 @@ function InfiniteCanvasContent() {
                           {/* Subfolder Sections within this Group */}
                           {group.sections.map((sec: any, secIdx: number) => (
                             <div key={sec.id || sec.title} className="flex flex-col space-y-4">
-                              {/* Subfolder Header: Only show clean title if there are multiple subfolders (e.g. Story 1, Story 2) */}
-                              {group.sections.length > 1 && (
-                                <div className="flex items-center justify-between border-b border-black/[0.06] pb-2 pt-1">
-                                  <h4 className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-800">
-                                    {sec.title}
-                                  </h4>
-                                </div>
-                              )}
+                              {/* Subfolder Header: Clean editorial section label with metadata */}
+                              <div className="flex items-center justify-between border-b border-black/[0.06] pb-2.5 pt-1">
+                                <h4 className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-800">
+                                  {sec.title}
+                                </h4>
+                                <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-widest font-medium">
+                                  {group.id === 'catalogue'
+                                    ? 'Lookbook Spreads'
+                                    : group.id === 'banners'
+                                    ? 'Panoramic Widescreen'
+                                    : group.id === 'standees'
+                                    ? '1280×2560 Vertical Standee'
+                                    : group.id === 'stories'
+                                    ? '1080×1920 Mobile Story'
+                                    : group.id === 'grids'
+                                    ? 'Feed Grid'
+                                    : 'Deliverable Assets'}
+                                </span>
+                              </div>
 
                               {/* Section Media Grid by Type */}
                               {group.id === 'catalogue' ? (
@@ -869,22 +880,22 @@ function InfiniteCanvasContent() {
                                   })}
                                 </div>
                               ) : group.id === 'standees' ? (
-                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays */
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays (Aspect 1:2 uncropped, balanced width) */
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-w-4xl">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
                                       <div
                                         key={item.url}
                                         onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                        style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
-                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[9/16] w-full"
+                                        style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[1/2] w-full max-w-[280px] sm:max-w-[320px]"
                                       >
                                         <img
                                           src={item.url}
                                           alt={item.title || sec.title}
                                           loading="lazy"
-                                          className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
+                                          className="w-full h-full object-contain sm:object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
                                           <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
@@ -894,8 +905,8 @@ function InfiniteCanvasContent() {
                                   })}
                                 </div>
                               ) : group.id === 'stories' ? (
-                                /* STORIES: 9:16 Vertical Mobile Stories (Balanced luxury sizing, max-w-5xl) */
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 max-w-5xl">
+                                /* STORIES: 9:16 Vertical Mobile Stories (Balanced luxury sizing, max 4 columns so stories are readable and not squashed!) */
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 max-w-4xl">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
