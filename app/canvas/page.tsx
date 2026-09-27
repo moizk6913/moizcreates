@@ -572,8 +572,8 @@ function InfiniteCanvasContent() {
               }
             }}
             style={{
-              paddingTop: 'var(--modal-top-spacing, 40px)',
-              paddingBottom: 'var(--modal-top-spacing, 40px)',
+              paddingTop: 'var(--modal-top-spacing, 28px)',
+              paddingBottom: 'var(--modal-top-spacing, 28px)',
             }}
             className="fixed inset-0 z-[10000] bg-white/40 backdrop-blur-3xl flex items-center justify-center px-3 sm:px-6 md:px-8 overflow-hidden select-text pointer-events-auto"
             role="dialog"
@@ -585,10 +585,10 @@ function InfiniteCanvasContent() {
               data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
               style={{
-                height: 'calc(100vh - (var(--modal-top-spacing, 40px) * 2))',
-                maxHeight: '920px',
+                height: 'calc(100vh - (var(--modal-top-spacing, 28px) * 2))',
+                maxHeight: '940px',
               }}
-              className="relative w-full max-w-[1240px] bg-white apple-widget-lg rounded-[48px] sm:rounded-[56px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
+              className="relative w-full max-w-[1440px] bg-white apple-widget-lg rounded-[40px] sm:rounded-[48px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
             >
               {/* TOP NAVIGATION BAR (Clean, Prominent Tabs, Single Close Button) */}
               <header
@@ -810,8 +810,8 @@ function InfiniteCanvasContent() {
                             <div key={sec.id || sec.title} className="flex flex-col">
                               {/* Section Media Grid by Type */}
                               {group.id === 'catalogue' ? (
-                                /* CATALOGUE: HORIZONTAL LOOKBOOK SPREADS (2560x1810 / 1.41:1 Landscape) */
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto w-full">
+                                /* CATALOGUE: HORIZONTAL LOOKBOOK SPREADS (2560x1810 / 1.41:1 Landscape - Grand Full Stage) */
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7 w-full">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
@@ -832,8 +832,8 @@ function InfiniteCanvasContent() {
                                   })}
                                 </div>
                               ) : group.id === 'banners' ? (
-                                /* WIDE BANNERS: 2560x992 Panoramic Widescreen */
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto w-full">
+                                /* WIDE BANNERS: 2560x992 Panoramic Widescreen (Full Width Grand Stage) */
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-7 w-full">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
@@ -854,33 +854,31 @@ function InfiniteCanvasContent() {
                                   })}
                                 </div>
                               ) : group.id === 'standees' ? (
-                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays (Aspect 1:2 uncropped, centered gallery stage) */
-                                <div className="flex justify-center w-full">
-                                  <div className="flex flex-wrap justify-center gap-6 sm:gap-8 max-w-full">
-                                    {sec.items?.map((item: any) => {
-                                      const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                      return (
-                                        <div
-                                          key={item.url}
-                                          onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                          style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
-                                          className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[1/2] h-[clamp(300px,56vh,500px)] w-auto"
-                                        >
-                                          <img
-                                            src={item.url}
-                                            alt={item.title || sec.title}
-                                            loading="lazy"
-                                            className="w-full h-full object-contain sm:object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
-                                          />
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
+                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays (Aspect 1:2 uncropped, imposing gallery stage) */
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-7 w-full">
+                                  {sec.items?.map((item: any) => {
+                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                    return (
+                                      <div
+                                        key={item.url}
+                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                        style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[1/2] w-full"
+                                      >
+                                        <img
+                                          src={item.url}
+                                          alt={item.title || sec.title}
+                                          loading="lazy"
+                                          className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
+                                        />
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               ) : group.id === 'stories' ? (
-                                /* STORIES: 9:16 Vertical Mobile Stories (Centered stage: 3 Up, 3 Down, fits on one screen!) */
+                                /* STORIES: 9:16 Vertical Mobile Stories (Strictly 3 Up, 3 Down - Bold, Immersive Luxury Scale) */
                                 <div className="flex justify-center w-full">
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5 w-auto max-w-full">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-7 w-full max-w-5xl">
                                     {sec.items?.map((item: any) => {
                                       const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                       return (
@@ -888,7 +886,7 @@ function InfiniteCanvasContent() {
                                           key={item.url}
                                           onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
                                           style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
-                                          className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] h-[clamp(190px,33vh,330px)] w-auto"
+                                          className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
                                         >
                                           <img
                                             src={item.url}
@@ -902,9 +900,9 @@ function InfiniteCanvasContent() {
                                   </div>
                                 </div>
                               ) : (
-                                /* GRIDS: 3x3 Social Media Feed Layout (Centered, 4:5 Instagram Portrait) */
+                                /* GRIDS: 3x3 Social Media Feed Layout (Centered, 4:5 Instagram Portrait - Generous Feed Scale) */
                                 <div className="flex justify-center w-full">
-                                  <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 max-w-md sm:max-w-lg w-full">
+                                  <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-xl sm:max-w-2xl md:max-w-3xl w-full">
                                     {sec.items?.map((item: any) => {
                                       const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                       return (

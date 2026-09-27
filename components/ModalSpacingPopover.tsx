@@ -19,9 +19,9 @@ export interface ModalSpacingSettings {
 }
 
 export const DEFAULT_MODAL_SPACING: ModalSpacingSettings = {
-  modalTopSpacing: 40,
-  modalNavTopSpacing: 30,
-  modalSideSpacing: 36,
+  modalTopSpacing: 28,
+  modalNavTopSpacing: 26,
+  modalSideSpacing: 40,
   modalHeaderGap: 16,
   modalTitleSize: 34,
   modalTitleGap: 10,

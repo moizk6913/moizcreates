@@ -253,9 +253,9 @@
   --footer-top: 56px;
 
   /* Archive Detail View Calibrated Design System Tokens */
-  --modal-top-spacing: 40px;
-  --modal-nav-top-spacing: 30px;
-  --modal-side-spacing: 36px;
+  --modal-top-spacing: 28px;
+  --modal-nav-top-spacing: 26px;
+  --modal-side-spacing: 40px;
   --modal-header-gap: 16px;
   --modal-title-size: 34px;
   --modal-title-gap: 10px;
