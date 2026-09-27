@@ -807,27 +807,7 @@ function InfiniteCanvasContent() {
                         <div key={group.id} className="flex flex-col space-y-6 pt-1">
                           {/* Subfolder Sections within this Group */}
                           {group.sections.map((sec: any, secIdx: number) => (
-                            <div key={sec.id || sec.title} className="flex flex-col space-y-4">
-                              {/* Subfolder Header: Clean editorial section label with metadata */}
-                              <div className="flex items-center justify-between border-b border-black/[0.06] pb-2.5 pt-1">
-                                <h4 className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-800">
-                                  {sec.title}
-                                </h4>
-                                <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-widest font-medium">
-                                  {group.id === 'catalogue'
-                                    ? 'Lookbook Spreads'
-                                    : group.id === 'banners'
-                                    ? 'Panoramic Widescreen'
-                                    : group.id === 'standees'
-                                    ? '1280×2560 Vertical Standee'
-                                    : group.id === 'stories'
-                                    ? '1080×1920 Mobile Story'
-                                    : group.id === 'grids'
-                                    ? 'Feed Grid'
-                                    : 'Deliverable Assets'}
-                                </span>
-                              </div>
-
+                            <div key={sec.id || sec.title} className="flex flex-col">
                               {/* Section Media Grid by Type */}
                               {group.id === 'catalogue' ? (
                                 /* CATALOGUE: HORIZONTAL LOOKBOOK SPREADS (2560x1810 / 1.41:1 Landscape) */
@@ -847,9 +827,6 @@ function InfiniteCanvasContent() {
                                           loading="lazy"
                                           className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white pointer-events-none">
-                                          <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
-                                        </div>
                                       </div>
                                     );
                                   })}
@@ -872,9 +849,6 @@ function InfiniteCanvasContent() {
                                           loading="lazy"
                                           className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white pointer-events-none">
-                                          <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
-                                        </div>
                                       </div>
                                     );
                                   })}
@@ -897,16 +871,13 @@ function InfiniteCanvasContent() {
                                           loading="lazy"
                                           className="w-full h-full object-contain sm:object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
-                                          <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
-                                        </div>
                                       </div>
                                     );
                                   })}
                                 </div>
                               ) : group.id === 'stories' ? (
-                                /* STORIES: 9:16 Vertical Mobile Stories (Balanced luxury sizing, max 4 columns so stories are readable and not squashed!) */
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 max-w-4xl">
+                                /* STORIES: 9:16 Vertical Mobile Stories (Strictly 3 Columns: 3 Up, 3 Down!) */
+                                <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-3xl">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
@@ -922,9 +893,6 @@ function InfiniteCanvasContent() {
                                           loading="lazy"
                                           className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
-                                          <span className="font-mono text-[9px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
-                                        </div>
                                       </div>
                                     );
                                   })}
@@ -947,26 +915,15 @@ function InfiniteCanvasContent() {
                                           loading="lazy"
                                           className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 text-white pointer-events-none">
-                                          <span className="font-mono text-[9px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
-                                        </div>
                                       </div>
                                     );
                                   })}
                                 </div>
                               )}
 
-                              {/* ELEGANT GAP & DIVIDER AFTER EACH SUBFOLDER IN A MULTI-SECTION GROUP */}
+                              {/* PURE ELEGANT SPACING GAP BETWEEN SETS - ZERO TEXT, ZERO LINES */}
                               {secIdx < group.sections.length - 1 && (
-                                <div className="py-6 sm:py-8 flex items-center gap-4">
-                                  <div className="flex-1 h-px bg-black/[0.08]" />
-                                  <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-400 font-semibold">
-                                    {group.id === 'stories'
-                                      ? `Next Story Reel • ${group.sections[secIdx + 1].title}`
-                                      : `Next Feed Grid • ${group.sections[secIdx + 1].title}`}
-                                  </span>
-                                  <div className="flex-1 h-px bg-black/[0.08]" />
-                                </div>
+                                <div className="py-8 sm:py-14" aria-hidden="true" />
                               )}
                             </div>
                           ))}
