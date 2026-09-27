@@ -811,7 +811,7 @@ function InfiniteCanvasContent() {
                               {/* Section Media Grid by Type */}
                               {group.id === 'catalogue' ? (
                                 /* CATALOGUE: HORIZONTAL LOOKBOOK SPREADS (2560x1810 / 1.41:1 Landscape) */
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto w-full">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
@@ -833,7 +833,7 @@ function InfiniteCanvasContent() {
                                 </div>
                               ) : group.id === 'banners' ? (
                                 /* WIDE BANNERS: 2560x992 Panoramic Widescreen */
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto w-full">
                                   {sec.items?.map((item: any) => {
                                     const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                     return (
@@ -854,70 +854,76 @@ function InfiniteCanvasContent() {
                                   })}
                                 </div>
                               ) : group.id === 'standees' ? (
-                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays (Aspect 1:2 uncropped, balanced width) */
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-w-4xl">
-                                  {sec.items?.map((item: any) => {
-                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                    return (
-                                      <div
-                                        key={item.url}
-                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                        style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
-                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[1/2] w-full max-w-[280px] sm:max-w-[320px]"
-                                      >
-                                        <img
-                                          src={item.url}
-                                          alt={item.title || sec.title}
-                                          loading="lazy"
-                                          className="w-full h-full object-contain sm:object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
-                                        />
-                                      </div>
-                                    );
-                                  })}
+                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays (Aspect 1:2 uncropped, centered gallery stage) */
+                                <div className="flex justify-center w-full">
+                                  <div className="flex flex-wrap justify-center gap-6 sm:gap-8 max-w-full">
+                                    {sec.items?.map((item: any) => {
+                                      const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                      return (
+                                        <div
+                                          key={item.url}
+                                          onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                          style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
+                                          className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[1/2] h-[clamp(300px,56vh,500px)] w-auto"
+                                        >
+                                          <img
+                                            src={item.url}
+                                            alt={item.title || sec.title}
+                                            loading="lazy"
+                                            className="w-full h-full object-contain sm:object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               ) : group.id === 'stories' ? (
-                                /* STORIES: 9:16 Vertical Mobile Stories (Strictly 3 Columns: 3 Up, 3 Down!) */
-                                <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-3xl">
-                                  {sec.items?.map((item: any) => {
-                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                    return (
-                                      <div
-                                        key={item.url}
-                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                        style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
-                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
-                                      >
-                                        <img
-                                          src={item.url}
-                                          alt={item.title || sec.title}
-                                          loading="lazy"
-                                          className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
-                                        />
-                                      </div>
-                                    );
-                                  })}
+                                /* STORIES: 9:16 Vertical Mobile Stories (Centered stage: 3 Up, 3 Down, fits on one screen!) */
+                                <div className="flex justify-center w-full">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5 w-auto max-w-full">
+                                    {sec.items?.map((item: any) => {
+                                      const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                      return (
+                                        <div
+                                          key={item.url}
+                                          onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                          style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
+                                          className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] h-[clamp(190px,33vh,330px)] w-auto"
+                                        >
+                                          <img
+                                            src={item.url}
+                                            alt={item.title || sec.title}
+                                            loading="lazy"
+                                            className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               ) : (
                                 /* GRIDS: 3x3 Social Media Feed Layout (Centered, 4:5 Instagram Portrait) */
-                                <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 max-w-xl mx-auto w-full">
-                                  {sec.items?.map((item: any) => {
-                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                    return (
-                                      <div
-                                        key={item.url}
-                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                        style={{ borderRadius: 'var(--modal-media-radius, 16px)' }}
-                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[4/5] w-full"
-                                      >
-                                        <img
-                                          src={item.url}
-                                          alt={item.title || sec.title}
-                                          loading="lazy"
-                                          className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
-                                        />
-                                      </div>
-                                    );
-                                  })}
+                                <div className="flex justify-center w-full">
+                                  <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 max-w-md sm:max-w-lg w-full">
+                                    {sec.items?.map((item: any) => {
+                                      const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                      return (
+                                        <div
+                                          key={item.url}
+                                          onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                          style={{ borderRadius: 'var(--modal-media-radius, 16px)' }}
+                                          className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[4/5] w-full"
+                                        >
+                                          <img
+                                            src={item.url}
+                                            alt={item.title || sec.title}
+                                            loading="lazy"
+                                            className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               )}
 
