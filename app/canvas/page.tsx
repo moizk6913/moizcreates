@@ -214,7 +214,7 @@ function InfiniteCanvasContent() {
   }, [disciplineParam, folderParam, allFiles]);
 
   // Gallery filtering & lightbox browsing state
-  const [activeTab, setActiveTab] = useState<'all' | 'stills' | 'banners' | 'social'>('all');
+  const [activeTab, setActiveTab] = useState<string>('all');
   const [enlargedIndex, setEnlargedIndex] = useState<number | null>(null);
   const [editingDesc, setEditingDesc] = useState<string | null>(null);
   const bentoScrollRef = useRef<HTMLDivElement>(null);
@@ -456,16 +456,86 @@ function InfiniteCanvasContent() {
         const hasSections = Boolean(selectedFile.sections && selectedFile.sections.length > 0);
         const projectSections = (selectedFile.sections || []) as any[];
 
-        // Pre-flatten all assets across all sections for lightbox navigation
+        // Group related subfolders into unified chapters (e.g. all Stories in 1 tab, all Grids in 1 tab)
+        const sectionGroups: Array<{
+          id: string;
+          label: string;
+          count: number;
+          sections: any[];
+        }> = [];
+
+        if (hasSections) {
+          const assignedIds = new Set<string>();
+
+          const addGroup = (id: string, label: string, matcher: (s: any) => boolean) => {
+            const matches = projectSections.filter((s) => !assignedIds.has(s.id) && matcher(s));
+            if (matches.length > 0) {
+              matches.forEach((s) => assignedIds.add(s.id));
+              const totalCount = matches.reduce((sum, s) => sum + (s.items?.length || 0), 0);
+              sectionGroups.push({
+                id,
+                label,
+                count: totalCount,
+                sections: matches,
+              });
+            }
+          };
+
+          // 1. Catalogue / Lookbook Spreads
+          addGroup('catalogue', 'Catalogue', (s) => {
+            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+            return norm.includes('catalogue') || norm.includes('catalog') || norm.includes('lookbook');
+          });
+
+          // 2. Web Banners
+          addGroup('banners', 'Web Banners', (s) => {
+            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+            return norm.includes('banner') && !norm.includes('standee');
+          });
+
+          // 3. Standees
+          addGroup('standees', 'Standees', (s) => {
+            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+            return norm.includes('standee');
+          });
+
+          // 4. Stories / Reels (Story 1, Story 2, Story 3 all together in 1 group!)
+          addGroup('stories', 'Stories', (s) => {
+            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+            return norm.includes('story') || norm.includes('stories') || norm.includes('sotry') || norm.includes('reel') || s.type === 'stories';
+          });
+
+          // 5. Grids / Feeds (Grid 1 to Grid 6 all together in 1 group!)
+          addGroup('grids', 'Grids', (s) => {
+            const norm = (s.title + ' ' + (s.type || '')).toLowerCase();
+            return norm.includes('grid') || norm.includes('feed') || s.type === 'grid';
+          });
+
+          // 6. Any other remaining custom sections
+          projectSections.forEach((s) => {
+            if (!assignedIds.has(s.id)) {
+              sectionGroups.push({
+                id: s.id || s.title.toLowerCase().replace(/\s+/g, '-'),
+                label: s.title,
+                count: s.items?.length || 0,
+                sections: [s],
+              });
+            }
+          });
+        }
+
+        // Flatten all items across all groups for global lightbox indexing
         const flatSectionDeliverables = hasSections
-          ? projectSections.flatMap((sec) =>
-              (sec.items || []).map((it: any) => ({
-                url: it.url,
-                title: it.title || sec.title,
-                sectionTitle: sec.title,
-                sectionType: sec.type,
-                aspectRatio: it.aspectRatio,
-              }))
+          ? sectionGroups.flatMap((g) =>
+              g.sections.flatMap((sec) =>
+                (sec.items || []).map((it: any) => ({
+                  url: it.url,
+                  title: it.title || sec.title,
+                  sectionTitle: sec.title,
+                  sectionType: sec.type,
+                  aspectRatio: it.aspectRatio,
+                }))
+              )
             )
           : [];
 
@@ -548,23 +618,22 @@ function InfiniteCanvasContent() {
                     </button>
 
                     {hasSections ? (
-                      projectSections.map((sec) => {
-                        const secId = sec.id || sec.title;
-                        const isSelected = activeTab === secId;
+                      sectionGroups.map((group) => {
+                        const isSelected = activeTab === group.id;
                         return (
                           <button
-                            key={secId}
+                            key={group.id}
                             type="button"
-                            onClick={() => setActiveTab(secId)}
+                            onClick={() => setActiveTab(group.id)}
                             className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                               isSelected
                                 ? 'bg-black text-white font-bold shadow-xs'
                                 : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                             }`}
                           >
-                            <span>{sec.title}</span>
+                            <span>{group.label}</span>
                             <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-neutral-200/60 text-neutral-500'}`}>
-                              {sec.items?.length || 0}
+                              {group.count}
                             </span>
                           </button>
                         );
@@ -725,166 +794,187 @@ function InfiniteCanvasContent() {
               >
 
                 {hasSections ? (
-                  /* CUSTOM PROJECT SUBFOLDER RENDERER (e.g. Kaldhar 12 Subfolders) */
-                  <div style={{ gap: 'var(--modal-row-gap, 32px)' }} className="flex flex-col">
-                    {projectSections
-                      .filter((sec) => activeTab === 'all' || activeTab === (sec.id || sec.title))
-                      .map((sec) => (
-                        <div key={sec.id || sec.title} className="flex flex-col space-y-4 pt-2">
-                          {/* Subfolder Header */}
-                          <div className="flex items-center justify-between border-b border-black/[0.06] pb-3">
-                            <div className="flex items-center gap-3">
-                              <span className="font-mono text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-black/[0.05] text-neutral-600">
-                                SUBFOLDER // {sec.type?.toUpperCase() || 'DELIVERABLE'}
+                  /* CUSTOM PROJECT SUBFOLDER RENDERER (Grouped: Catalogue, Banners, Standees, Stories, Grids) */
+                  <div style={{ gap: 'var(--modal-row-gap, 40px)' }} className="flex flex-col">
+                    {sectionGroups
+                      .filter((group) => activeTab === 'all' || activeTab === group.id)
+                      .map((group) => (
+                        <div key={group.id} className="flex flex-col space-y-6 pt-1">
+                          {/* Group Chapter Header (Shown in 'all' view to separate main chapters) */}
+                          {activeTab === 'all' && (
+                            <div className="flex items-center justify-between border-b-2 border-black/[0.08] pb-3 pt-4">
+                              <div className="flex items-center gap-3">
+                                <span className="w-2.5 h-2.5 rounded-full bg-black" />
+                                <h3 className="font-mono text-xs sm:text-sm font-black uppercase tracking-widest text-neutral-900">
+                                  {group.label} Collection
+                                </h3>
+                              </div>
+                              <span className="font-mono text-[11px] text-neutral-400 font-semibold uppercase tracking-wider">
+                                {group.count} {group.count === 1 ? 'Deliverable' : 'Deliverables'}
                               </span>
-                              <h4 className="font-mono text-sm sm:text-base font-black uppercase tracking-wider text-neutral-900">
-                                {sec.title}
-                              </h4>
-                            </div>
-                            <span className="font-mono text-[11px] text-neutral-400 font-medium">
-                              {sec.items?.length || 0} {sec.items?.length === 1 ? 'item' : 'items'}
-                            </span>
-                          </div>
-
-                          {/* Section Items by Type */}
-                          {sec.type === 'lookbook' ? (
-                            <div
-                              style={{ gap: 'var(--modal-grid-gap, 12px)' }}
-                              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
-                            >
-                              {sec.items?.map((item: any) => {
-                                const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                return (
-                                  <div
-                                    key={item.url}
-                                    onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                    style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
-                                    className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[3/4] w-full"
-                                  >
-                                    <img
-                                      src={item.url}
-                                      alt={item.title || sec.title}
-                                      loading="lazy"
-                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
-                                      <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : sec.type === 'banner' ? (
-                            sec.title?.toLowerCase().includes('standee') ? (
-                              <div
-                                style={{ gap: 'var(--modal-grid-gap, 12px)' }}
-                                className="grid grid-cols-2 sm:grid-cols-3 max-w-xl"
-                              >
-                                {sec.items?.map((item: any) => {
-                                  const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                  return (
-                                    <div
-                                      key={item.url}
-                                      onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                      style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
-                                      className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
-                                    >
-                                      <img
-                                        src={item.url}
-                                        alt={item.title || sec.title}
-                                        loading="lazy"
-                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
-                                        <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div
-                                style={{ gap: 'var(--modal-grid-gap, 12px)' }}
-                                className="grid grid-cols-1 sm:grid-cols-2"
-                              >
-                                {sec.items?.map((item: any) => {
-                                  const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                  return (
-                                    <div
-                                      key={item.url}
-                                      onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                      style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
-                                      className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[21/9] sm:aspect-[16/9] w-full"
-                                    >
-                                      <img
-                                        src={item.url}
-                                        alt={item.title || sec.title}
-                                        loading="lazy"
-                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
-                                        <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )
-                          ) : sec.type === 'stories' ? (
-                            <div
-                              style={{ gap: 'var(--modal-grid-gap, 10px)' }}
-                              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
-                            >
-                              {sec.items?.map((item: any) => {
-                                const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                return (
-                                  <div
-                                    key={item.url}
-                                    onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                    style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
-                                    className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
-                                  >
-                                    <img
-                                      src={item.url}
-                                      alt={item.title || sec.title}
-                                      loading="lazy"
-                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 text-white pointer-events-none">
-                                      <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div
-                              style={{ gap: 'var(--modal-grid-gap, 8px)' }}
-                              className="grid grid-cols-3 max-w-2xl"
-                            >
-                              {sec.items?.map((item: any) => {
-                                const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
-                                return (
-                                  <div
-                                    key={item.url}
-                                    onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
-                                    style={{ borderRadius: 'var(--modal-media-radius, 16px)' }}
-                                    className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-square w-full"
-                                  >
-                                    <img
-                                      src={item.url}
-                                      alt={item.title || sec.title}
-                                      loading="lazy"
-                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 text-white pointer-events-none">
-                                      <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
                             </div>
                           )}
+
+                          {/* Subfolder Sections within this Group */}
+                          {group.sections.map((sec: any, secIdx: number) => (
+                            <div key={sec.id || sec.title} className="flex flex-col space-y-4">
+                              {/* Subfolder Header (e.g. "Catalogue // 11 items", "Story 1 // 6 items", "Story 2 // 9 items") */}
+                              <div className="flex items-center justify-between border-b border-black/[0.06] pb-2.5">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="font-mono text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-black/[0.05] text-neutral-600">
+                                    {group.label.toUpperCase()} // {sec.title.toUpperCase()}
+                                  </span>
+                                  <h4 className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-neutral-900">
+                                    {sec.title}
+                                  </h4>
+                                </div>
+                                <span className="font-mono text-[10px] text-neutral-400 font-medium">
+                                  {sec.items?.length || 0} {sec.items?.length === 1 ? 'item' : 'items'}
+                                </span>
+                              </div>
+
+                              {/* Section Media Grid by Type */}
+                              {group.id === 'catalogue' ? (
+                                /* CATALOGUE: HORIZONTAL LOOKBOOK SPREADS (2560x1810 / 1.41:1 Landscape) */
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                  {sec.items?.map((item: any) => {
+                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                    return (
+                                      <div
+                                        key={item.url}
+                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                        style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[141/100] w-full"
+                                      >
+                                        <img
+                                          src={item.url}
+                                          alt={item.title || sec.title}
+                                          loading="lazy"
+                                          className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white pointer-events-none">
+                                          <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : group.id === 'banners' ? (
+                                /* WIDE BANNERS: 2560x992 Panoramic Widescreen */
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                  {sec.items?.map((item: any) => {
+                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                    return (
+                                      <div
+                                        key={item.url}
+                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                        style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[21/9] sm:aspect-[2.58/1] w-full"
+                                      >
+                                        <img
+                                          src={item.url}
+                                          alt={item.title || sec.title}
+                                          loading="lazy"
+                                          className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white pointer-events-none">
+                                          <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : group.id === 'standees' ? (
+                                /* STANDEES: 1280x2560 Tall Vertical Entrance Displays */
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                                  {sec.items?.map((item: any) => {
+                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                    return (
+                                      <div
+                                        key={item.url}
+                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                        style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-2xl transition-all duration-300 aspect-[9/16] w-full"
+                                      >
+                                        <img
+                                          src={item.url}
+                                          alt={item.title || sec.title}
+                                          loading="lazy"
+                                          className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 select-none"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
+                                          <span className="font-mono text-[10px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : group.id === 'stories' ? (
+                                /* STORIES: 9:16 Vertical Mobile Stories (Balanced luxury sizing, max-w-5xl) */
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 max-w-5xl">
+                                  {sec.items?.map((item: any) => {
+                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                    return (
+                                      <div
+                                        key={item.url}
+                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                        style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
+                                      >
+                                        <img
+                                          src={item.url}
+                                          alt={item.title || sec.title}
+                                          loading="lazy"
+                                          className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
+                                          <span className="font-mono text-[9px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                /* GRIDS: 3x3 Social Media Feed Layout (Centered, 4:5 Instagram Portrait) */
+                                <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 max-w-xl mx-auto w-full">
+                                  {sec.items?.map((item: any) => {
+                                    const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                    return (
+                                      <div
+                                        key={item.url}
+                                        onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                        style={{ borderRadius: 'var(--modal-media-radius, 16px)' }}
+                                        className="group relative overflow-hidden bg-[#0d0e10] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[4/5] w-full"
+                                      >
+                                        <img
+                                          src={item.url}
+                                          alt={item.title || sec.title}
+                                          loading="lazy"
+                                          className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 select-none"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 text-white pointer-events-none">
+                                          <span className="font-mono text-[9px] font-medium text-white/80 uppercase tracking-wider">{item.title || sec.title}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {/* ELEGANT GAP & DIVIDER AFTER EACH SUBFOLDER IN A MULTI-SECTION GROUP */}
+                              {secIdx < group.sections.length - 1 && (
+                                <div className="py-6 sm:py-8 flex items-center gap-4">
+                                  <div className="flex-1 h-px bg-black/[0.08]" />
+                                  <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-400 font-semibold">
+                                    {group.id === 'stories'
+                                      ? `Next Story Reel • ${group.sections[secIdx + 1].title}`
+                                      : `Next Feed Grid • ${group.sections[secIdx + 1].title}`}
+                                  </span>
+                                  <div className="flex-1 h-px bg-black/[0.08]" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       ))}
                   </div>
