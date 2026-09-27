@@ -172,18 +172,7 @@ export default function Header({ visible = true }: HeaderProps) {
             CONTACT
           </Link>
 
-          {/* Quiet 5-Dot Studio Activity Indicator */}
-          <div
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] cursor-help"
-            title="Studio Pulse: Active / Available for 2026 Commissions"
-            aria-label="Studio Activity Status"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/75" />
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/55" />
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/35" />
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/20" />
-          </div>
+
 
           {/* Live Worldwide Clock (Right Last) */}
           <div
@@ -245,18 +234,9 @@ export default function Header({ visible = true }: HeaderProps) {
           </nav>
 
           <div className="pt-8 flex flex-col gap-3 font-mono text-xs text-neutral-500">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-                <span className="text-black font-semibold uppercase">{worldTime}</span>
-              </div>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/5" title="Studio Active">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/30" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/15" />
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+              <span className="text-black font-semibold uppercase">{worldTime}</span>
             </div>
             <span>MOIZ KHAN • BRAND VISUAL DESIGNER / ART DIRECTOR</span>
             <span className="text-black font-semibold">HIREMOIZ.WORK@GMAIL.COM</span>
