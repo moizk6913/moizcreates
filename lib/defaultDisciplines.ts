@@ -20,6 +20,7 @@ export interface ArchiveFile {
   isComingSoon?: boolean;
   videoUrl?: string;
   client?: string;
+  sections?: any[];
 }
 
 export const DEFAULT_DISCIPLINE_FOLDERS: ArchiveFile[] = [

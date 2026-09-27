@@ -231,20 +231,54 @@ export function subscribeToCanvasUpdates(callback: () => void): () => void {
 
 export async function getStoredWorksAsync(): Promise<WorkItem[]> {
   if (typeof window === 'undefined') return [];
-  try {
-    await purgeMockAndCaldharProjectsAsync();
-  } catch {}
 
   // 1. Try to get works from server database API first
   try {
-    const res = await fetch('/api/admin/projects');
+    let res = await fetch('/api/admin/projects', {
+      headers: { ...getAuthHeaders() },
+    });
+    if (!res.ok) {
+      res = await fetch('/api/projects');
+    }
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.projects)) {
         const serverWorks: WorkItem[] = [];
 
         data.projects.forEach((proj: any) => {
-          if (Array.isArray(proj.gallery)) {
+          if (Array.isArray(proj.sections) && proj.sections.length > 0) {
+            proj.sections.forEach((sec: any) => {
+              (sec.items || []).forEach((it: any, itIdx: number) => {
+                serverWorks.push({
+                  id: it.id || `work-${proj.id}-${sec.id}-${itIdx}`,
+                  title: it.altText || it.originalName || `${sec.title} #${itIdx + 1}`,
+                  mediaUrl: it.optimizedUrl || it.url,
+                  thumbnailUrl: it.thumbnailUrl || it.optimizedUrl || it.url,
+                  mediaType: it.type || (it.url?.endsWith('.mp4') ? 'video' : 'image'),
+                  fileType: it.mimeType || 'image/webp',
+                  fileName: it.originalName || it.fileName || `${proj.slug}-${itIdx}.webp`,
+                  fileSize: it.fileSize || 100000,
+                  dimensions: it.dimensions || {
+                    width: 1920,
+                    height: 1080,
+                    aspectRatio: '16:9',
+                    orientation: 'horizontal',
+                  },
+                  workType: sec.title,
+                  disciplines: [proj.subcategory || 'Art Direction'],
+                  tags: [sec.title, proj.title],
+                  projectId: proj.id,
+                  collectionIds: [],
+                  seriesId: sec.id,
+                  client: proj.client || proj.title,
+                  year: proj.year || '2026',
+                  status: proj.status || 'published',
+                  createdAt: it.createdAt ? new Date(it.createdAt).getTime() : Date.now(),
+                  updatedAt: it.createdAt ? new Date(it.createdAt).getTime() : Date.now(),
+                });
+              });
+            });
+          } else if (Array.isArray(proj.gallery)) {
             proj.gallery.forEach((g: any, idx: number) => {
               serverWorks.push({
                 id: g.id || `work-${proj.id}-${idx}`,
@@ -713,14 +747,8 @@ export async function purgeMockAndCaldharProjectsAsync(): Promise<number> {
     const isMock = (str: string = '') => {
       const s = str.toLowerCase();
       return (
-        s.includes('kaldhar') ||
-        s.includes('kaladhar') ||
-        s.includes('caldhar') ||
-        s.includes('easy hai bro') ||
-        s.includes('windchasers') ||
-        s.includes('porsche') ||
-        s.includes('ruchi') ||
-        s.includes('oxymorons')
+        s.includes('sample-mock-item') ||
+        s.includes('dummy-mock-asset')
       );
     };
 
@@ -967,6 +995,7 @@ export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> 
               photoCount: photos.length,
               desc: proj.fullDescription || proj.shortDescription || '',
               deliverables: proj.services || ['Creative Direction', 'Visual Architecture'],
+              sections: proj.sections || [],
             };
           });
 
@@ -1026,6 +1055,7 @@ export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> 
           photoCount: photos.length,
           desc: project.overview || `${project.title} — Multi-deliverable directorial campaign with ${photos.length} visual assets.`,
           deliverables: uniqueDeliverables.length > 0 ? uniqueDeliverables : ['Art Direction', 'Visual Architecture', 'Campaign Deck'],
+          sections: (project as any).sections || [],
         });
       }
 

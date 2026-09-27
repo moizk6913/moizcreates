@@ -67,6 +67,7 @@ function mergeDisciplinesWithUploads(uploadedFiles: any[]): ArchiveFile[] {
         stickers: match.stickers || folder.stickers,
         variant: (match.variant as any) || folder.variant,
         isComingSoon: false,
+        sections: match.sections || [],
       };
     }
   });
@@ -93,6 +94,7 @@ function mergeDisciplinesWithUploads(uploadedFiles: any[]): ArchiveFile[] {
         photoCount: upload.photoCount || (upload.photos ? upload.photos.length : 1),
         stickers: upload.stickers,
         isComingSoon: false,
+        sections: upload.sections || [],
       });
     }
   });
@@ -451,14 +453,34 @@ function InfiniteCanvasContent() {
 
       {/* Project Detail Lightbox Modal (High-Fashion Directorial Monograph & Archival Dossier) */}
       {selectedFile && (() => {
-        // Fetch up to 35 curated high-res visual assets for this discipline
-        const curatedDeliverables = get35CuratedDeliverables(selectedFile.id, selectedFile.photos);
+        const hasSections = Boolean(selectedFile.sections && selectedFile.sections.length > 0);
+        const projectSections = (selectedFile.sections || []) as any[];
+
+        // Pre-flatten all assets across all sections for lightbox navigation
+        const flatSectionDeliverables = hasSections
+          ? projectSections.flatMap((sec) =>
+              (sec.items || []).map((it: any) => ({
+                url: it.url,
+                title: it.title || sec.title,
+                sectionTitle: sec.title,
+                sectionType: sec.type,
+                aspectRatio: it.aspectRatio,
+              }))
+            )
+          : [];
+
+        // Fallback curated deliverables if no custom sections
+        const curatedDeliverables = hasSections
+          ? []
+          : get35CuratedDeliverables(selectedFile.id, selectedFile.photos);
         
         // Filter photos based on active category tab (zero numbers, zero brackets, no 'All')
-        const displayedDeliverables = curatedDeliverables.filter((asset) => {
-          if (activeTab === 'all') return true;
-          return asset.type === activeTab;
-        });
+        const displayedDeliverables = hasSections
+          ? []
+          : curatedDeliverables.filter((asset) => {
+              if (activeTab === 'all') return true;
+              return asset.type === activeTab;
+            });
 
         return (
           <div
@@ -511,7 +533,7 @@ function InfiniteCanvasContent() {
                     {selectedFile.name}
                   </h2>
 
-                  {/* Internal Detail View Navigation: Deliverables | Stills | Widescreen | Reels */}
+                  {/* Internal Detail View Navigation: Deliverables / Custom Subfolders */}
                   <nav className="flex items-center overflow-x-auto no-scrollbar gap-1 sm:gap-2 text-xs sm:text-sm font-semibold py-0.5 ml-1 sm:ml-4">
                     <button
                       type="button"
@@ -522,41 +544,68 @@ function InfiniteCanvasContent() {
                           : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
                       }`}
                     >
-                      Deliverables
+                      {hasSections ? `All (${flatSectionDeliverables.length})` : 'Deliverables'}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('stills')}
-                      className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                        activeTab === 'stills'
-                          ? 'bg-black text-white font-bold shadow-xs'
-                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
-                      }`}
-                    >
-                      Stills
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('banners')}
-                      className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                        activeTab === 'banners'
-                          ? 'bg-black text-white font-bold shadow-xs'
-                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
-                      }`}
-                    >
-                      Widescreen
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('social')}
-                      className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                        activeTab === 'social'
-                          ? 'bg-black text-white font-bold shadow-xs'
-                          : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
-                      }`}
-                    >
-                      Reels
-                    </button>
+
+                    {hasSections ? (
+                      projectSections.map((sec) => {
+                        const secId = sec.id || sec.title;
+                        const isSelected = activeTab === secId;
+                        return (
+                          <button
+                            key={secId}
+                            type="button"
+                            onClick={() => setActiveTab(secId)}
+                            className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                              isSelected
+                                ? 'bg-black text-white font-bold shadow-xs'
+                                : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                            }`}
+                          >
+                            <span>{sec.title}</span>
+                            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-neutral-200/60 text-neutral-500'}`}>
+                              {sec.items?.length || 0}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('stills')}
+                          className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                            activeTab === 'stills'
+                              ? 'bg-black text-white font-bold shadow-xs'
+                              : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                          }`}
+                        >
+                          Stills
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('banners')}
+                          className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                            activeTab === 'banners'
+                              ? 'bg-black text-white font-bold shadow-xs'
+                              : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                          }`}
+                        >
+                          Widescreen
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('social')}
+                          className={`px-3 sm:px-4 py-1.5 apple-pill rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                            activeTab === 'social'
+                              ? 'bg-black text-white font-bold shadow-xs'
+                              : 'text-neutral-500 hover:text-black hover:bg-neutral-100 font-medium'
+                          }`}
+                        >
+                          Reels
+                        </button>
+                      </>
+                    )}
                   </nav>
                 </div>
 
@@ -675,8 +724,172 @@ function InfiniteCanvasContent() {
                 className="flex flex-col"
               >
 
-                {/* FILTERED CATEGORY VIEWS */}
-                {activeTab === 'stills' ? (
+                {hasSections ? (
+                  /* CUSTOM PROJECT SUBFOLDER RENDERER (e.g. Kaldhar 12 Subfolders) */
+                  <div style={{ gap: 'var(--modal-row-gap, 32px)' }} className="flex flex-col">
+                    {projectSections
+                      .filter((sec) => activeTab === 'all' || activeTab === (sec.id || sec.title))
+                      .map((sec) => (
+                        <div key={sec.id || sec.title} className="flex flex-col space-y-4 pt-2">
+                          {/* Subfolder Header */}
+                          <div className="flex items-center justify-between border-b border-black/[0.06] pb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-black/[0.05] text-neutral-600">
+                                SUBFOLDER // {sec.type?.toUpperCase() || 'DELIVERABLE'}
+                              </span>
+                              <h4 className="font-mono text-sm sm:text-base font-black uppercase tracking-wider text-neutral-900">
+                                {sec.title}
+                              </h4>
+                            </div>
+                            <span className="font-mono text-[11px] text-neutral-400 font-medium">
+                              {sec.items?.length || 0} {sec.items?.length === 1 ? 'item' : 'items'}
+                            </span>
+                          </div>
+
+                          {/* Section Items by Type */}
+                          {sec.type === 'lookbook' ? (
+                            <div
+                              style={{ gap: 'var(--modal-grid-gap, 12px)' }}
+                              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
+                            >
+                              {sec.items?.map((item: any) => {
+                                const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                return (
+                                  <div
+                                    key={item.url}
+                                    onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                    style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
+                                    className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[3/4] w-full"
+                                  >
+                                    <img
+                                      src={item.url}
+                                      alt={item.title || sec.title}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
+                                      <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : sec.type === 'banner' ? (
+                            sec.title?.toLowerCase().includes('standee') ? (
+                              <div
+                                style={{ gap: 'var(--modal-grid-gap, 12px)' }}
+                                className="grid grid-cols-2 sm:grid-cols-3 max-w-xl"
+                              >
+                                {sec.items?.map((item: any) => {
+                                  const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                  return (
+                                    <div
+                                      key={item.url}
+                                      onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                      style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
+                                      className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
+                                    >
+                                      <img
+                                        src={item.url}
+                                        alt={item.title || sec.title}
+                                        loading="lazy"
+                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
+                                        <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div
+                                style={{ gap: 'var(--modal-grid-gap, 12px)' }}
+                                className="grid grid-cols-1 sm:grid-cols-2"
+                              >
+                                {sec.items?.map((item: any) => {
+                                  const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                  return (
+                                    <div
+                                      key={item.url}
+                                      onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                      style={{ borderRadius: 'var(--modal-media-radius, 24px)' }}
+                                      className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[21/9] sm:aspect-[16/9] w-full"
+                                    >
+                                      <img
+                                        src={item.url}
+                                        alt={item.title || sec.title}
+                                        loading="lazy"
+                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white pointer-events-none">
+                                        <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )
+                          ) : sec.type === 'stories' ? (
+                            <div
+                              style={{ gap: 'var(--modal-grid-gap, 10px)' }}
+                              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
+                            >
+                              {sec.items?.map((item: any) => {
+                                const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                return (
+                                  <div
+                                    key={item.url}
+                                    onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                    style={{ borderRadius: 'var(--modal-media-radius, 20px)' }}
+                                    className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-[9/16] w-full"
+                                  >
+                                    <img
+                                      src={item.url}
+                                      alt={item.title || sec.title}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 text-white pointer-events-none">
+                                      <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div
+                              style={{ gap: 'var(--modal-grid-gap, 8px)' }}
+                              className="grid grid-cols-3 max-w-2xl"
+                            >
+                              {sec.items?.map((item: any) => {
+                                const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
+                                return (
+                                  <div
+                                    key={item.url}
+                                    onClick={() => setEnlargedIndex(globalIdx >= 0 ? globalIdx : 0)}
+                                    style={{ borderRadius: 'var(--modal-media-radius, 16px)' }}
+                                    className="group relative overflow-hidden bg-[#141517] cursor-pointer shadow-xs hover:shadow-xl transition-all duration-300 aspect-square w-full"
+                                  >
+                                    <img
+                                      src={item.url}
+                                      alt={item.title || sec.title}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 text-white pointer-events-none">
+                                      <span className="font-mono text-[9px] text-white/70 uppercase tracking-wider">{item.title || sec.title}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                ) : activeTab === 'stills' ? (
+                  /* Standard Curated Deliverables Layout (Stills, Widescreen, Reels) */
                   /* STILLS ONLY: Clean 3-Column 4:5 Grid */
                   <div
                     style={{ gap: 'var(--modal-grid-gap, 10px)' }}
@@ -1048,10 +1261,20 @@ function InfiniteCanvasContent() {
 
       {/* Full-Screen High-Resolution Multi-Asset Lightbox Overlay with Next / Prev */}
       {enlargedIndex !== null && selectedFile && (() => {
-        const curatedDeliverables = get35CuratedDeliverables(selectedFile.id, selectedFile.photos);
-        const photosList = curatedDeliverables.map((d) => d.url);
+        let photosList: string[] = [];
+        let currentTitle = selectedFile.name;
+
+        if (selectedFile.sections && selectedFile.sections.length > 0) {
+          const flatItems = selectedFile.sections.flatMap((s: any) => s.items || []);
+          photosList = flatItems.map((item: any) => item.url);
+          currentTitle = flatItems[enlargedIndex]?.title || selectedFile.name;
+        } else {
+          const curatedDeliverables = get35CuratedDeliverables(selectedFile.id, selectedFile.photos);
+          photosList = curatedDeliverables.map((d) => d.url);
+          currentTitle = curatedDeliverables[enlargedIndex]?.title || selectedFile.name;
+        }
+
         const currentPhoto = photosList[enlargedIndex] || photosList[0] || selectedFile.img;
-        const currentTitle = curatedDeliverables[enlargedIndex]?.title || selectedFile.name;
 
         return (
           <div

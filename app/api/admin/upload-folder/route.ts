@@ -12,7 +12,7 @@ function inferSectionType(subfolderName: string): ProjectSectionType {
   if (norm.includes('banner') || norm.includes('billboard') || norm.includes('header') || norm.includes('standee')) {
     return 'banner';
   }
-  if (norm.includes('storie') || norm.includes('story') || norm.includes('reel') || norm.includes('916') || norm.includes('tiktok')) {
+  if (norm.includes('storie') || norm.includes('story') || norm.includes('sotry') || norm.includes('reel') || norm.includes('916') || norm.includes('tiktok')) {
     return 'stories';
   }
   if (norm.includes('deck') || norm.includes('presentation') || norm.includes('pitch') || norm.includes('slide')) {
@@ -28,7 +28,8 @@ function inferSectionType(subfolderName: string): ProjectSectionType {
 }
 
 function formatSectionTitle(raw: string): string {
-  return raw
+  const cleaned = raw.replace(/\bsotry\b/gi, 'Story').replace(/\bsotries\b/gi, 'Stories');
+  return cleaned
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim() || 'Deliverables';

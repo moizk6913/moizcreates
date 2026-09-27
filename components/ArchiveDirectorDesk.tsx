@@ -9,8 +9,17 @@ interface ArchiveDirectorDeskProps {
   onSelectFile: (file: ArchiveFile) => void;
 }
 
-// 7 Distinct Non-Colliding Desktop Coordinates (In Pixels)
-// Wide 800px+ horizontal clearance providing generous, airy breathing room between all items
+const CORE_DISCIPLINE_KEYS = new Set([
+  'art-direction',
+  'brand-identity',
+  'cinematography',
+  'motion-graphics',
+  'video-editing',
+  'color-grading',
+  'photography',
+]);
+
+// 7 Distinct Non-Colliding Desktop Coordinates for Core Disciplines (In Pixels)
 const DESK_SLOTS: Record<string, { x: number; y: number; rot: number }> = {
   'art-direction': { x: -360, y: -210, rot: -2 },
   'brand-identity': { x: 360, y: -210, rot: 2 },
@@ -21,44 +30,67 @@ const DESK_SLOTS: Record<string, { x: number; y: number; rot: number }> = {
   'photography': { x: 240, y: 260, rot: 2 },
 };
 
-// Fallback slot order if IDs vary
-const FALLBACK_SLOTS = [
-  { x: -360, y: -210, rot: -2 }, // Slot 0: Top Left
-  { x: 360, y: -210, rot: 2 },   // Slot 1: Top Right
-  { x: -480, y: 70, rot: 2 },    // Slot 2: Far Left
-  { x: 0, y: -60, rot: 0 },      // Slot 3: Center
-  { x: 480, y: 70, rot: -2 },    // Slot 4: Far Right
-  { x: -240, y: 260, rot: -2 },  // Slot 5: Bottom Left
-  { x: 240, y: 260, rot: 2 },    // Slot 6: Bottom Right
+// Dedicated Non-Colliding Coordinates for Uploaded Client Campaigns (e.g. Kaldhar)
+// Places campaign folders distinctly (honoring "folder need to come right")
+const CAMPAIGN_SLOTS = [
+  { x: 500, y: -190, rot: 2 },   // Campaign 1: Upper Right
+  { x: 0, y: 230, rot: -1 },     // Campaign 2: Center Lower
+  { x: -500, y: -190, rot: -2 },  // Campaign 3: Upper Left
+  { x: 0, y: -260, rot: 1 },     // Campaign 4: Center Upper
+  { x: -160, y: 70, rot: -1 },   // Campaign 5: Center-Left
+  { x: 160, y: 70, rot: 1 },     // Campaign 6: Center-Right
 ];
 
-function getSlot(file: ArchiveFile, index: number) {
-  // 1. Direct ID match first (100% reliable, zero collisions)
-  if (file.id && DESK_SLOTS[file.id]) {
-    return DESK_SLOTS[file.id];
+function getSlot(file: ArchiveFile, index: number, usedCoords: Set<string>) {
+  const fid = (file.id || '').toLowerCase().replace(/_/g, '-');
+  const nameNorm = (file.name || '').toLowerCase();
+
+  // 1. Core discipline direct match
+  if (CORE_DISCIPLINE_KEYS.has(fid) && DESK_SLOTS[fid]) {
+    const slot = DESK_SLOTS[fid];
+    const key = `${slot.x},${slot.y}`;
+    if (!usedCoords.has(key)) {
+      usedCoords.add(key);
+      return slot;
+    }
   }
 
-  // 2. Strict ID normalization
-  const fid = (file.id || '').toLowerCase().replace(/_/g, '-');
-  if (DESK_SLOTS[fid]) return DESK_SLOTS[fid];
+  // 2. Core discipline exact name match (e.g. "Art Direction")
+  for (const coreKey of CORE_DISCIPLINE_KEYS) {
+    if (nameNorm === coreKey.replace(/-/g, ' ') && DESK_SLOTS[coreKey]) {
+      const slot = DESK_SLOTS[coreKey];
+      const key = `${slot.x},${slot.y}`;
+      if (!usedCoords.has(key)) {
+        usedCoords.add(key);
+        return slot;
+      }
+    }
+  }
 
-  // 3. Normalized discipline / name matching (ordered specifically without collisions)
-  const norm = (file.name + ' ' + (file.discipline || '')).toLowerCase();
-  if (norm.includes('art') || norm.includes('concept')) return DESK_SLOTS['art-direction'];
-  if (norm.includes('brand') || norm.includes('identity')) return DESK_SLOTS['brand-identity'];
-  if (norm.includes('cinema') || norm.includes('camera') || norm.includes('shoot')) return DESK_SLOTS['cinematography'];
-  if (norm.includes('motion') || norm.includes('kinetic') || norm.includes('3d')) return DESK_SLOTS['motion-graphics'];
-  if (norm.includes('photo') || norm.includes('stills') || norm.includes('lookbook')) return DESK_SLOTS['photography'];
-  if (norm.includes('color') || norm.includes('colour') || norm.includes('grade')) return DESK_SLOTS['color-grading'];
-  if (norm.includes('video') || norm.includes('social') || norm.includes('reel') || norm.includes('post-production')) return DESK_SLOTS['video-editing'];
+  // 3. Dedicated Campaign slots for custom uploaded folders (like Kaldhar)
+  for (const cSlot of CAMPAIGN_SLOTS) {
+    const key = `${cSlot.x},${cSlot.y}`;
+    if (!usedCoords.has(key)) {
+      usedCoords.add(key);
+      return cSlot;
+    }
+  }
 
-  return FALLBACK_SLOTS[index % FALLBACK_SLOTS.length];
+  // 4. Fallback: dynamic non-colliding offset
+  const angle = (index * 45) * (Math.PI / 180);
+  const radius = 380;
+  return {
+    x: Math.round(Math.cos(angle) * radius),
+    y: Math.round(Math.sin(angle) * (radius * 0.6)),
+    rot: index % 2 === 0 ? 2 : -2,
+  };
 }
 
 export default function ArchiveDirectorDesk({
   files,
   onSelectFile,
 }: ArchiveDirectorDeskProps) {
+  const usedCoords = new Set<string>();
   return (
     <div className="relative w-full min-h-screen bg-[#faf9f6] text-neutral-900 flex flex-col items-center justify-between pt-20 pb-24 px-4 sm:px-8 select-none overflow-x-hidden">
       
@@ -101,7 +133,7 @@ export default function ArchiveDirectorDesk({
         {/* Desktop Absolute Desk Layout (All 7 Apple Folders Guaranteed Distinct and Non-Colliding on 1024px+ viewports) */}
         <div className="hidden lg:flex relative w-full max-w-7xl h-[780px] items-center justify-center">
           {files.map((file, index) => {
-            const slot = getSlot(file, index);
+            const slot = getSlot(file, index, usedCoords);
             return (
               <div
                 key={file.id}

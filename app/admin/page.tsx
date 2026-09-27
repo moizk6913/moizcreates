@@ -2050,26 +2050,6 @@ export default function AdminPage() {
     }
   };
 
-  const hasLegacyMockData = useMemo(() => {
-    const isMock = (str: string = '') => {
-      const s = str.toLowerCase();
-      return (
-        s.includes('kaldhar') ||
-        s.includes('kaladhar') ||
-        s.includes('caldhar') ||
-        s.includes('easy hai bro') ||
-        s.includes('windchasers') ||
-        s.includes('porsche') ||
-        s.includes('ruchi') ||
-        s.includes('oxymorons')
-      );
-    };
-    return (
-      projects.some((p) => isMock(p.title) || isMock(p.client || '')) ||
-      works.some((w) => isMock(w.title) || isMock(w.client || '') || (w.tags && w.tags.some(isMock)))
-    );
-  }, [projects, works]);
-
   const handleDeleteSingleWork = async (work: WorkItem) => {
     if (confirm(`Permanently delete "${work.title}"? This cannot be undone.`)) {
       try {
@@ -2167,9 +2147,83 @@ export default function AdminPage() {
   }, [projects, selectedProjectId]);
 
   const currentProjectWorks = useMemo(() => {
-    if (!selectedProjectId) return [];
-    return works.filter((w) => w.projectId === selectedProjectId);
-  }, [works, selectedProjectId]);
+    if (!currentProject) return [];
+    // 1. Works directly associated in global works store
+    const direct = works.filter((w) => w.projectId === currentProject.id || w.projectId === currentProject.slug);
+    if (direct.length > 0) return direct;
+
+    // 2. Synthesize works directly from currentProject.sections or currentProject.gallery
+    const synthetic: WorkItem[] = [];
+    if (Array.isArray((currentProject as any).sections) && (currentProject as any).sections.length > 0) {
+      (currentProject as any).sections.forEach((sec: any) => {
+        (sec.items || []).forEach((it: any, itIdx: number) => {
+          synthetic.push({
+            id: it.id || `work-${currentProject.id}-${sec.id}-${itIdx}`,
+            title: it.altText || it.originalName || `${sec.title} #${itIdx + 1}`,
+            mediaUrl: it.optimizedUrl || it.url,
+            thumbnailUrl: it.thumbnailUrl || it.optimizedUrl || it.url,
+            mediaType: it.type || (it.url?.endsWith('.mp4') ? 'video' : 'image'),
+            fileType: it.mimeType || 'image/webp',
+            fileName: it.originalName || it.fileName || `${currentProject.slug}-${itIdx}.webp`,
+            fileSize: it.fileSize || 100000,
+            dimensions: it.dimensions || {
+              width: 1920,
+              height: 1080,
+              aspectRatio: '16:9',
+              orientation: 'horizontal',
+            },
+            workType: sec.title,
+            disciplines: [currentProject.tag || 'Art Direction'],
+            tags: [sec.title, currentProject.title],
+            projectId: currentProject.id,
+            collectionIds: [],
+            seriesId: sec.id,
+            client: currentProject.client || currentProject.title,
+            year: currentProject.year || '2026',
+            status: currentProject.status || 'published',
+            createdAt: it.createdAt ? new Date(it.createdAt).getTime() : Date.now(),
+            updatedAt: it.createdAt ? new Date(it.createdAt).getTime() : Date.now(),
+          });
+        });
+      });
+      return synthetic;
+    }
+
+    if (Array.isArray((currentProject as any).gallery) && (currentProject as any).gallery.length > 0) {
+      (currentProject as any).gallery.forEach((g: any, gIdx: number) => {
+        synthetic.push({
+          id: g.id || `work-${currentProject.id}-${gIdx}`,
+          title: g.altText || `${currentProject.title} Frame #${gIdx + 1}`,
+          mediaUrl: g.optimizedUrl || g.url,
+          thumbnailUrl: g.thumbnailUrl || g.optimizedUrl || g.url,
+          mediaType: g.type || 'image',
+          fileType: g.mimeType || 'image/webp',
+          fileName: g.fileName || `${currentProject.slug}-${gIdx}.webp`,
+          fileSize: g.fileSize || 100000,
+          dimensions: g.dimensions || {
+            width: 1920,
+            height: 1080,
+            aspectRatio: '16:9',
+            orientation: 'horizontal',
+          },
+          workType: 'Photography',
+          disciplines: [currentProject.tag || 'Art Direction'],
+          tags: [currentProject.title],
+          projectId: currentProject.id,
+          collectionIds: [],
+          seriesId: null,
+          client: currentProject.client || currentProject.title,
+          year: currentProject.year || '2026',
+          status: currentProject.status || 'published',
+          createdAt: g.createdAt ? new Date(g.createdAt).getTime() : Date.now(),
+          updatedAt: g.createdAt ? new Date(g.createdAt).getTime() : Date.now(),
+        });
+      });
+      return synthetic;
+    }
+
+    return [];
+  }, [currentProject, works]);
 
   // Dynamic Work Types that ACTUALLY exist in this project
   const currentProjectTypes = useMemo(() => {
@@ -2513,36 +2567,6 @@ export default function AdminPage() {
           {statusNotification && (
             <div className="fixed top-18 right-6 z-50 px-5 py-3 rounded-2xl bg-black/90 backdrop-blur-md border border-white/20 text-white font-mono text-xs font-bold shadow-2xl animate-fadeIn">
               {statusNotification}
-            </div>
-          )}
-
-          {/* QUICK PURGE BANNER IF LEGACY SAMPLE PROJECT (KALDHAR) IS DETECTED */}
-          {hasLegacyMockData && (
-            <div className="w-full px-6 sm:px-10 pt-4">
-              <div className="p-4 rounded-2xl bg-red-500/15 border border-red-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">⚠️</span>
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-white uppercase tracking-tight">
-                      Detected Legacy Sample / Kaldhar Project in Browser Storage
-                    </h4>
-                    <p className="font-mono text-xs text-red-300/80">
-                      Legacy mock projects stored in your browser cache can be wiped with one click.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const count = await purgeMockAndCaldharProjectsAsync();
-                    await refreshData();
-                    notifyUser(`Purged ${count} legacy sample item(s). Clean slate ready.`);
-                  }}
-                  className="px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0"
-                >
-                  1-Click Purge Kaldhar Now
-                </button>
-              </div>
             </div>
           )}
 
