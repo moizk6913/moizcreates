@@ -361,6 +361,31 @@ body {
   html.has-custom-cursor [contenteditable="true"] {
     cursor: text !important;
   }
+
+  /* Admin Studio Workspace Exemption: Always preserve full native visible OS cursor */
+  html.has-custom-cursor body.admin-desk,
+  html.has-custom-cursor body.admin-desk *,
+  html.has-custom-cursor .admin-root,
+  html.has-custom-cursor .admin-root * {
+    cursor: auto !important;
+  }
+  html.has-custom-cursor .admin-root button,
+  html.has-custom-cursor .admin-root a,
+  html.has-custom-cursor .admin-root [role="button"],
+  html.has-custom-cursor .admin-root select,
+  html.has-custom-cursor .admin-root label[for],
+  html.has-custom-cursor .admin-root input[type="file"],
+  html.has-custom-cursor .admin-root input[type="submit"],
+  html.has-custom-cursor .admin-root input[type="checkbox"],
+  html.has-custom-cursor .admin-root input[type="radio"],
+  html.has-custom-cursor .admin-root .cursor-pointer {
+    cursor: pointer !important;
+  }
+  html.has-custom-cursor .admin-root input[type="text"],
+  html.has-custom-cursor .admin-root input[type="password"],
+  html.has-custom-cursor .admin-root textarea {
+    cursor: text !important;
+  }
 }
 
 @keyframes fadeIn {

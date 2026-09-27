@@ -54,7 +54,24 @@ export async function POST(request: NextRequest) {
     const customRole = (formData.get('role') as string) || 'Director of Visuals';
     const customCategory = (formData.get('categoryId') as string) || 'art-direction';
 
-    if (!files || files.length === 0) {
+    const directItemsRaw = (formData.get('directItems') as string) || '';
+    let directItems: Array<{
+      url: string;
+      path: string;
+      name: string;
+      type?: string;
+      aspectRatio?: string;
+      width?: number;
+      height?: number;
+      fileSize?: number;
+    }> = [];
+    if (directItemsRaw) {
+      try {
+        directItems = JSON.parse(directItemsRaw);
+      } catch {}
+    }
+
+    if ((!files || files.length === 0) && directItems.length === 0) {
       return NextResponse.json(
         { success: false, error: 'No files provided in project folder upload.' },
         { status: 400 }
@@ -62,9 +79,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Determine project title from root folder
+    const allPaths = [...paths, ...directItems.map((d) => d.path)];
     let inferredTitle = customTitle.trim();
-    if (!inferredTitle && paths.length > 0) {
-      const firstParts = paths[0].split(/[/\\]/);
+    if (!inferredTitle && allPaths.length > 0) {
+      const firstParts = allPaths[0].split(/[/\\]/);
       if (firstParts.length > 1) {
         inferredTitle = firstParts[0]
           .replace(/[-_]+/g, ' ')
@@ -188,6 +206,79 @@ export async function POST(request: NextRequest) {
           items: sectionItems,
           displayOrder: displayOrder++,
         });
+      }
+    }
+
+    // 5.5 Process Direct Items (Pre-uploaded to Supabase CDN)
+    if (directItems.length > 0) {
+      const directMap = new Map<string, typeof directItems>();
+      for (const d of directItems) {
+        const parts = (d.path || d.name).split(/[/\\]/).filter(Boolean);
+        let sub = 'general';
+        if (parts.length >= 3) sub = parts[1];
+        else if (parts.length === 2 && parts[0].toLowerCase() !== inferredTitle.toLowerCase()) sub = parts[0];
+        if (!directMap.has(sub)) directMap.set(sub, []);
+        directMap.get(sub)!.push(d);
+      }
+
+      for (const [subfolderKey, items] of directMap.entries()) {
+        const sectionType = inferSectionType(subfolderKey);
+        const sectionTitle = formatSectionTitle(subfolderKey);
+        const directSectionItems: MediaAsset[] = [];
+
+        for (const item of items) {
+          const isVideo = (item.type && item.type.startsWith('video/')) || /\.(mp4|mov|webm)$/i.test(item.name) || item.url.endsWith('.mp4');
+          const w = item.width || 1920;
+          const h = item.height || 1080;
+          const asset: any = {
+            fileName: item.name,
+            originalName: item.name,
+            mimeType: isVideo ? 'video/mp4' : 'image/webp',
+            fileSize: item.fileSize || 500000,
+            url: item.url,
+            optimizedUrl: item.url,
+            thumbnailUrl: item.url,
+            dimensions: {
+              width: w,
+              height: h,
+              aspectRatio: item.aspectRatio || (isVideo ? '16:9' : '16:10'),
+              orientation: h > w * 1.15 ? 'vertical' : 'horizontal',
+              resolution: `${w}x${h}`,
+            },
+            altText: item.name.replace(/[_-]+/g, ' '),
+            type: isVideo ? 'video' : 'image',
+            projectId: slug,
+            categoryId: customCategory,
+          };
+          const saved = await db.media.create(asset);
+          directSectionItems.push(saved);
+          if (isVideo) {
+            allVideoAssets.push({
+              id: `vid-${saved.id}`,
+              url: saved.url,
+              posterUrl: saved.thumbnailUrl || saved.optimizedUrl,
+              duration: 15,
+              dimensions: saved.dimensions,
+              type: 'direct',
+              title: saved.altText,
+            });
+          } else {
+            allGalleryAssets.push(saved);
+          }
+        }
+
+        const existingSec = projectSections.find((s) => s.title.toLowerCase() === sectionTitle.toLowerCase());
+        if (existingSec) {
+          existingSec.items.push(...directSectionItems);
+        } else if (directSectionItems.length > 0) {
+          projectSections.push({
+            id: `sec-${subfolderKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+            title: sectionTitle,
+            type: sectionType,
+            items: directSectionItems,
+            displayOrder: displayOrder++,
+          });
+        }
       }
     }
 

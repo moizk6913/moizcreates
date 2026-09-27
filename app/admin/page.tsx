@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import CustomCursor from '@/components/CustomCursor';
+import { createClient } from '@supabase/supabase-js';
 import {
   WorkItem,
   Project,
@@ -36,6 +36,95 @@ import {
   purgeMockAndCaldharProjectsAsync,
 } from '@/lib/contentStore';
 import { BlogPost } from '@/lib/blogData';
+
+const SUPABASE_PROJECT_URL = 'https://eztcznarhdmpfurrtbgx.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_D22slN-FI3-0hfJpXqnXgQ_v7jO83_D';
+
+// Upload large assets (e.g. video files > 4MB) directly to Supabase Storage CDN, bypassing Vercel 4.5MB request limit
+async function uploadDirectToSupabase(file: File, folder: string = 'media'): Promise<string | null> {
+  try {
+    const supabase = createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
+    const ext = file.name.split('.').pop() || 'bin';
+    const cleanBase = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30);
+    const uniquePath = `${folder}/${cleanBase}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+
+    const { data, error } = await supabase.storage
+      .from('portfolio-media')
+      .upload(uniquePath, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: true,
+      });
+
+    if (error || !data) {
+      console.warn('[Direct Supabase Upload] Error:', error);
+      return null;
+    }
+
+    const { data: pubData } = supabase.storage.from('portfolio-media').getPublicUrl(data.path);
+    return pubData?.publicUrl || null;
+  } catch (err) {
+    console.warn('[Direct Supabase Upload] Exception:', err);
+    return null;
+  }
+}
+
+// Client-side high-quality image pre-compressor: scales images > 2MB down to max 2560px WebP (< 1.8MB)
+async function optimizeImageForUpload(file: File): Promise<File> {
+  const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|avif|bmp|tiff?)$/i.test(file.name);
+  if (!isImage || file.size <= 2 * 1024 * 1024) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxDim = 2560;
+      let w = img.naturalWidth || 1920;
+      let h = img.naturalHeight || 1080;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => {
+          if (blob && blob.size < file.size) {
+            const cleanName = file.name.replace(/\.[^.]+$/, '') + '.webp';
+            const optimizedFile = new File([blob], cleanName, {
+              type: 'image/webp',
+              lastModified: Date.now(),
+            });
+            resolve(optimizedFile);
+          } else {
+            resolve(file);
+          }
+        },
+        'image/webp',
+        0.88
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
 
 type AdminView = 'all_work' | 'projects' | 'single_project' | 'playground' | 'collections' | 'journal' | 'inquiries' | 'ai_director' | 'settings';
 
@@ -367,6 +456,37 @@ export default function AdminPage() {
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingFolder, setIsUploadingFolder] = useState(false);
   const [folderUploadStatus, setFolderUploadStatus] = useState<string | null>(null);
+
+  // Global Studio Upload HUD State (visible across ALL views & modals)
+  const [uploadProgress, setUploadProgress] = useState<{
+    isActive: boolean;
+    title: string;
+    statusText: string;
+    currentFile: string;
+    percentage: number;
+    totalFiles: number;
+    processedFiles: number;
+    phase: 'idle' | 'optimizing' | 'uploading' | 'syncing' | 'completed' | 'error';
+    errorMessage?: string;
+  }>({
+    isActive: false,
+    title: '',
+    statusText: '',
+    currentFile: '',
+    percentage: 0,
+    totalFiles: 0,
+    processedFiles: 0,
+    phase: 'idle',
+  });
+
+  // Enforce visible OS cursor across admin desk & remove hiding classes
+  useEffect(() => {
+    document.documentElement.classList.remove('has-custom-cursor');
+    document.body.classList.add('admin-desk');
+    return () => {
+      document.body.classList.remove('admin-desk');
+    };
+  }, []);
 
   // Dedicated Playground Lab State & Uploader
   const [isPlaygroundUploadOpen, setIsPlaygroundUploadOpen] = useState(false);
@@ -876,21 +996,77 @@ export default function AdminPage() {
     const projectName = firstParts.length > 1 ? firstParts[0] : 'Uploaded Project';
 
     setIsUploadingFolder(true);
-    setFolderUploadStatus(`Ingesting "${projectName}": Converting media & building sections...`);
+    setFolderUploadStatus(`Ingesting "${projectName}": Inspecting assets & building sections...`);
+    setUploadProgress({
+      isActive: true,
+      title: `Ingesting "${projectName}"`,
+      statusText: `Scanning ${validMedia.length} asset(s) for high-speed CDN conversion...`,
+      currentFile: validMedia[0]?.file.name || '',
+      percentage: 5,
+      totalFiles: validMedia.length,
+      processedFiles: 0,
+      phase: 'optimizing',
+    });
     notifyUser(`Ingesting folder "${projectName}"...`);
 
     try {
-      // Chunk items into batches to strictly avoid Vercel 4.5MB request payload limit
-      const MAX_BATCH_BYTES = 3.5 * 1024 * 1024; // 3.5MB safe limit
-      const MAX_FILES_PER_BATCH = 3;
+      const optimizedItems: Array<{ file: File; path: string }> = [];
+      const directItems: Array<{
+        url: string;
+        path: string;
+        name: string;
+        type: string;
+        aspectRatio?: string;
+        width?: number;
+        height?: number;
+        fileSize?: number;
+      }> = [];
+
+      for (let i = 0; i < validMedia.length; i++) {
+        const item = validMedia[i];
+        const percent = Math.round(5 + ((i + 1) / validMedia.length) * 20);
+        setUploadProgress((prev) => ({
+          ...prev,
+          percentage: percent,
+          currentFile: item.file.name,
+          statusText: `Pre-optimizing "${item.file.name}" for instant CDN delivery...`,
+        }));
+
+        const isVideo = item.file.type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(item.file.name);
+        if (isVideo && item.file.size > 3.5 * 1024 * 1024) {
+          // Direct upload large video to Supabase Storage
+          setUploadProgress((prev) => ({
+            ...prev,
+            statusText: `Uploading large video "${item.file.name}" direct to Supabase CDN...`,
+          }));
+          const directUrl = await uploadDirectToSupabase(item.file, 'videos');
+          if (directUrl) {
+            directItems.push({
+              url: directUrl,
+              path: item.path,
+              name: item.file.name,
+              type: item.file.type || 'video/mp4',
+              fileSize: item.file.size,
+            });
+            continue;
+          }
+        }
+
+        // Pre-optimize image if large (> 2MB)
+        const optFile = await optimizeImageForUpload(item.file);
+        optimizedItems.push({ file: optFile, path: item.path });
+      }
+
+      // Chunk items into batches strictly under 2.5MB to avoid Vercel 4.5MB request limit
+      const MAX_BATCH_BYTES = 2.5 * 1024 * 1024;
+      const MAX_FILES_PER_BATCH = 2;
 
       const batches: Array<Array<{ file: File; path: string }>> = [];
       let currentBatch: Array<{ file: File; path: string }> = [];
       let currentBatchBytes = 0;
 
-      for (const item of validMedia) {
+      for (const item of optimizedItems) {
         const fileSize = item.file.size;
-        // If adding this file exceeds byte limit or max count, start new batch
         if (currentBatch.length > 0 && (currentBatchBytes + fileSize > MAX_BATCH_BYTES || currentBatch.length >= MAX_FILES_PER_BATCH)) {
           batches.push(currentBatch);
           currentBatch = [item];
@@ -905,15 +1081,52 @@ export default function AdminPage() {
       }
 
       let lastResult: any = null;
-      let processedFilesCount = 0;
+      let processedFilesCount = directItems.length;
+
+      // If all items were large videos and uploaded direct:
+      if (directItems.length > 0 && batches.length === 0) {
+        setUploadProgress((prev) => ({
+          ...prev,
+          percentage: 85,
+          statusText: `Finalizing section structure for ${directItems.length} cloud assets...`,
+          phase: 'syncing',
+        }));
+        const formData = new FormData();
+        formData.append('title', projectName);
+        formData.append('directItems', JSON.stringify(directItems));
+        const res = await adminFetch('/api/admin/upload-folder', {
+          method: 'POST',
+          body: formData,
+        });
+        const text = await res.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Server response error (${res.status}): ${text.slice(0, 100)}`);
+        }
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Direct asset registration failed.');
+        }
+        lastResult = data;
+      }
 
       for (let bIdx = 0; bIdx < batches.length; bIdx++) {
         const batch = batches[bIdx];
-        const progressPercent = Math.round((processedFilesCount / validMedia.length) * 100);
+        const batchFileNames = batch.map((b) => b.file.name).join(', ');
+        const progressPercent = Math.round(25 + ((bIdx + 1) / batches.length) * 70);
 
         setFolderUploadStatus(
-          `Ingesting "${projectName}" [Batch ${bIdx + 1}/${batches.length} • ${progressPercent}% complete]: Converting to WebP & syncing to Supabase CDN...`
+          `Ingesting "${projectName}" [Batch ${bIdx + 1}/${batches.length} • ${progressPercent}%]: Transcoding WebP & syncing to CDN...`
         );
+        setUploadProgress((prev) => ({
+          ...prev,
+          percentage: progressPercent,
+          currentFile: batchFileNames,
+          processedFiles: processedFilesCount,
+          statusText: `Batch ${bIdx + 1} of ${batches.length}: Transcoding WebP & syncing to Supabase CDN...`,
+          phase: 'uploading',
+        }));
 
         const formData = new FormData();
         formData.append('title', projectName);
@@ -923,22 +1136,50 @@ export default function AdminPage() {
           formData.append('paths', path);
         });
 
+        if (bIdx === 0 && directItems.length > 0) {
+          formData.append('directItems', JSON.stringify(directItems));
+        }
+
         const res = await adminFetch('/api/admin/upload-folder', {
           method: 'POST',
           body: formData,
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(text);
+        } catch {
+          if (res.status === 413) {
+            throw new Error(`Batch payload exceeded server limits (HTTP 413). Try fewer or smaller files.`);
+          }
+          throw new Error(`Server returned error (${res.status}): ${text.slice(0, 100)}`);
+        }
+
         if (!res.ok || !data.success) {
           throw new Error(data.error || `Failed uploading batch ${bIdx + 1}`);
         }
 
         lastResult = data;
         processedFilesCount += batch.length;
+        setUploadProgress((prev) => ({
+          ...prev,
+          processedFiles: processedFilesCount,
+        }));
       }
 
       const data = lastResult;
       if (data && data.success) {
+        setUploadProgress({
+          isActive: true,
+          title: `Ingested "${data.project.title}"`,
+          statusText: `✓ Successfully ingested ${data.sectionCount} sections (${validMedia.length} assets synced to CDN)!`,
+          currentFile: '',
+          percentage: 100,
+          totalFiles: validMedia.length,
+          processedFiles: validMedia.length,
+          phase: 'completed',
+        });
         notifyUser(`Success: "${data.project.title}" ingested with ${data.sectionCount} sections (${validMedia.length} assets synced)!`);
 
         // Sync to local Canvas / Store
@@ -959,14 +1200,14 @@ export default function AdminPage() {
             aspect: '16:9',
             colorTag: '#111111',
             assetType: 'folder',
-            photos: (p.gallery || []).map((g: any) => g.url || g),
+            photos: (p.gallery || []).slice(0, 12).map((g: any) => g.url || g),
             desc: p.fullDescription || p.shortDescription,
             deliverables: p.services || ['Creative Direction', 'Campaign Architecture'],
             sections: (p.sections || []).map((s: any) => ({
               id: s.id,
               title: s.title,
               type: s.type,
-              items: (s.items || []).map((it: any) => ({
+              items: (s.items || []).slice(0, 8).map((it: any) => ({
                 url: it.url,
                 aspectRatio: it.dimensions?.aspectRatio,
                 title: it.altText || it.originalName,
@@ -991,10 +1232,23 @@ export default function AdminPage() {
         if (activeView !== 'ai_director') {
           setActiveView('projects');
         }
+
+        // Auto-dismiss HUD after 4.5 seconds
+        setTimeout(() => {
+          setUploadProgress((prev) => (prev.phase === 'completed' ? { ...prev, isActive: false } : prev));
+        }, 4500);
       } else {
-        notifyUser(data.error || 'Failed to ingest folder.');
+        throw new Error(data?.error || 'Failed to ingest folder.');
       }
     } catch (err: any) {
+      console.error('Folder ingestion error:', err);
+      setUploadProgress((prev) => ({
+        ...prev,
+        isActive: true,
+        phase: 'error',
+        errorMessage: err.message || 'Unknown folder ingestion error.',
+        statusText: `Error: ${err.message || 'Failed during ingestion'}`,
+      }));
       notifyUser(`Folder ingestion error: ${err.message}`);
     } finally {
       setIsUploadingFolder(false);
@@ -1077,6 +1331,16 @@ export default function AdminPage() {
   const handlePublishUploadQueue = async (status: 'published' | 'draft') => {
     if (!uploadQueue.length) return;
     setIsPublishingBatch(true);
+    setUploadProgress({
+      isActive: true,
+      title: `Publishing ${uploadQueue.length} Asset(s)`,
+      statusText: 'Preparing assets for portfolio upload...',
+      currentFile: uploadQueue[0]?.fileName || '',
+      percentage: 5,
+      totalFiles: uploadQueue.length,
+      processedFiles: 0,
+      phase: 'uploading',
+    });
 
     try {
       const newWorks: WorkItem[] = [];
@@ -1086,37 +1350,90 @@ export default function AdminPage() {
         let mediaUrl = item.dataUrl;
         let thumbUrl = item.thumbnailUrl;
 
-        // Route through backend media pipeline if physical file object is available
+        const currentPct = Math.round(5 + ((i + 0.5) / uploadQueue.length) * 85);
+        setUploadProgress((prev) => ({
+          ...prev,
+          percentage: currentPct,
+          currentFile: item.fileName,
+          processedFiles: i,
+          statusText: `Uploading & converting "${item.fileName}" (${i + 1}/${uploadQueue.length})...`,
+        }));
+
+        // Route through backend media pipeline or direct Supabase Storage if file object is present
         if (item.file) {
           try {
-            const formData = new FormData();
-            formData.append('file', item.file);
-            if (item.projectId) {
-              formData.append('projectId', item.projectId);
-            }
-            const uploadRes = await adminFetch('/api/upload', {
-              method: 'POST',
-              body: formData,
-            });
-            if (uploadRes.ok) {
-              const uploadData = await uploadRes.json();
-              const asset = uploadData.asset || (uploadData.assets && uploadData.assets[0]);
-              if (uploadData.success && asset) {
-                mediaUrl = asset.url;
-                thumbUrl = asset.thumbnailUrl || asset.url;
-                if (asset.dimensions) {
-                  item.dimensions = {
-                    ...item.dimensions,
-                    ...asset.dimensions,
-                  };
+            const isVideo = item.file.type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(item.fileName);
+            if (isVideo && item.file.size > 3.5 * 1024 * 1024) {
+              setUploadProgress((prev) => ({
+                ...prev,
+                statusText: `Syncing large video "${item.fileName}" directly to Supabase CDN...`,
+              }));
+              const directUrl = await uploadDirectToSupabase(item.file, 'videos');
+              if (directUrl) {
+                mediaUrl = directUrl;
+                thumbUrl = item.thumbnailUrl || directUrl;
+                const regRes = await adminFetch('/api/upload', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    directUrl,
+                    fileName: item.fileName,
+                    mimeType: item.file.type || 'video/mp4',
+                    fileSize: item.file.size,
+                    dimensions: item.dimensions,
+                    projectId: item.projectId,
+                  }),
+                });
+                if (regRes.ok) {
+                  const regData = await regRes.json();
+                  if (regData.asset?.url) {
+                    mediaUrl = regData.asset.url;
+                    thumbUrl = regData.asset.thumbnailUrl || regData.asset.url;
+                  }
                 }
               }
             } else {
-              const errData = await uploadRes.json().catch(() => ({}));
-              throw new Error(errData.error || `Upload failed (${uploadRes.status})`);
+              // Pre-optimize image if large
+              const optFile = await optimizeImageForUpload(item.file);
+              const formData = new FormData();
+              formData.append('file', optFile);
+              if (item.projectId) {
+                formData.append('projectId', item.projectId);
+              }
+              const uploadRes = await adminFetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+              });
+
+              const text = await uploadRes.text();
+              let uploadData: any = {};
+              try {
+                uploadData = JSON.parse(text);
+              } catch {
+                if (uploadRes.status === 413) {
+                  throw new Error(`File payload too large (HTTP 413). Try a smaller image.`);
+                }
+                throw new Error(`Upload error (${uploadRes.status}): ${text.slice(0, 80)}`);
+              }
+
+              if (uploadRes.ok && uploadData.success) {
+                const asset = uploadData.asset || (uploadData.assets && uploadData.assets[0]);
+                if (asset) {
+                  mediaUrl = asset.url;
+                  thumbUrl = asset.thumbnailUrl || asset.url;
+                  if (asset.dimensions) {
+                    item.dimensions = {
+                      ...item.dimensions,
+                      ...asset.dimensions,
+                    };
+                  }
+                }
+              } else {
+                throw new Error(uploadData.error || `Upload failed (${uploadRes.status})`);
+              }
             }
           } catch (uploadErr: any) {
-            console.error('Upload to /api/upload failed:', uploadErr);
+            console.error('Upload failed:', uploadErr);
             throw new Error(`Upload error for "${item.fileName}": ${uploadErr.message || 'Server rejected file'}`);
           }
         }
@@ -1165,10 +1482,33 @@ export default function AdminPage() {
       setUploadQueue([]);
       setBatchSuggestion(null);
       setIsAddWorkOpen(false);
-      notifyUser(`Successfully saved ${newWorks.length} work(s)!`);
+
+      setUploadProgress({
+        isActive: true,
+        title: `Published ${newWorks.length} Work(s)`,
+        statusText: `✓ Successfully published ${newWorks.length} asset(s) to portfolio!`,
+        currentFile: '',
+        percentage: 100,
+        totalFiles: uploadQueue.length,
+        processedFiles: uploadQueue.length,
+        phase: 'completed',
+      });
+      notifyUser(`Success: Published ${newWorks.length} work(s) to studio portfolio!`);
+
+      // Auto dismiss after 4s
+      setTimeout(() => {
+        setUploadProgress((prev) => (prev.phase === 'completed' ? { ...prev, isActive: false } : prev));
+      }, 4000);
     } catch (err: any) {
-      console.error('Failed to save batch', err);
-      notifyUser(err.message || 'Error uploading works. Check server connection.');
+      console.error('Batch publish error:', err);
+      setUploadProgress((prev) => ({
+        ...prev,
+        isActive: true,
+        phase: 'error',
+        errorMessage: err.message || 'Batch publication encountered an issue.',
+        statusText: `Error: ${err.message || 'Failed to publish works'}`,
+      }));
+      notifyUser(`Batch upload error: ${err.message}`);
     } finally {
       setIsPublishingBatch(false);
     }
@@ -1952,8 +2292,7 @@ export default function AdminPage() {
 
   if (isCheckingAuth) {
     return (
-      <main className="min-h-screen bg-[#0d0d0e] text-white flex items-center justify-center font-mono">
-        <CustomCursor />
+      <main className="min-h-screen bg-[#0d0d0e] text-white flex items-center justify-center font-mono admin-root">
         <div className="flex flex-col items-center gap-4">
           <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
           <span className="text-xs uppercase tracking-widest text-neutral-400">Verifying Studio Credentials...</span>
@@ -1964,8 +2303,7 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-[#0d0d0e] text-white flex items-center justify-center p-6 font-sans relative overflow-hidden">
-        <CustomCursor />
+      <main className="min-h-screen bg-[#0d0d0e] text-white flex items-center justify-center p-6 font-sans relative overflow-hidden admin-root">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.03),transparent_60%)] pointer-events-none" />
         <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#141416] border border-white/[0.08] shadow-2xl relative z-10 space-y-8">
           <div className="space-y-2 text-center">
@@ -2014,8 +2352,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="h-screen bg-[#0d0d0e] text-white selection:bg-white selection:text-black font-sans flex flex-col overflow-hidden">
-      <CustomCursor />
+    <div className="h-screen bg-[#0d0d0e] text-white selection:bg-white selection:text-black font-sans flex flex-col overflow-hidden admin-root">
       {/* Global Hidden Recursive Folder Ingestion Input */}
       <input
         ref={folderInputRef}
@@ -5530,6 +5867,126 @@ export default function AdminPage() {
                   <span>Publish to 360° Canvas</span>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GLOBAL STUDIO UPLOAD HUD / PROGRESS MODAL */}
+      {uploadProgress.isActive && (
+        <div className="fixed bottom-6 right-6 z-[99999] pointer-events-auto max-w-[440px] w-[calc(100vw-3rem)] animate-fadeIn">
+          <div className="p-5 rounded-2xl bg-[#131316]/95 backdrop-blur-2xl border border-white/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] text-white space-y-4 relative overflow-hidden">
+            {/* Top Glow Accent */}
+            <div
+              className={`absolute top-0 left-0 right-0 h-[2px] transition-colors duration-500 ${
+                uploadProgress.phase === 'completed'
+                  ? 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]'
+                  : uploadProgress.phase === 'error'
+                  ? 'bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.8)]'
+                  : 'bg-gradient-to-r from-amber-400 via-white to-emerald-400'
+              }`}
+            />
+
+            {/* Header: Title + Status Badge + Close Button */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {uploadProgress.phase === 'completed' ? (
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                    ✓
+                  </div>
+                ) : uploadProgress.phase === 'error' ? (
+                  <div className="w-7 h-7 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 flex items-center justify-center font-bold text-xs shrink-0">
+                    ✕
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <h4 className="font-display font-black text-sm uppercase tracking-tight truncate text-white">
+                    {uploadProgress.title || 'Studio Asset Pipeline'}
+                  </h4>
+                  <p className="font-mono text-[10px] text-neutral-400 uppercase tracking-wider">
+                    {uploadProgress.phase === 'completed'
+                      ? 'Upload & CDN Sync Succeeded'
+                      : uploadProgress.phase === 'error'
+                      ? 'Upload Interrupted'
+                      : uploadProgress.phase === 'optimizing'
+                      ? 'Pre-Optimizing WebP Formats'
+                      : 'Transcoding & Cloud Syncing'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-mono text-xs font-bold text-white px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/10">
+                  {uploadProgress.percentage}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setUploadProgress((prev) => ({ ...prev, isActive: false }))}
+                  className="w-6 h-6 rounded-full bg-white/[0.06] hover:bg-white hover:text-black flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                  title="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full h-2 rounded-full bg-white/[0.08] overflow-hidden relative">
+              <div
+                className={`h-full transition-all duration-300 rounded-full ${
+                  uploadProgress.phase === 'completed'
+                    ? 'bg-emerald-400'
+                    : uploadProgress.phase === 'error'
+                    ? 'bg-red-400'
+                    : 'bg-gradient-to-r from-amber-400 via-white to-emerald-400'
+                }`}
+                style={{ width: `${Math.max(4, Math.min(100, uploadProgress.percentage))}%` }}
+              />
+            </div>
+
+            {/* Dynamic Status / File Details */}
+            <div className="space-y-1">
+              {uploadProgress.currentFile && (
+                <div className="flex items-center gap-2 font-mono text-[11px] text-neutral-400 truncate">
+                  <span className="text-white/40">File:</span>
+                  <span className="text-white truncate font-medium">{uploadProgress.currentFile}</span>
+                </div>
+              )}
+              <p className="font-mono text-xs text-neutral-300 leading-relaxed">
+                {uploadProgress.statusText}
+              </p>
+              {uploadProgress.errorMessage && (
+                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 font-mono text-xs mt-2">
+                  {uploadProgress.errorMessage}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Summary / Dismiss */}
+            <div className="flex items-center justify-between pt-1 border-t border-white/[0.06] font-mono text-[10px] text-neutral-400">
+              <span>
+                {uploadProgress.totalFiles > 0
+                  ? `${uploadProgress.processedFiles} of ${uploadProgress.totalFiles} files handled`
+                  : 'Direct Supabase CDN'}
+              </span>
+              {uploadProgress.phase === 'error' && (
+                <button
+                  type="button"
+                  onClick={() => setUploadProgress((prev) => ({ ...prev, isActive: false }))}
+                  className="text-amber-400 hover:text-white uppercase font-bold tracking-wider cursor-pointer"
+                >
+                  Dismiss Error
+                </button>
+              )}
+              {uploadProgress.phase === 'completed' && (
+                <span className="text-emerald-400 uppercase font-bold tracking-wider">
+                  Ready on Public Canvas ↗
+                </span>
+              )}
             </div>
           </div>
         </div>
