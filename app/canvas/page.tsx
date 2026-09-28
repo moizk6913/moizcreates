@@ -575,7 +575,7 @@ function InfiniteCanvasContent() {
               paddingTop: 'clamp(8px, 1.5vh, 18px)',
               paddingBottom: 'clamp(8px, 1.5vh, 18px)',
             }}
-            className="fixed inset-0 z-[10000] bg-white/40 backdrop-blur-3xl flex items-center justify-center px-1.5 sm:px-3 md:px-4 overflow-hidden select-text pointer-events-auto"
+            className="fixed inset-0 z-[10000] bg-white/40 backdrop-blur-3xl flex items-center justify-center px-1 sm:px-2 md:px-3 lg:px-4 overflow-hidden select-text pointer-events-auto"
             role="dialog"
             aria-modal="true"
             aria-label={selectedFile.name}
@@ -587,7 +587,7 @@ function InfiniteCanvasContent() {
               style={{
                 maxHeight: 'calc(100vh - (clamp(8px, 1.5vh, 18px) * 2))',
               }}
-              className="relative w-full max-w-[1780px] h-auto bg-white apple-widget-lg rounded-[28px] sm:rounded-[38px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto my-auto"
+              className="relative w-[96vw] sm:w-[97vw] max-w-[2400px] h-auto bg-white apple-widget-lg rounded-[24px] sm:rounded-[36px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto my-auto"
             >
               {/* TOP NAVIGATION BAR (Clean, Prominent Tabs, Single Close Button) */}
               <header
