@@ -1397,21 +1397,7 @@ function InfiniteCanvasContent() {
 export default function InfiniteCanvasPage() {
   return (
     <Suspense
-      fallback={
-        <div className="fixed inset-0 z-[999999] bg-[#f7f7f7] flex items-center justify-center p-4 sm:p-8 select-none">
-          <div className="relative w-[230px] sm:w-[270px] md:w-[300px] max-w-[85vw] aspect-[1023/575] flex items-center justify-center">
-            <img
-              src="/frame-13.gif"
-              alt="Loading"
-              className="w-full h-full object-contain select-none pointer-events-none"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  'https://eztcznarhdmpfurrtbgx.supabase.co/storage/v1/object/public/portfolio-media/images/Frame_13.gif';
-              }}
-            />
-          </div>
-        </div>
-      }
+      fallback={<div className="w-screen h-screen bg-[#faf9f6]" />}
     >
       <InfiniteCanvasContent />
     </Suspense>

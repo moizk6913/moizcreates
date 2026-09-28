@@ -12,6 +12,16 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   const curtainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Only show once when someone opens the website (persists for the session)
+    if (typeof window !== 'undefined') {
+      const alreadyOpened = sessionStorage.getItem('site_opened_seen');
+      if (alreadyOpened === 'true') {
+        setIsVisible(false);
+        onComplete?.();
+        return;
+      }
+    }
+
     // Lock body scroll during preloader
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -23,12 +33,15 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       if (curtainRef.current) {
         gsap.to(curtainRef.current, {
           opacity: 0,
-          duration: 0.7,
+          duration: 0.6,
           ease: 'power2.out',
           onComplete: () => {
             setIsVisible(false);
             document.body.style.overflow = prevBodyOverflow;
             document.documentElement.style.overflow = prevHtmlOverflow;
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('site_opened_seen', 'true');
+            }
             onComplete?.();
           },
         });
