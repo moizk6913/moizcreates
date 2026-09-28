@@ -580,14 +580,14 @@ function InfiniteCanvasContent() {
             aria-modal="true"
             aria-label={selectedFile.name}
           >
-            {/* STATIONARY SHOWCASE CARD (Stays fixed & centered, never scrolls out of viewport, ZERO black stroke) */}
+            {/* STATIONARY SHOWCASE CARD (Responsive height: hugs compact content, expands up to viewport max for tall galleries) */}
             <div
               data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
               style={{
-                height: 'calc(100vh - (clamp(8px, 1.5vh, 18px) * 2))',
+                maxHeight: 'calc(100vh - (clamp(8px, 1.5vh, 18px) * 2))',
               }}
-              className="relative w-full max-w-[1780px] bg-white apple-widget-lg rounded-[28px] sm:rounded-[38px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
+              className="relative w-full max-w-[1780px] h-auto bg-white apple-widget-lg rounded-[28px] sm:rounded-[38px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto my-auto"
             >
               {/* TOP NAVIGATION BAR (Clean, Prominent Tabs, Single Close Button) */}
               <header
@@ -717,8 +717,9 @@ function InfiniteCanvasContent() {
                   paddingRight: 'clamp(16px, 4vw, var(--modal-side-spacing, 36px))',
                   paddingTop: 'var(--modal-header-gap, 16px)',
                   gap: 'var(--modal-row-gap, 16px)',
+                  maxHeight: 'calc(100vh - (clamp(8px, 1.5vh, 18px) * 2) - 76px)',
                 }}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar pb-14 flex flex-col touch-pan-y"
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar pb-4 sm:pb-6 flex flex-col touch-pan-y"
               >
 
               {/* ======================================================= */}
