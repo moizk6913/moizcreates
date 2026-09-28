@@ -3526,9 +3526,15 @@ export default function AdminPage() {
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={work.thumbnailUrl || work.mediaUrl}
+                          src={
+                            work.mediaUrl?.endsWith('.gif') ||
+                            work.fileName?.endsWith('.gif') ||
+                            work.title?.toLowerCase().includes('frame 13')
+                              ? (work.mediaUrl && work.mediaUrl.endsWith('.gif') ? work.mediaUrl : '/frame-13.gif')
+                              : (work.thumbnailUrl || work.mediaUrl)
+                          }
                           alt={work.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-contain bg-white group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                         />
                       )}
@@ -3540,7 +3546,13 @@ export default function AdminPage() {
 
                       {/* Media Type Badge */}
                       <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md text-neutral-300 font-mono text-[9px] font-bold uppercase tracking-wider border border-white/10">
-                        {isVideo ? 'VIDEO' : 'IMAGE'}
+                        {isVideo
+                          ? 'VIDEO'
+                          : work.mediaUrl?.endsWith('.gif') ||
+                            work.fileName?.endsWith('.gif') ||
+                            work.title?.toLowerCase().includes('frame 13')
+                          ? 'GIF'
+                          : 'IMAGE'}
                       </span>
                     </div>
 

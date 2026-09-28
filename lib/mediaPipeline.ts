@@ -95,32 +95,44 @@ export async function processUploadedImage(
   const webpName = `${sanitizedBase}-${fileHash}.webp`;
   const thumbName = `${sanitizedBase}-${fileHash}-thumb.webp`;
 
-  // 1. Read metadata via sharp with auto-rotation
-  const image = sharp(buffer).rotate();
+  const isGif = ext === '.gif' || mimeType === 'image/gif';
+  const masterFileName = isGif ? `${sanitizedBase}-${fileHash}.gif` : webpName;
+
+  // 1. Read metadata via sharp with auto-rotation (enable animated for GIFs)
+  const image = sharp(buffer, isGif ? { animated: true } : {}).rotate();
   const metadata = await image.metadata();
 
   const width = metadata.width || 1920;
-  const height = metadata.height || 1080;
+  const height = isGif && metadata.pageHeight ? metadata.pageHeight : (metadata.height || 1080);
   const { aspectRatio, orientation } = calculateAspectRatio(width, height);
 
-  let url = `/uploads/images/${webpName}`;
+  let url = isGif ? `/uploads/images/${masterFileName}` : `/uploads/images/${webpName}`;
   let originalUrl = `/uploads/originals/${originalName}`;
-  let optimizedUrl = `/uploads/images/${webpName}`;
+  let optimizedUrl = url;
   let thumbnailUrl = `/uploads/thumbnails/${thumbName}`;
   let fileSize = buffer.length;
 
   try {
-    // 2. Generate high-quality master WebP in memory (max 2560px bound)
-    const webpBuf = await sharp(buffer)
-      .rotate()
-      .resize({
-        width: width > height ? Math.min(width, 2560) : undefined,
-        height: height >= width ? Math.min(height, 2560) : undefined,
-        withoutEnlargement: true,
-        fit: 'inside',
-      })
-      .webp({ quality: 84, effort: 4, smartSubsample: true })
-      .toBuffer();
+    let masterBuf: Buffer;
+    let masterMime = 'image/webp';
+
+    if (isGif) {
+      // Preserve full animated GIF fidelity
+      masterBuf = buffer;
+      masterMime = 'image/gif';
+    } else {
+      // 2. Generate high-quality master WebP in memory (max 2560px bound)
+      masterBuf = await sharp(buffer)
+        .rotate()
+        .resize({
+          width: width > height ? Math.min(width, 2560) : undefined,
+          height: height >= width ? Math.min(height, 2560) : undefined,
+          withoutEnlargement: true,
+          fit: 'inside',
+        })
+        .webp({ quality: 84, effort: 4, smartSubsample: true })
+        .toBuffer();
+    }
 
     // 3. Generate responsive WebP thumbnail in memory (max 480px bound)
     const thumbBuf = await sharp(buffer)
@@ -134,12 +146,12 @@ export async function processUploadedImage(
       .webp({ quality: 80, effort: 3 })
       .toBuffer();
 
-    fileSize = webpBuf.length;
+    fileSize = masterBuf.length;
 
     // 4. Upload directly to Supabase Storage CDN (Permanent Cloud Media)
     try {
       const [uploadedMasterUrl, uploadedThumbUrl] = await Promise.all([
-        uploadToSupabaseStorage(`images/${webpName}`, webpBuf, 'image/webp'),
+        uploadToSupabaseStorage(`images/${masterFileName}`, masterBuf, masterMime),
         uploadToSupabaseStorage(`thumbnails/${thumbName}`, thumbBuf, 'image/webp'),
       ]);
 
@@ -158,19 +170,21 @@ export async function processUploadedImage(
       ensureUploadDirs();
       const originalPath = path.join(ORIGINALS_DIR, originalName);
       fs.writeFileSync(originalPath, buffer);
-      fs.writeFileSync(path.join(IMAGES_DIR, webpName), webpBuf);
+      fs.writeFileSync(path.join(IMAGES_DIR, masterFileName), masterBuf);
       fs.writeFileSync(path.join(THUMBNAILS_DIR, thumbName), thumbBuf);
 
       if (!url.startsWith('http')) {
-        url = `/uploads/images/${webpName}`;
-        optimizedUrl = `/uploads/images/${webpName}`;
+        url = `/uploads/images/${masterFileName}`;
+        optimizedUrl = `/uploads/images/${masterFileName}`;
         originalUrl = `/uploads/originals/${originalName}`;
         thumbnailUrl = `/uploads/thumbnails/${thumbName}`;
       }
     } catch {
-      // 6. Serverless fallback: If neither Supabase nor local disk succeeded, encode as WebP data URI
+      // 6. Serverless fallback: If neither Supabase nor local disk succeeded, encode as data URI
       if (!url.startsWith('http')) {
-        const dataUri = `data:image/webp;base64,${webpBuf.toString('base64')}`;
+        const dataUri = isGif
+          ? `data:image/gif;base64,${masterBuf.toString('base64')}`
+          : `data:image/webp;base64,${masterBuf.toString('base64')}`;
         url = dataUri;
         optimizedUrl = dataUri;
         originalUrl = dataUri;
@@ -183,9 +197,9 @@ export async function processUploadedImage(
 
   return {
     asset: {
-      fileName: webpName,
+      fileName: masterFileName,
       originalName: originalFilename,
-      mimeType: 'image/webp',
+      mimeType: isGif ? 'image/gif' : 'image/webp',
       fileSize,
       url,
       originalUrl,
