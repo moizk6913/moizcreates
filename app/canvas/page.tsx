@@ -572,10 +572,10 @@ function InfiniteCanvasContent() {
               }
             }}
             style={{
-              paddingTop: 'var(--modal-top-spacing, 28px)',
-              paddingBottom: 'var(--modal-top-spacing, 28px)',
+              paddingTop: 'clamp(12px, 2.5vh, 26px)',
+              paddingBottom: 'clamp(12px, 2.5vh, 26px)',
             }}
-            className="fixed inset-0 z-[10000] bg-white/40 backdrop-blur-3xl flex items-center justify-center px-3 sm:px-6 md:px-8 overflow-hidden select-text pointer-events-auto"
+            className="fixed inset-0 z-[10000] bg-white/40 backdrop-blur-3xl flex items-center justify-center px-2 sm:px-4 md:px-6 overflow-hidden select-text pointer-events-auto"
             role="dialog"
             aria-modal="true"
             aria-label={selectedFile.name}
@@ -585,10 +585,10 @@ function InfiniteCanvasContent() {
               data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
               style={{
-                height: 'calc(100vh - (var(--modal-top-spacing, 28px) * 2))',
-                maxHeight: '940px',
+                height: 'calc(100vh - (clamp(12px, 2.5vh, 26px) * 2))',
+                maxHeight: '960px',
               }}
-              className="relative w-full max-w-[1440px] bg-white apple-widget-lg rounded-[40px] sm:rounded-[48px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
+              className="relative w-full max-w-[1520px] bg-white apple-widget-lg rounded-[32px] sm:rounded-[44px] shadow-[0_30px_90px_rgba(0,0,0,0.16)] flex flex-col overflow-hidden select-auto"
             >
               {/* TOP NAVIGATION BAR (Clean, Prominent Tabs, Single Close Button) */}
               <header
@@ -878,7 +878,7 @@ function InfiniteCanvasContent() {
                               ) : group.id === 'stories' ? (
                                 /* STORIES: 9:16 Vertical Mobile Stories (Strictly 3 Up, 3 Down - Bold, Immersive Luxury Scale) */
                                 <div className="flex justify-center w-full">
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-7 w-full max-w-5xl">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-7 w-full max-w-5xl lg:max-w-6xl xl:max-w-[1240px]">
                                     {sec.items?.map((item: any) => {
                                       const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                       return (
@@ -902,7 +902,7 @@ function InfiniteCanvasContent() {
                               ) : (
                                 /* GRIDS: 3x3 Social Media Feed Layout (Centered, 4:5 Instagram Portrait - Generous Feed Scale) */
                                 <div className="flex justify-center w-full">
-                                  <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-xl sm:max-w-2xl md:max-w-3xl w-full">
+                                  <div className="grid grid-cols-3 gap-4 sm:gap-6 md:gap-7 w-full max-w-5xl lg:max-w-6xl xl:max-w-[1240px]">
                                     {sec.items?.map((item: any) => {
                                       const globalIdx = flatSectionDeliverables.findIndex((d) => d.url === item.url);
                                       return (
