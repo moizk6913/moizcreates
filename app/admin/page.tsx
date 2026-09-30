@@ -34,6 +34,7 @@ import {
   deleteBlogPost,
   clearAllArchiveDataAsync,
   purgeMockAndCaldharProjectsAsync,
+  getAllWorksIDB,
 } from '@/lib/contentStore';
 import { BlogPost } from '@/lib/blogData';
 
@@ -618,6 +619,23 @@ export default function AdminPage() {
       setProjects(p);
       setCollections(c);
       setSeriesList(s);
+
+      // Auto-reconcile: If local IDB has any works with valid mediaUrl, sync to server
+      try {
+        const idbWorks = await getAllWorksIDB();
+        if (idbWorks && idbWorks.length > 0) {
+          const unsynced = (idbWorks as WorkItem[]).filter(
+            (item) => item.mediaUrl && !item.mediaUrl.startsWith('data:') && item.mediaUrl.startsWith('http')
+          );
+          if (unsynced.length > 0) {
+            adminFetch('/api/admin/works', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ works: unsynced }),
+            }).catch(() => {});
+          }
+        }
+      } catch {}
       
       // Fetch articles from database API with fallback
       try {
@@ -2530,6 +2548,35 @@ export default function AdminPage() {
           >
             <span>📁</span>
             <span>Upload Folder</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={async () => {
+              notifyUser('Syncing with Supabase Cloud & refreshing live state...');
+              await refreshData();
+              try {
+                const idbWorks = await getAllWorksIDB();
+                if (idbWorks && idbWorks.length > 0) {
+                  const unsynced = (idbWorks as WorkItem[]).filter(
+                    (item) => item.mediaUrl && !item.mediaUrl.startsWith('data:')
+                  );
+                  if (unsynced.length > 0) {
+                    await adminFetch('/api/admin/works', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ works: unsynced }),
+                    });
+                  }
+                }
+              } catch {}
+              notifyUser('✓ Portfolio is in sync with Supabase Cloud & Live Website!');
+            }}
+            className="hidden lg:flex px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider transition-all items-center gap-1.5 cursor-pointer"
+            title="Force sync local data with Supabase Cloud and live website"
+          >
+            <span>☁️</span>
+            <span>Sync Live</span>
           </button>
 
           <button

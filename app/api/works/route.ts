@@ -32,46 +32,120 @@ export async function GET() {
 
     let presetIdx = 0;
 
+    const allMedia = await db.media.getAll();
+    const seenWorkUrls = new Set<string>();
+
     projects.forEach((proj) => {
       // If project has video, add video card first
       if (proj.videos && proj.videos.length > 0) {
-        const v = proj.videos[0];
-        const is916 = v.dimensions?.aspectRatio === '9:16';
-        flatItems.push({
-          id: `work-video-${proj.id}`,
-          projectId: proj.slug || proj.id,
-          brand: proj.client?.toUpperCase() || proj.title.toUpperCase(),
-          tag: proj.subcategory?.toUpperCase() || 'CAMPAIGN MOTION',
-          aspectClass: is916 ? 'aspect-[9/16]' : 'aspect-[16/9]',
-          bgAccent: 'bg-black',
-          mediaType: 'video',
-          mediaUrl: v.url,
-          posterUrl: v.posterUrl || proj.coverImage,
+        proj.videos.forEach((v, vIdx) => {
+          if (!v.url || seenWorkUrls.has(v.url)) return;
+          seenWorkUrls.add(v.url);
+          const is916 = v.dimensions?.aspectRatio === '9:16';
+          flatItems.push({
+            id: v.id || `work-video-${proj.id}-${vIdx}`,
+            projectId: proj.slug || proj.id,
+            brand: proj.client?.toUpperCase() || proj.title.toUpperCase(),
+            tag: proj.subcategory?.toUpperCase() || 'CAMPAIGN MOTION',
+            aspectClass: is916 ? 'aspect-[9/16]' : 'aspect-[16/9]',
+            bgAccent: 'bg-black',
+            mediaType: 'video',
+            mediaUrl: v.url,
+            posterUrl: v.posterUrl || proj.coverImage,
+          });
+        });
+      }
+
+      // Add section items if project has structured sections
+      if (Array.isArray(proj.sections) && proj.sections.length > 0) {
+        proj.sections.forEach((sec) => {
+          (sec.items || []).forEach((asset, sIdx) => {
+            const url = asset.optimizedUrl || asset.url;
+            if (!url || seenWorkUrls.has(url)) return;
+            seenWorkUrls.add(url);
+
+            const cfg = aspectPresets[presetIdx % aspectPresets.length];
+            presetIdx++;
+
+            let aspectClass = cfg.aspectClass;
+            const ar = asset.dimensions?.aspectRatio;
+            if (ar === '9:16') aspectClass = 'aspect-[9/16]';
+            else if (ar === '4:5') aspectClass = 'aspect-[4/5]';
+            else if (ar === '16:9') aspectClass = 'aspect-[16/9]';
+            else if (ar === '1:1') aspectClass = 'aspect-square';
+
+            flatItems.push({
+              id: asset.id || `work-sec-${proj.id}-${sec.id}-${sIdx}`,
+              projectId: proj.slug || proj.id,
+              brand: proj.client?.toUpperCase() || proj.title.toUpperCase(),
+              tag: sec.title.toUpperCase() || cfg.tag,
+              aspectClass,
+              bgAccent: cfg.bgAccent,
+              mediaType: asset.type === 'video' ? 'video' : 'image',
+              mediaUrl: url,
+              posterUrl: asset.thumbnailUrl || url,
+            });
+          });
         });
       }
 
       // Add gallery stills
-      proj.gallery.forEach((asset, idx) => {
-        const cfg = aspectPresets[presetIdx % aspectPresets.length];
-        presetIdx++;
+      if (Array.isArray(proj.gallery)) {
+        proj.gallery.forEach((asset, idx) => {
+          const url = asset.optimizedUrl || asset.url;
+          if (!url || seenWorkUrls.has(url)) return;
+          seenWorkUrls.add(url);
 
-        let aspectClass = cfg.aspectClass;
-        if (asset.dimensions?.aspectRatio === '9:16') aspectClass = 'aspect-[9/16]';
-        else if (asset.dimensions?.aspectRatio === '4:5') aspectClass = 'aspect-[4/5]';
-        else if (asset.dimensions?.aspectRatio === '16:9') aspectClass = 'aspect-[16/9]';
-        else if (asset.dimensions?.aspectRatio === '1:1') aspectClass = 'aspect-square';
+          const cfg = aspectPresets[presetIdx % aspectPresets.length];
+          presetIdx++;
 
-        flatItems.push({
-          id: `work-item-${proj.id}-${idx}`,
-          projectId: proj.slug || proj.id,
-          brand: proj.client?.toUpperCase() || proj.title.toUpperCase(),
-          tag: cfg.tag,
-          aspectClass,
-          bgAccent: cfg.bgAccent,
-          mediaType: 'image',
-          mediaUrl: asset.optimizedUrl || asset.url,
-          posterUrl: asset.thumbnailUrl || asset.url,
+          let aspectClass = cfg.aspectClass;
+          if (asset.dimensions?.aspectRatio === '9:16') aspectClass = 'aspect-[9/16]';
+          else if (asset.dimensions?.aspectRatio === '4:5') aspectClass = 'aspect-[4/5]';
+          else if (asset.dimensions?.aspectRatio === '16:9') aspectClass = 'aspect-[16/9]';
+          else if (asset.dimensions?.aspectRatio === '1:1') aspectClass = 'aspect-square';
+
+          flatItems.push({
+            id: asset.id || `work-item-${proj.id}-${idx}`,
+            projectId: proj.slug || proj.id,
+            brand: proj.client?.toUpperCase() || proj.title.toUpperCase(),
+            tag: cfg.tag,
+            aspectClass,
+            bgAccent: cfg.bgAccent,
+            mediaType: asset.type === 'video' ? 'video' : 'image',
+            mediaUrl: url,
+            posterUrl: asset.thumbnailUrl || url,
+          });
         });
+      }
+    });
+
+    // Also include standalone media items (e.g. Playground experiments)
+    allMedia.forEach((m, mIdx) => {
+      const url = m.optimizedUrl || m.url;
+      if (!url || seenWorkUrls.has(url)) return;
+      seenWorkUrls.add(url);
+
+      const isVideo = m.type === 'video' || url.endsWith('.mp4');
+      const cfg = aspectPresets[presetIdx % aspectPresets.length];
+      presetIdx++;
+
+      let aspectClass = isVideo ? 'aspect-[9/16]' : cfg.aspectClass;
+      if (m.dimensions?.aspectRatio === '9:16') aspectClass = 'aspect-[9/16]';
+      else if (m.dimensions?.aspectRatio === '4:5') aspectClass = 'aspect-[4/5]';
+      else if (m.dimensions?.aspectRatio === '16:9') aspectClass = 'aspect-[16/9]';
+      else if (m.dimensions?.aspectRatio === '1:1') aspectClass = 'aspect-square';
+
+      flatItems.push({
+        id: m.id || `work-standalone-${mIdx}`,
+        projectId: m.projectId || 'standalone',
+        brand: 'DIRECTORIAL LAB',
+        tag: 'EXPERIMENT',
+        aspectClass,
+        bgAccent: cfg.bgAccent,
+        mediaType: isVideo ? 'video' : 'image',
+        mediaUrl: url,
+        posterUrl: m.thumbnailUrl || url,
       });
     });
 
@@ -85,6 +159,7 @@ export async function GET() {
       rowOne,
       rowTwo,
       projects,
+      media: allMedia,
     });
   } catch (error: any) {
     console.error('[Public Works API] Error:', error);

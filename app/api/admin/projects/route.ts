@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
     const targetCategory = (categoryId && typeof categoryId === 'string' && categoryId.trim()) ? categoryId.trim() : 'art-direction';
 
     const created = await db.projects.create({
+      id: body.id,
       title: title.trim(),
       slug: body.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
       shortDescription: body.shortDescription || '',
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       coverMediaId: body.coverMediaId || null,
       gallery: Array.isArray(body.gallery) ? body.gallery : [],
       videos: Array.isArray(body.videos) ? body.videos : [],
+      sections: Array.isArray(body.sections) ? body.sections : [],
       client: body.client || '',
       year: body.year || new Date().getFullYear().toString(),
       services: Array.isArray(body.services) ? body.services : [],

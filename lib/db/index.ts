@@ -260,6 +260,7 @@ function enqueueWrite(updater: (db: DatabaseSchema) => void | Promise<void>): Pr
     try {
       const { syncDatabaseToSupabase } = await import('../supabaseClient');
       await syncDatabaseToSupabase(current);
+      lastSupabaseFetchTime = Date.now();
     } catch (syncErr) {
       console.warn('[Database] Supabase cloud sync skipped:', syncErr);
     }
@@ -277,9 +278,14 @@ function enqueueWrite(updater: (db: DatabaseSchema) => void | Promise<void>): Pr
   return task;
 }
 
-let supabaseSyncDone = false;
-export async function ensureSupabaseSync(): Promise<void> {
-  if (supabaseSyncDone) return;
+let lastSupabaseFetchTime = 0;
+const SUPABASE_CACHE_TTL_MS = 5000; // 5-second TTL for revalidation on serverless
+
+export async function ensureSupabaseSync(force: boolean = false): Promise<void> {
+  const now = Date.now();
+  if (!force && memoryCache && (now - lastSupabaseFetchTime < SUPABASE_CACHE_TTL_MS)) {
+    return;
+  }
 
   try {
     const { fetchDatabaseFromSupabase } = await import('../supabaseClient');
@@ -290,7 +296,7 @@ export async function ensureSupabaseSync(): Promise<void> {
       } else if (memoryCache && cloudData.settings) {
         memoryCache.settings = { ...memoryCache.settings, ...cloudData.settings };
       }
-      supabaseSyncDone = true;
+      lastSupabaseFetchTime = Date.now();
       console.log('[Database] Loaded fresh state from Supabase Cloud');
     }
   } catch (err) {
@@ -378,10 +384,10 @@ export const db = {
       return data.projects.find((p) => p.id === id || p.slug === id) || null;
     },
 
-    create: async (item: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+    create: async (item: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
       let created: Project | null = null;
       await enqueueWrite((data) => {
-        const id = `proj-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
+        const id = item.id || `proj-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
         const now = new Date().toISOString();
         const maxOrder = data.projects.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0);
 
@@ -529,10 +535,10 @@ export const db = {
       return data.media.find((m) => m.id === id) || null;
     },
 
-    create: async (asset: Omit<MediaAsset, 'id' | 'createdAt'>) => {
+    create: async (asset: Omit<MediaAsset, 'id' | 'createdAt'> & { id?: string }) => {
       let created: MediaAsset | null = null;
       await enqueueWrite((data) => {
-        const id = `media-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
+        const id = asset.id || `media-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
         created = {
           ...asset,
           id,
@@ -544,19 +550,23 @@ export const db = {
         if (asset.projectId) {
           const proj = data.projects.find((p) => p.id === asset.projectId || p.slug === asset.projectId);
           if (proj) {
-            if (!proj.gallery.some((g) => g.url === created!.url)) {
+            if (!Array.isArray(proj.gallery)) proj.gallery = [];
+            if (!proj.gallery.some((g) => g.id === created!.id || g.url === created!.url)) {
               proj.gallery.push(created!);
             }
-            if (created!.type === 'video' && !proj.videos.some((v) => v.url === created!.url)) {
-              proj.videos.push({
-                id: created!.id,
-                url: created!.url,
-                posterUrl: created!.thumbnailUrl || created!.url,
-                duration: created!.dimensions?.duration,
-                dimensions: created!.dimensions,
-                type: 'direct',
-                title: created!.altText,
-              });
+            if (created!.type === 'video') {
+              if (!Array.isArray(proj.videos)) proj.videos = [];
+              if (!proj.videos.some((v) => v.id === created!.id || v.url === created!.url)) {
+                proj.videos.push({
+                  id: created!.id,
+                  url: created!.url,
+                  posterUrl: created!.thumbnailUrl || created!.url,
+                  duration: created!.dimensions?.duration,
+                  dimensions: created!.dimensions,
+                  type: 'direct',
+                  title: created!.altText,
+                });
+              }
             }
             if (!proj.coverImage || proj.coverImage.includes('unsplash')) {
               proj.coverImage = created!.optimizedUrl || created!.url;
@@ -568,18 +578,99 @@ export const db = {
       return created!;
     },
 
-    delete: async (id: string) => {
+    batchUpsert: async (assets: Array<Omit<MediaAsset, 'createdAt'> & { createdAt?: string }>) => {
+      const results: MediaAsset[] = [];
+      await enqueueWrite((data) => {
+        const now = new Date().toISOString();
+        if (!Array.isArray(data.media)) data.media = [];
+
+        for (const item of assets) {
+          const id = item.id || `media-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
+          const existingIdx = data.media.findIndex((m) => m.id === id || (item.url && m.url === item.url));
+          const mediaItem: MediaAsset = {
+            ...item,
+            id,
+            createdAt: item.createdAt || (existingIdx >= 0 ? data.media[existingIdx].createdAt : now),
+          };
+
+          if (existingIdx >= 0) {
+            data.media[existingIdx] = { ...data.media[existingIdx], ...mediaItem };
+          } else {
+            data.media.push(mediaItem);
+          }
+          results.push(mediaItem);
+
+          // If linked to a project, add or update in project's gallery
+          if (mediaItem.projectId) {
+            const proj = data.projects.find((p) => p.id === mediaItem.projectId || p.slug === mediaItem.projectId);
+            if (proj) {
+              if (!Array.isArray(proj.gallery)) proj.gallery = [];
+              const galIdx = proj.gallery.findIndex((g) => g.id === mediaItem.id || g.url === mediaItem.url);
+              if (galIdx >= 0) {
+                proj.gallery[galIdx] = { ...proj.gallery[galIdx], ...mediaItem };
+              } else {
+                proj.gallery.push(mediaItem);
+              }
+
+              if (mediaItem.type === 'video') {
+                if (!Array.isArray(proj.videos)) proj.videos = [];
+                const vidIdx = proj.videos.findIndex((v) => v.id === mediaItem.id || v.url === mediaItem.url);
+                const vidObj: any = {
+                  id: mediaItem.id,
+                  url: mediaItem.url,
+                  posterUrl: mediaItem.thumbnailUrl || mediaItem.url,
+                  duration: mediaItem.dimensions?.duration,
+                  dimensions: mediaItem.dimensions,
+                  type: 'direct',
+                  title: mediaItem.altText,
+                };
+                if (vidIdx >= 0) {
+                  proj.videos[vidIdx] = { ...proj.videos[vidIdx], ...vidObj };
+                } else {
+                  proj.videos.push(vidObj);
+                }
+              }
+
+              if (!proj.coverImage || proj.coverImage.includes('unsplash')) {
+                proj.coverImage = mediaItem.optimizedUrl || mediaItem.url;
+                proj.coverMediaId = mediaItem.id;
+              }
+            }
+          }
+        }
+      });
+      return results;
+    },
+
+    delete: async (idOrUrl: string) => {
       let success = false;
       await enqueueWrite((data) => {
-        const idx = data.media.findIndex((m) => m.id === id);
-        if (idx >= 0) {
-          data.media.splice(idx, 1);
-          // Remove from projects
-          data.projects.forEach((p) => {
-            p.gallery = p.gallery.filter((g) => g.id !== id);
-          });
-          success = true;
-        }
+        const initialCount = data.media.length;
+        data.media = data.media.filter((m) => m.id !== idOrUrl && m.url !== idOrUrl && !m.url.includes(idOrUrl));
+        if (data.media.length !== initialCount) success = true;
+
+        // Remove from all project galleries, videos, and sections
+        data.projects.forEach((p) => {
+          if (Array.isArray(p.gallery)) {
+            const prevG = p.gallery.length;
+            p.gallery = p.gallery.filter((g) => g.id !== idOrUrl && g.url !== idOrUrl && !g.url.includes(idOrUrl));
+            if (p.gallery.length !== prevG) success = true;
+          }
+          if (Array.isArray(p.videos)) {
+            p.videos = p.videos.filter((v) => v.id !== idOrUrl && v.url !== idOrUrl && !v.url.includes(idOrUrl));
+          }
+          if (Array.isArray(p.sections)) {
+            p.sections.forEach((s) => {
+              if (Array.isArray(s.items)) {
+                s.items = s.items.filter((it) => it.id !== idOrUrl && it.url !== idOrUrl && !it.url.includes(idOrUrl));
+              }
+            });
+          }
+          if (p.coverMediaId === idOrUrl) {
+            p.coverMediaId = p.gallery?.[0]?.id || null;
+            p.coverImage = p.gallery?.[0]?.optimizedUrl || p.gallery?.[0]?.url || '';
+          }
+        });
       });
       return success;
     },

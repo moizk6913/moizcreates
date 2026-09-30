@@ -37,11 +37,39 @@ export async function PUT(
     const body = await request.json();
 
     const updated = await db.projects.update(id, body);
-    if (!updated) {
-      return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    let finalProject: any = updated;
+    if (!finalProject) {
+      if (body.title) {
+        // Upsert fallback if project was created with this client ID
+        finalProject = await db.projects.create({
+          id,
+          title: body.title,
+          slug: body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          shortDescription: body.shortDescription || '',
+          fullDescription: body.fullDescription || '',
+          categoryId: body.categoryId || 'art-direction',
+          subcategory: body.subcategory || '',
+          tags: Array.isArray(body.tags) ? body.tags : [],
+          coverImage: body.coverImage || 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=900&auto=format&fit=crop&q=80',
+          coverMediaId: body.coverMediaId || null,
+          gallery: Array.isArray(body.gallery) ? body.gallery : [],
+          videos: Array.isArray(body.videos) ? body.videos : [],
+          sections: Array.isArray(body.sections) ? body.sections : [],
+          client: body.client || '',
+          year: body.year || new Date().getFullYear().toString(),
+          services: Array.isArray(body.services) ? body.services : [],
+          role: body.role || 'Lead Art Director',
+          credits: Array.isArray(body.credits) ? body.credits : [],
+          featured: Boolean(body.featured),
+          displayOrder: typeof body.displayOrder === 'number' ? body.displayOrder : 999,
+          status: body.status === 'published' ? 'published' : body.status === 'archived' ? 'archived' : 'draft',
+        });
+      } else {
+        return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+      }
     }
 
-    return NextResponse.json({ success: true, project: updated });
+    return NextResponse.json({ success: true, project: finalProject });
   } catch (error: any) {
     console.error('[Admin Project PUT] Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -27,6 +27,8 @@ import {
   clearAllStoresIDB,
 } from './idbStore';
 
+export { getAllWorksIDB } from './idbStore';
+
 // ==========================================
 // CORE DOMAIN TYPES: UPLOAD FIRST, ORGANIZE SECOND
 // ==========================================
@@ -244,17 +246,22 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
       const data = await res.json();
       if (data.success && Array.isArray(data.projects)) {
         const serverWorks: WorkItem[] = [];
+        const seenUrls = new Set<string>();
 
         data.projects.forEach((proj: any) => {
+          // 1. Gather all items from structured sections
           if (Array.isArray(proj.sections) && proj.sections.length > 0) {
             proj.sections.forEach((sec: any) => {
               (sec.items || []).forEach((it: any, itIdx: number) => {
+                const url = it.optimizedUrl || it.url;
+                if (!url) return;
+                seenUrls.add(url);
                 serverWorks.push({
                   id: it.id || `work-${proj.id}-${sec.id}-${itIdx}`,
                   title: it.altText || it.originalName || `${sec.title} #${itIdx + 1}`,
-                  mediaUrl: it.optimizedUrl || it.url,
-                  thumbnailUrl: it.thumbnailUrl || it.optimizedUrl || it.url,
-                  mediaType: it.type || (it.url?.endsWith('.mp4') ? 'video' : 'image'),
+                  mediaUrl: url,
+                  thumbnailUrl: it.thumbnailUrl || it.optimizedUrl || url,
+                  mediaType: it.type || (url.endsWith('.mp4') ? 'video' : 'image'),
                   fileType: it.mimeType || 'image/webp',
                   fileName: it.originalName || it.fileName || `${proj.slug}-${itIdx}.webp`,
                   fileSize: it.fileSize || 100000,
@@ -278,13 +285,19 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
                 });
               });
             });
-          } else if (Array.isArray(proj.gallery)) {
+          }
+
+          // 2. Also gather any items from proj.gallery that were not in sections
+          if (Array.isArray(proj.gallery)) {
             proj.gallery.forEach((g: any, idx: number) => {
+              const url = g.optimizedUrl || g.url;
+              if (!url || seenUrls.has(url)) return;
+              seenUrls.add(url);
               serverWorks.push({
                 id: g.id || `work-${proj.id}-${idx}`,
                 title: g.altText || `${proj.title} Frame #${idx + 1}`,
-                mediaUrl: g.optimizedUrl || g.url,
-                thumbnailUrl: g.thumbnailUrl || g.optimizedUrl || g.url,
+                mediaUrl: url,
+                thumbnailUrl: g.thumbnailUrl || g.optimizedUrl || url,
                 mediaType: g.type || 'image',
                 fileType: g.mimeType || 'image/webp',
                 fileName: g.fileName || `${proj.slug}-${idx + 1}.webp`,
@@ -310,8 +323,11 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
             });
           }
 
+          // 3. Videos
           if (Array.isArray(proj.videos)) {
             proj.videos.forEach((v: any, vIdx: number) => {
+              if (!v.url || seenUrls.has(v.url)) return;
+              seenUrls.add(v.url);
               serverWorks.push({
                 id: v.id || `video-${proj.id}-${vIdx}`,
                 title: v.title || `${proj.title} Motion Sequence`,
@@ -344,12 +360,55 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
           }
         });
 
+        // 4. Also fetch standalone media from /api/works
+        try {
+          const worksRes = await fetch('/api/works');
+          if (worksRes.ok) {
+            const wData = await worksRes.json();
+            if (Array.isArray(wData.media)) {
+              wData.media.forEach((m: any, mIdx: number) => {
+                const url = m.optimizedUrl || m.url;
+                if (!url || seenUrls.has(url)) return;
+                seenUrls.add(url);
+                const isVideo = m.type === 'video' || url.endsWith('.mp4');
+                serverWorks.push({
+                  id: m.id || `media-${mIdx}`,
+                  title: m.altText || m.fileName || 'Directorial Work',
+                  mediaUrl: url,
+                  thumbnailUrl: m.thumbnailUrl || url,
+                  mediaType: isVideo ? 'video' : 'image',
+                  fileType: m.mimeType || (isVideo ? 'video/mp4' : 'image/webp'),
+                  fileName: m.fileName || 'asset',
+                  fileSize: m.fileSize || 100000,
+                  dimensions: m.dimensions || {
+                    width: 1920,
+                    height: 1080,
+                    aspectRatio: isVideo ? '9:16' : '4:5',
+                    orientation: isVideo ? 'vertical' : 'vertical',
+                  },
+                  workType: isVideo ? 'Kinetic Reel' : 'Editorial Still',
+                  disciplines: ['Playground', 'Lab'],
+                  tags: ['Lab', 'Experiment'],
+                  projectId: m.projectId || null,
+                  collectionIds: [],
+                  seriesId: null,
+                  client: 'DIRECTORIAL LAB',
+                  year: '2026',
+                  status: 'published',
+                  createdAt: m.createdAt ? new Date(m.createdAt).getTime() : Date.now(),
+                  updatedAt: m.createdAt ? new Date(m.createdAt).getTime() : Date.now(),
+                });
+              });
+            }
+          }
+        } catch {}
+
         // Merge any locally added standalone works from IDB
         try {
           const idbWorks = await getAllWorksIDB();
           if (idbWorks && idbWorks.length > 0) {
             const serverIds = new Set(serverWorks.map((w) => w.id));
-            const standalone = (idbWorks as WorkItem[]).filter((w) => !serverIds.has(w.id));
+            const standalone = (idbWorks as WorkItem[]).filter((w) => !serverIds.has(w.id) && !seenUrls.has(w.mediaUrl));
             serverWorks.push(...standalone);
           }
         } catch {}
@@ -383,32 +442,7 @@ export async function getStoredWorksAsync(): Promise<WorkItem[]> {
 }
 
 export async function saveWorkAsync(work: WorkItem): Promise<void> {
-  if (typeof window === 'undefined') return;
-  const now = Date.now();
-  const prepared: WorkItem = {
-    ...work,
-    updatedAt: now,
-    createdAt: work.createdAt || now,
-  };
-
-  try {
-    await saveWorkIDB(prepared as IDBWorkItem);
-  } catch (err) {
-    console.warn('Error saving work to IDB:', err);
-  }
-
-  // Update lightweight index in localStorage (without heavy base64 strings)
-  try {
-    const existing = await getStoredWorksAsync();
-    const lightweight: WorkItem = {
-      ...prepared,
-      mediaUrl: prepared.mediaUrl.length > 1000 ? '' : prepared.mediaUrl, // exclude heavy data URLs from localStorage
-    };
-    const updated = [lightweight, ...existing.filter((w) => w.id !== work.id)];
-    localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(updated.slice(0, 100)));
-  } catch {}
-
-  notifyCanvasUpdated();
+  await saveWorksBatchAsync([work]);
 }
 
 export async function saveWorksBatchAsync(works: WorkItem[]): Promise<void> {
@@ -420,50 +454,85 @@ export async function saveWorksBatchAsync(works: WorkItem[]): Promise<void> {
     createdAt: w.createdAt || (now + idx),
   }));
 
+  // 1. Fast local IDB persistence
   try {
     await saveWorksBatchIDB(prepared as IDBWorkItem[]);
   } catch (err) {
     console.warn('Error batch saving works to IDB:', err);
   }
 
+  // 2. Sync directly to Server Database & Supabase Cloud
+  try {
+    await fetch('/api/admin/works', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify({ works: prepared }),
+    });
+  } catch (err) {
+    console.warn('Could not sync works to server API:', err);
+  }
+
+  // 3. Update lightweight index in localStorage
+  try {
+    const existing = await getStoredWorksAsync();
+    const map = new Map(existing.map((w) => [w.id, w]));
+    prepared.forEach((w) => {
+      map.set(w.id, {
+        ...w,
+        mediaUrl: w.mediaUrl.length > 1000 ? '' : w.mediaUrl,
+      });
+    });
+    localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(Array.from(map.values()).slice(0, 100)));
+  } catch {}
+
   notifyCanvasUpdated();
 }
 
 export async function deleteWorkAsync(id: string): Promise<void> {
-  if (typeof window === 'undefined') return;
+  await deleteWorksBatchAsync([id]);
+}
 
-  // 1. Delete on server database API
+export async function deleteWorksBatchAsync(ids: string[]): Promise<void> {
+  if (typeof window === 'undefined' || !ids.length) return;
+
+  // 1. Delete on server database API & Supabase Cloud
   try {
-    await fetch(`/api/admin/media/${id}`, { method: 'DELETE' });
+    await fetch('/api/admin/works', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify({ ids }),
+    });
   } catch (apiErr) {
-    console.warn('Could not delete media on server API:', apiErr);
+    console.warn('Could not delete works on server API:', apiErr);
   }
 
-  // 2. Delete from Works IDB
+  // 2. Delete from IDB
   try {
-    await deleteWorkIDB(id);
+    await deleteWorksBatchIDB(ids);
   } catch (err) {
-    console.warn('Error deleting work from IDB:', err);
+    console.warn('Error batch deleting works from IDB:', err);
   }
 
-  // 2. Delete from Works localStorage index
+  // 3. Delete from localStorage index
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.WORKS_INDEX);
     if (raw) {
       const items: WorkItem[] = JSON.parse(raw);
-      const filtered = items.filter((w) => w.id !== id);
+      const idSet = new Set(ids);
+      const filtered = items.filter((w) => !idSet.has(w.id));
       localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(filtered));
     }
   } catch {}
 
-  // 3. Clean up from legacy canvas_files IDB store & canvas localStorage
+  // 4. Clean up from legacy canvas_files IDB store & canvas localStorage
   try {
+    const idSet = new Set(ids);
     const legacyFiles = await getAllCanvasFilesIDB();
     for (const lf of legacyFiles) {
-      if (lf.id === id) {
-        await deleteCanvasFileIDB(id);
+      if (idSet.has(lf.id)) {
+        await deleteCanvasFileIDB(lf.id);
       } else if (lf.photos && lf.photos.length > 0) {
-        const remaining = lf.photos.filter((p: string) => p !== id && !p.includes(id));
+        const remaining = lf.photos.filter((p: string) => !idSet.has(p) && !Array.from(idSet).some((id) => p.includes(id)));
         if (remaining.length !== lf.photos.length) {
           if (remaining.length === 0) {
             await deleteCanvasFileIDB(lf.id);
@@ -479,29 +548,9 @@ export async function deleteWorkAsync(id: string): Promise<void> {
     const rawCanvas = localStorage.getItem(STORAGE_KEYS.CANVAS_FILES);
     if (rawCanvas) {
       const arr = JSON.parse(rawCanvas);
-      const filtered = arr.filter((x: any) => x.id !== id);
-      localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(filtered));
-    }
-  } catch {}
-
-  notifyCanvasUpdated();
-}
-
-export async function deleteWorksBatchAsync(ids: string[]): Promise<void> {
-  if (typeof window === 'undefined' || !ids.length) return;
-  try {
-    await deleteWorksBatchIDB(ids);
-  } catch (err) {
-    console.warn('Error batch deleting works from IDB:', err);
-  }
-
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.WORKS_INDEX);
-    if (raw) {
-      const items: WorkItem[] = JSON.parse(raw);
       const idSet = new Set(ids);
-      const filtered = items.filter((w) => !idSet.has(w.id));
-      localStorage.setItem(STORAGE_KEYS.WORKS_INDEX, JSON.stringify(filtered));
+      const filtered = arr.filter((x: any) => !idSet.has(x.id));
+      localStorage.setItem(STORAGE_KEYS.CANVAS_FILES, JSON.stringify(filtered));
     }
   } catch {}
 
@@ -592,6 +641,7 @@ export async function saveProjectAsync(project: Project): Promise<void> {
   // 1. Sync to Server Database API
   try {
     const payload = {
+      id: prepared.id,
       title: prepared.title,
       slug: prepared.slug,
       shortDescription: prepared.overview?.slice(0, 140) || '',
@@ -603,6 +653,11 @@ export async function saveProjectAsync(project: Project): Promise<void> {
       tags: [prepared.role, prepared.tag].filter(Boolean),
       status: prepared.status || 'published',
       featured: prepared.featured ?? true,
+      coverImage: (project as any).coverImage || (project as any).img,
+      coverMediaId: prepared.coverWorkId,
+      gallery: (project as any).gallery,
+      videos: (project as any).videos,
+      sections: (project as any).sections,
     };
 
     const putRes = await fetch(`/api/admin/projects/${prepared.id}`, {
@@ -611,14 +666,11 @@ export async function saveProjectAsync(project: Project): Promise<void> {
       body: JSON.stringify(payload),
     });
 
-    if (!putRes.ok && putRes.status === 404) {
+    if (!putRes.ok) {
       await fetch('/api/admin/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({
-          ...payload,
-          id: prepared.id,
-        }),
+        body: JSON.stringify(payload),
       });
     }
   } catch (apiErr) {
@@ -974,7 +1026,19 @@ export async function getStoredCanvasFilesAsync(): Promise<DynamicCanvasFile[]> 
         const data = await res.json();
         if (data.success && Array.isArray(data.projects) && data.projects.length > 0) {
           const mapped: DynamicCanvasFile[] = data.projects.map((proj: any) => {
-            const photos = proj.gallery?.map((g: any) => g.optimizedUrl || g.url) || [];
+            const galleryPhotos = proj.gallery?.map((g: any) => g.optimizedUrl || g.url) || [];
+            const sectionPhotos: string[] = [];
+            if (Array.isArray(proj.sections)) {
+              proj.sections.forEach((sec: any) => {
+                (sec.items || []).forEach((it: any) => {
+                  const u = it.optimizedUrl || it.url;
+                  if (u && !sectionPhotos.includes(u) && !galleryPhotos.includes(u)) {
+                    sectionPhotos.push(u);
+                  }
+                });
+              });
+            }
+            const photos = [...galleryPhotos, ...sectionPhotos];
             return {
               id: proj.slug || proj.id,
               code: proj.tags?.[0] || 'ARCHIVE',
